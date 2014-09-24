@@ -1,5 +1,5 @@
 var Class = require('../libs/class'),
-	math = require('math');
+	classes3D = require('classes3D');
 
 /** @class Mesh
  * @extends {Class} */
@@ -23,11 +23,11 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._materials = materials;
 
 		/** @private
-		 * @type {{position: math.Vector3, rotation: math.Vector3, scale: math.Vector3}} */
+		 * @type {{position: classes3D.Vector3, rotation: classes3D.Vector3, scale: classes3D.Vector3}} */
 		this._transformations = {
-			position: new math.Vector3(0, 0, 0),
-			rotation: new math.Vector3(0, 0, 0),
-			scale: new math.Vector3(0, 0, 0)
+			position: new classes3D.Vector3(0, 0, 0),
+			rotation: new classes3D.Vector3(0, 0, 0),
+			scale: new classes3D.Vector3(0, 0, 0)
 		};
 
 		this._vertexIndexBuffers = {};
@@ -132,7 +132,7 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 	},
 
 	/** @public
-	 * @returns {{position: math.Vector3, rotation: math.Vector3, scale: math.Vector3}} */
+	 * @returns {{position: classes3D.Vector3, rotation: classes3D.Vector3, scale: classes3D.Vector3}} */
 	getTransformations : function () {
 		return this._transformations;
 	}

@@ -2,7 +2,7 @@ webGLEngine
 ===========
 The library that can simplify work with webGL
 
-RELEASES
+Releases
 --------
 	v0.2
 		- dev branch added;

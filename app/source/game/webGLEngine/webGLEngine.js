@@ -2,6 +2,7 @@ var Class = require('./../libs/class'),
 	utils = require('./../libs/utils'),
 	config = require('./webGLConfig'),
 	glMatrix = require('glMatrix'),
+	classes3d = require('./classes3d'),
 	Mesh = require('./mesh');
 
 /** @class Engine
@@ -59,7 +60,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		this.initGL();
 		this.initShaders();
 
-//		this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+				this.gl.clearColor(0.2, 0.2, 0.2, 1.0);
 		this.gl.enable(this.gl.DEPTH_TEST);
 
 		setInterval(utils.bind(this.drawScene, this), 30);
@@ -195,7 +196,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		if (this.lastTime != 0) {
 			var elapsed = timeNow - this.lastTime;
 
-			this.rTri += (90 * elapsed) / 100000.0;
+			this.rTri += (90 * elapsed) / 1000000.0;
 		}
 		this.lastTime = timeNow;
 
@@ -206,7 +207,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
-		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, -700.2]);
+		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, 0.2]);
 		glMatrix.mat4.rotate(this.mvMatrix, this.rTri, [0, 1, 0]);
 
 		// draw meshes
@@ -299,7 +300,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	parseObjFile : function (objFile, path) {
 		var i, j, nodes, material,
 			vertexes = [], textures = [], normals = [], faces = { noMaterial : [] },
-			vertex = [], texture = [], normal = [], materials = [],
+			vertex = [], texture = [], normal = [], materials = {},
 			currentMaterial = 'noMaterial',
 			require, objList, mesh, materialPath;
 
@@ -309,6 +310,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			switch (nodes[0]) {
 				case 'v':
 					for (j = 1; j < nodes.length; j++) {
+						if (nodes[j] === '') continue;
 						vertexes.push(Number(nodes[j]));
 					}
 					break;
@@ -332,14 +334,17 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 						//							console.log('face isn\'t triangle');
 					}
 					var lastFace = null, firstFace = null;
-					for (j = 1; j < nodes.length; j++) {
+					for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
 						/** @class Face */
-						var faceArray = nodes[j].split('/'),
-							face = {
-								vertexIndex  : Number(faceArray[0]),
-								textureIndex : faceArray.length > 1 ? Number(faceArray[1]) : 0,
-								normalIndex  : faceArray.length > 2 ? Number(faceArray[2]) : 0
-							};
+						var faceArray = nodes[j].split('/'), face;
+
+						if (isNaN(faceArray[0])) break;
+
+						face = {
+							vertexIndex  : Number(faceArray[0]),
+							textureIndex : faceArray.length > 1 ? Number(faceArray[1]) : 0,
+							normalIndex  : faceArray.length > 2 ? Number(faceArray[2]) : 0
+						};
 
 						if (j >= 4) {
 							faces[currentMaterial].push(firstFace);
@@ -379,6 +384,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		}
 
 		console.log('parsed');
+		materials['noMaterial'] = new classes3d.Material();
 		mesh = new Mesh(this.gl, vertexes, textures, normals, faces, materials);
 		this.meshes.push(mesh);
 		return mesh;
@@ -394,12 +400,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			nodes = mtlList[i].split(' ');
 			switch (nodes[0]) {
 				case 'newmtl':
-					material = {
-						diffuseColor : [0, 0, 0],
-						imageLink    : '',
-						ready        : true,
-						texture      : null
-					};
+					material = new classes3d.Material();
 					allMaterials[nodes[1]] = material;
 					currentMaterial = material;
 					break;
