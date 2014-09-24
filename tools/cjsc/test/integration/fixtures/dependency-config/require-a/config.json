@@ -1,0 +1,10 @@
+{
+	"jQuery": {
+		"path": "./test/integration/fixtures/dependency-config/require-a/jquery-stub.js"
+	},
+	"plugin": {
+		"path": "./test/integration/fixtures/dependency-config/require-a/jquery-plugin-stub.js",
+		"require": "jQuery",
+		"exports": "jQuery"
+	}
+}

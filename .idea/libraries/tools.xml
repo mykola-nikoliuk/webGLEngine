@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="tools" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/tools" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/tools" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,6 @@
+{
+	"glMatrix" : {
+		"path"    : "../../../app/source/game/webGLEngine/glMatrix-0.9.5.min.js",
+		"exports" : ["mat4"]
+	}
+}
