@@ -2,6 +2,7 @@ var Class = require('./../libs/class'),
 	utils = require('./../libs/utils'),
 	config = require('./webGLConfig'),
 	glMatrix = require('glMatrix'),
+	classes3d = require('./'),
 	Mesh = require('./mesh');
 
 /** @class Engine
@@ -27,8 +28,10 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		/** @private */
 		this.mvMatrixStack = [];
 
-		/** @private */
-		this.rTri = 0;
+		this._camera = {
+			position : null,
+			rotation : null
+		};
 
 		/** @private */
 		this.lastTime = new Date().getTime();
@@ -195,19 +198,19 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		if (this.lastTime != 0) {
 			var elapsed = timeNow - this.lastTime;
 
-			this.rTri += (90 * elapsed) / 100000.0;
+			this.rTri += (90 * elapsed) / 1000000.0;
 		}
 		this.lastTime = timeNow;
 
 		this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-		glMatrix.mat4.perspective(45, this.gl.viewportWidth / this.gl.viewportHeight, 1, 10000.0, this.pMatrix);
+		glMatrix.mat4.perspective(90, this.gl.viewportWidth / this.gl.viewportHeight, 1, 10000.0, this.pMatrix);
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
-		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, -700.2]);
 		glMatrix.mat4.rotate(this.mvMatrix, this.rTri, [0, 1, 0]);
+		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, 0.0]);
 
 		// draw meshes
 		for (i = 0; i < this.meshes.length; i++) {
@@ -222,11 +225,11 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			transformations = this.meshes[i].getTransformations();
 
 			// apply matrix transformations
-			glMatrix.mat4.translate(this.mvMatrix,
-				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.z, [0, 0, 1]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.y, [0, 1, 0]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.x, [1, 0, 0]);
+			glMatrix.mat4.translate(this.mvMatrix,
+				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexPositionBuffer);
 			this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
@@ -276,6 +279,11 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			this.gl.viewportWidth = window.innerWidth;
 			this.gl.viewportHeight = window.innerHeight;
 		}
+	},
+
+	/** @public */
+	setCameraPosition : function (x, y, z) {
+
 	},
 
 	/** @public
