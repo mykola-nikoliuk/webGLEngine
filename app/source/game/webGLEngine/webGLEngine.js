@@ -28,8 +28,10 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		/** @private */
 		this.mvMatrixStack = [];
 
-		/** @private */
-		this.rTri = 0;
+		this._camera = {
+			position : null,
+			rotation : null
+		};
 
 		/** @private */
 		this.lastTime = new Date().getTime();
@@ -60,7 +62,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		this.initGL();
 		this.initShaders();
 
-				this.gl.clearColor(0.2, 0.2, 0.2, 1.0);
+//		this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		this.gl.enable(this.gl.DEPTH_TEST);
 
 		setInterval(utils.bind(this.drawScene, this), 30);
@@ -207,8 +209,8 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
-		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, 0.2]);
 		glMatrix.mat4.rotate(this.mvMatrix, this.rTri, [0, 1, 0]);
+		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, 0.0]);
 
 		// draw meshes
 		for (i = 0; i < this.meshes.length; i++) {
@@ -223,11 +225,11 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			transformations = this.meshes[i].getTransformations();
 
 			// apply matrix transformations
-			glMatrix.mat4.translate(this.mvMatrix,
-				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.z, [0, 0, 1]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.y, [0, 1, 0]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.x, [1, 0, 0]);
+			glMatrix.mat4.translate(this.mvMatrix,
+				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexPositionBuffer);
 			this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
@@ -277,6 +279,11 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			this.gl.viewportWidth = window.innerWidth;
 			this.gl.viewportHeight = window.innerHeight;
 		}
+	},
+
+	/** @public */
+	setCameraPosition : function (x, y, z) {
+
 	},
 
 	/** @public

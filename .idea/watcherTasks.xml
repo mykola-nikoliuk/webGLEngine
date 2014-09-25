@@ -8,7 +8,7 @@
       <option name="exitCodeBehavior" value="ERROR" />
       <option name="fileExtension" value="js" />
       <option name="immediateSync" value="true" />
-      <option name="name" value="TypeScript" />
+      <option name="name" value="Build" />
       <option name="output" value="$FileNameWithoutExtension$.js:$FileNameWithoutExtension$.js.map" />
       <option name="outputFilters">
         <array>
