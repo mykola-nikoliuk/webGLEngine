@@ -57,7 +57,7 @@ module.exports = {
 		 * @public
 		 * @param {object} parameters - all parameter of object
 		 * @param {string} [tag] - HTML tag name
-		 * @returns {HTMLElement} HTML element */
+		 * @type {HTMLElement|HTMLCanvasElement|Node} */
 		createElement : function (parameters, tag) {
 			if (typeof tag !== 'string')
 				tag = 'div';
@@ -82,7 +82,7 @@ module.exports = {
 		/** @public
 		 * @param {object} element - HTML element
 		 * @param {object} parameters
-		 * @returns {HTMLElement} HTML element
+		 * @returns {HTMLElement|HTMLCanvasElement|Node} HTML element
 		 */
 		editElement : function (element, parameters) {
 			for (var key in parameters) {

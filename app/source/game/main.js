@@ -1,5 +1,6 @@
 var Engine = require('./webGLEngine/webGLEngine'),
-	engine = new Engine();
+	engine = new Engine(),
+	camera = engine.getCamera();
 
 var hummer = engine.createMeshFromFile('./game/Humvee/humvee.obj');
 var transform = hummer.getTransformations();
@@ -8,5 +9,4 @@ var transform = hummer.getTransformations();
 //transform.rotation.z = -0.1;
 transform.rotation.x = -Math.PI / 2;
 
-engine._camera.position.y = -170;
-engine._camera.rotation.x = 0.3;
+camera.position.set(0.3, -140, -500);

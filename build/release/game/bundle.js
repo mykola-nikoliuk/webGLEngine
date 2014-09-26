@@ -73,7 +73,8 @@ if ( typeof require === "undefined" ) {
 }
 _require.def( "..\\..\\..\\app\\source\\game\\main.js", function( _require, exports, module ){
 var Engine = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLEngine.js" ),
-	engine = new Engine();
+	engine = new Engine(),
+	camera = engine.getCamera();
 
 var hummer = engine.createMeshFromFile('./game/Humvee/humvee.obj');
 var transform = hummer.getTransformations();
@@ -82,8 +83,7 @@ var transform = hummer.getTransformations();
 //transform.rotation.z = -0.1;
 transform.rotation.x = -Math.PI / 2;
 
-engine._camera.position.y = -170;
-engine._camera.rotation.x = 0.3;
+camera.position.set(0.3, -140, -500);
 	return module;
 });
 
@@ -92,24 +92,27 @@ var Class = _require( "..\\..\\..\\app\\source\\game\\libs\\class.js" ),
 	utils = _require( "..\\..\\..\\app\\source\\game\\libs\\utils.js" ),
 	config = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLConfig.js" ),
 	glMatrix = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\glMatrix-0.9.5.min.js" ),
-	classes3d = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes3d.js" ),
+	Material = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Material.js" ),
+	Transformations = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Transformations.js" ),
 	Mesh = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\mesh.js" );
 
 /** @class Engine
  * @extends {Class} */
 var Engine = Class.extend(/** @lends {Engine#} */ {
+
+	/** @constructs */
 	init : function (renderType) {
 
 		/** @private
 		 * @type {WebGLRenderingContext} */
-		this.gl = null;
+		this._gl = null;
 
 		/** @private */
-		this.inited = false;
+		this._inited = false;
 
 		/** @private
-		 * @type {HTMLCanvasElement} */
-		this.canvasNode = null;
+		 * @type {HTMLCanvasElement|null} */
+		this._canvasNode = null;
 
 		/** @private */
 		this.mvMatrix = glMatrix.mat4.create();
@@ -118,8 +121,9 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		/** @private */
 		this.mvMatrixStack = [];
 
-		/** @type {classes3D.Transformations} */
-		this._camera = new classes3d.Transformations();
+		/** @private
+		 * @type {Transformations} */
+		this._camera = new Transformations();
 
 		/** @private */
 		this.lastTime = new Date().getTime();
@@ -130,6 +134,10 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 		/** @private */
 		this.shaderProgram = null;
+
+		/** @private
+		 * @type {boolean} */
+		this._isLightingEnable = true;
 
 		// check is render type are correct
 		if (typeof renderType === 'undefined') {
@@ -145,47 +153,46 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		}
 	},
 
+	/** @private */
 	webGLStart : function () {
 		this.crateCanvas();
 		this.initGL();
 		this.initShaders();
 
-//		this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		this.gl.enable(this.gl.DEPTH_TEST);
+//		this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		this._gl.enable(this._gl.DEPTH_TEST);
 
-		setInterval(utils.bind(this.drawScene, this), 30);
+		setInterval(utils.bind(this.drawScene, this), 33);
 	},
 
 	/** @private */
 	crateCanvas : function () {
-		this.canvasNode = utils.html.getById(config.html.canvasID);
-		if (this.canvasNode === null) {
-			this.canvasNode = utils.html.createElement({
-				id    : config.html.canvasID,
-				style : {
-					position : 'fixed',
-					left     : '0px',
-					top      : '0px'
-				}
-			}, 'canvas');
-			document.body.appendChild(this.canvasNode);
+		this._canvasNode = document.getElementById(config.html.canvasID);
+		if (this._canvasNode === null) {
+			this._canvasNode = document.createElement('canvas');
+			this._canvasNode.id = config.html.canvasID;
+			this._canvasNode.style.position = 'fixed';
+			this._canvasNode.style.left = '0px';
+			this._canvasNode.style.top = '0px';
+			document.body.appendChild(this._canvasNode);
 		}
 	},
 
 	/** @private */
 	initGL : function () {
 		try {
-			this.gl = this.canvasNode.getContext("webgl") || this.canvasNode.getContext("experimental-webgl");
-			this.inited = true;
+			this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
+			this._inited = true;
 			this.onResize();
 		}
 		catch (e) {
 		}
-		if (!this.gl) {
-			alert("Could not initialise WebGL, sorry :-(");
+		if (!this._gl) {
+			console.log("Could not initialise WebGL, sorry :-(");
 		}
 	},
 
+	/** @private */
 	getShader : function (gl, id) {
 		var shaderScript = document.getElementById(id);
 		if (!shaderScript) {
@@ -221,42 +228,53 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		return shader;
 	},
 
+	/** @private */
 	initShaders : function () {
-		var fragmentShader = this.getShader(this.gl, "shader-fs");
-		var vertexShader = this.getShader(this.gl, "shader-vs");
+		var fragmentShader = this.getShader(this._gl, "shader-fs");
+		var vertexShader = this.getShader(this._gl, "shader-vs");
 
-		this.shaderProgram = this.gl.createProgram();
-		this.gl.attachShader(this.shaderProgram, vertexShader);
-		this.gl.attachShader(this.shaderProgram, fragmentShader);
-		this.gl.linkProgram(this.shaderProgram);
+		this.shaderProgram = this._gl.createProgram();
+		this._gl.attachShader(this.shaderProgram, vertexShader);
+		this._gl.attachShader(this.shaderProgram, fragmentShader);
+		this._gl.linkProgram(this.shaderProgram);
 
-		if (!this.gl.getProgramParameter(this.shaderProgram, this.gl.LINK_STATUS)) {
+		if (!this._gl.getProgramParameter(this.shaderProgram, this._gl.LINK_STATUS)) {
 			console.log("Could not initialise shaders");
 		}
 
-		this.gl.useProgram(this.shaderProgram);
+		this._gl.useProgram(this.shaderProgram);
 
-		this.shaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
-		this.gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+		this.shaderProgram.vertexPositionAttribute = this._gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
+		this._gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
 
-		this.shaderProgram.vertexColorAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexColor");
-		this.gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
+		this.shaderProgram.vertexNormalAttribute = this._gl.getAttribLocation(this.shaderProgram, "aVertexNormal");
+		this._gl.enableVertexAttribArray(this.shaderProgram.vertexNormalAttribute);
 
-		this.shaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.shaderProgram, "aTextureCoord");
-		this.gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+		this.shaderProgram.vertexColorAttribute = this._gl.getAttribLocation(this.shaderProgram, "aVertexColor");
+		this._gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
 
-		this.shaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");
-		this.shaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
-		this.shaderProgram.samplerUniform = this.gl.getUniformLocation(this.shaderProgram, "uSampler");
-		this.shaderProgram.textureEnabled = this.gl.getUniformLocation(this.shaderProgram, "uTextureEnabled");
+		this.shaderProgram.textureCoordAttribute = this._gl.getAttribLocation(this.shaderProgram, "aTextureCoord");
+		this._gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+
+		this.shaderProgram.pMatrixUniform = this._gl.getUniformLocation(this.shaderProgram, "uPMatrix");
+		this.shaderProgram.mvMatrixUniform = this._gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
+		this.shaderProgram.nMatrixUniform = this._gl.getUniformLocation(this.shaderProgram, "uNMatrix");
+		this.shaderProgram.samplerUniform = this._gl.getUniformLocation(this.shaderProgram, "uSampler");
+		this.shaderProgram.useLightingUniform = this._gl.getUniformLocation(this.shaderProgram, "uUseLighting");
+		this.shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this.shaderProgram, "uAmbientColor");
+		this.shaderProgram.lightingDirectionUniform = this._gl.getUniformLocation(this.shaderProgram, "uLightingDirection");
+		this.shaderProgram.directionalColorUniform = this._gl.getUniformLocation(this.shaderProgram, "uDirectionalColor");
+		this.shaderProgram.textureEnabled = this._gl.getUniformLocation(this.shaderProgram, "uTextureEnabled");
 	},
 
+	/** @private */
 	mvPushMatrix : function () {
 		var copy = glMatrix.mat4.create();
 		glMatrix.mat4.set(this.mvMatrix, copy);
 		this.mvMatrixStack.push(copy);
 	},
 
+	/** @private */
 	mvPopMatrix : function () {
 		if (this.mvMatrixStack.length == 0) {
 			throw "Invalid popMatrix!";
@@ -264,19 +282,28 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		this.mvMatrix = this.mvMatrixStack.pop();
 	},
 
+	/** @private */
 	setMatrixUniforms : function () {
-		this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, this.pMatrix);
-		this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, this.mvMatrix);
+		this._gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, this.pMatrix);
+		this._gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, this.mvMatrix);
+
+		var normalMatrix = glMatrix.mat3.create();
+		glMatrix.mat4.toInverseMat3(this.mvMatrix, normalMatrix);
+		glMatrix.mat3.transpose(normalMatrix);
+		this._gl.uniformMatrix3fv(this.shaderProgram.nMatrixUniform, false, normalMatrix);
 	},
 
+	/** @private */
 	degToRad : function (degrees) {
 		return degrees * Math.PI / 180;
 	},
 
+	/** @private */
 	drawScene : function () {
 
 		var vertexIndexBuffers,
 			vertexPositionBuffer,
+			vertexNormalBuffer,
 			vertexColorBuffer,
 			vertexTextureBuffer,
 			transformations,
@@ -286,21 +313,24 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		if (this.lastTime != 0) {
 			var elapsed = timeNow - this.lastTime;
 
-			this._camera.rotation.y += (90 * elapsed) / 500000.0;
+			if (this.meshes[0]) {
+				var transformations = this.meshes[0].getTransformations();
+				transformations.rotation.y = transformations.rotation.y + (90 * elapsed) / 500000.0;
+			}
 		}
 		this.lastTime = timeNow;
 
-		this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
+		this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
-		glMatrix.mat4.perspective(45, this.gl.viewportWidth / this.gl.viewportHeight, 1, 10000.0, this.pMatrix);
+		glMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 10000.0, this.pMatrix);
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
 		// set camera position
-		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.x, [1, 0, 0]);
-		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.y, [0, 1, 0]);
-		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.z, [0, 0, 1]);
+		glMatrix.mat4.rotateX(this.mvMatrix, this._camera.rotation.x);
+		glMatrix.mat4.rotateY(this.mvMatrix, this._camera.rotation.y);
+		glMatrix.mat4.rotateZ(this.mvMatrix, this._camera.rotation.z);
 		glMatrix.mat4.translate(this.mvMatrix,
 			[this._camera.position.x, this._camera.position.y, this._camera.position.z]);
 
@@ -311,6 +341,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 			vertexIndexBuffers = this.meshes[i].getVertexIndexBuffers();
 			vertexPositionBuffer = this.meshes[i].getVertexPositionBuffer();
+			vertexNormalBuffer = this.meshes[i].getVertexNormalBuffer();
 			vertexColorBuffer = this.meshes[i].getVertexColorBuffer();
 			vertexTextureBuffer = this.meshes[i].getVertexTextureBuffer();
 			transformations = this.meshes[i].getTransformations();
@@ -322,11 +353,16 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			glMatrix.mat4.translate(this.mvMatrix,
 				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexPositionBuffer);
-			this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
+			this._gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexColorBuffer);
-			this.gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+
+			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
+			this._gl.vertexAttribPointer(this.shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+
+
+			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexColorBuffer);
+			this._gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
 			for (material in vertexIndexBuffers) {
 				if (vertexIndexBuffers.hasOwnProperty(material)) {
@@ -335,26 +371,40 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 					// set texture if it has material, texture and texture already loaded
 					if (material !== 'noMaterial' && vertexIndexBuffers[material].material.texture) {
-						this.gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
-						this.gl.uniform1i(this.shaderProgram.textureEnabled, true);
+						this._gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+						this._gl.uniform1i(this.shaderProgram.textureEnabled, true);
 
-						this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexTextureBuffer);
-						this.gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, vertexTextureBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+						this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexTextureBuffer);
+						this._gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, vertexTextureBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-						this.gl.activeTexture(this.gl.TEXTURE0);
-						this.gl.bindTexture(this.gl.TEXTURE_2D, vertexIndexBuffers[material].material.texture);
-						this.gl.uniform1i(this.shaderProgram.samplerUniform, 0);
+						this._gl.activeTexture(this._gl.TEXTURE0);
+						this._gl.bindTexture(this._gl.TEXTURE_2D, vertexIndexBuffers[material].material.texture);
+						this._gl.uniform1i(this.shaderProgram.samplerUniform, 0);
+						this._gl.uniform1i(this.shaderProgram.useLightingUniform, this._isLightingEnable);
+
+						if (this._isLightingEnable) {
+							this._gl.uniform3f(this.shaderProgram.ambientColorUniform, 0.0, 0.0, 0.0);
+
+							var lightingDirection = [-0.5, -0.25, -1.0];
+
+							var adjustedLD = vec3.create();
+							vec3.normalize(lightingDirection, adjustedLD);
+							vec3.scale(adjustedLD, -1);
+							this._gl.uniform3fv(this.shaderProgram.lightingDirectionUniform, adjustedLD);
+
+							this._gl.uniform3f(this.shaderProgram.directionalColorUniform, 1, 1, 1);
+						}
 					}
 					else {
-						this.gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
-						this.gl.uniform1i(this.shaderProgram.textureEnabled, false);
+						this._gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+						this._gl.uniform1i(this.shaderProgram.textureEnabled, false);
 					}
 
-					//					this.gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+					//					this._gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
 
-					this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
+					this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
 					this.setMatrixUniforms();
-					this.gl.drawElements(this.gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this.gl.UNSIGNED_SHORT, 0);
+					this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
 				}
 			}
 
@@ -364,19 +414,20 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 	/** @private */
 	onResize : function () {
-		if (this.inited) {
-			this.canvasNode.setAttribute('width', window.innerWidth + 'px');
-			this.canvasNode.setAttribute('height', window.innerHeight + 'px');
-			this.gl.viewportWidth = window.innerWidth;
-			this.gl.viewportHeight = window.innerHeight;
+		if (this._inited) {
+			this._canvasNode.setAttribute('width', window.innerWidth + 'px');
+			this._canvasNode.setAttribute('height', window.innerHeight + 'px');
+			this._gl.viewportWidth = window.innerWidth;
+			this._gl.viewportHeight = window.innerHeight;
 		}
 	},
 
-	/** @public */
-	setCameraPosition : function (x, y, z) {
-
+	/** @public
+	 * @returns {Transformations} */
+	getCamera : function () {
+		return this._camera;
 	},
-
+	
 	/** @public
 	 * @param {string} path
 	 * @returns {Mesh|null} */
@@ -398,7 +449,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	parseObjFile : function (objFile, path) {
 		var i, j, nodes, material,
 			vertexes = [], textures = [], normals = [], faces = { noMaterial : [] },
-			vertex = [], texture = [], normal = [], materials = {},
+			materials = {},
 			currentMaterial = 'noMaterial',
 			require, objList, mesh, materialPath;
 
@@ -420,11 +471,10 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 					break;
 
 				case 'vn':
-					normal = [];
 					for (j = 1; j < nodes.length; j++) {
-						normal.push(Number(nodes[j]));
+						if (nodes[j] === '') continue;
+						normals.push(Number(nodes[j]));
 					}
-					normals.push(normal);
 					break;
 
 				case 'f':
@@ -482,23 +532,26 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		}
 
 		console.log('parsed');
-		materials['noMaterial'] = new classes3d.Material();
-		mesh = new Mesh(this.gl, vertexes, textures, normals, faces, materials);
+		/** @type {Material} */
+		materials['noMaterial'] = new Material();
+		mesh = new Mesh(this._gl, vertexes, textures, normals, faces, materials);
 		this.meshes.push(mesh);
 		return mesh;
 	},
 
 	/** @private */
 	parseMaterial : function (mtlFile, path) {
-		var mtlList, i, j, nodes, material, texture,
-			allMaterials = {}, currentMaterial = null;
+		var mtlList, i, j, nodes, texture, material, allMaterials = {};
+			/** @type {Material} */
+		var currentMaterial = null;
 
 		mtlList = mtlFile.split('\n');
 		for (i = 0; i < mtlList.length; i++) {
 			nodes = mtlList[i].split(' ');
 			switch (nodes[0]) {
 				case 'newmtl':
-					material = new classes3d.Material();
+					/** @type {Material} */
+					material = new Material();
 					allMaterials[nodes[1]] = material;
 					currentMaterial = material;
 					break;
@@ -507,7 +560,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 					if (currentMaterial) {
 						currentMaterial.ready = false;
 						currentMaterial.imageLink = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
-						currentMaterial.texture = texture = this.gl.createTexture();
+						currentMaterial.texture = texture = this._gl.createTexture();
 
 						texture.image = new Image();
 						texture.image.onload = utils.bind(this.createTexture, this, currentMaterial);
@@ -529,7 +582,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 	/** @private */
 	createTexture : function () {
-		var gl = this.gl,
+		var gl = this._gl,
 			currentMaterial = arguments[arguments.length - 1];
 		gl.bindTexture(gl.TEXTURE_2D, currentMaterial.texture);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -701,7 +754,7 @@ module.exports = {
 		 * @public
 		 * @param {object} parameters - all parameter of object
 		 * @param {string} [tag] - HTML tag name
-		 * @returns {HTMLElement} HTML element */
+		 * @type {HTMLElement|HTMLCanvasElement|Node} */
 		createElement : function (parameters, tag) {
 			if (typeof tag !== 'string')
 				tag = 'div';
@@ -726,7 +779,7 @@ module.exports = {
 		/** @public
 		 * @param {object} element - HTML element
 		 * @param {object} parameters
-		 * @returns {HTMLElement} HTML element
+		 * @returns {HTMLElement|HTMLCanvasElement|Node} HTML element
 		 */
 		editElement : function (element, parameters) {
 			for (var key in parameters) {
@@ -1018,36 +1071,57 @@ quat4.normalize=function(a,b){b||(b=a);var c=a[0],d=a[1],e=a[2],g=a[3],f=Math.sq
 quat4.multiplyVec3=function(a,b,c){c||(c=b);var d=b[0],e=b[1],g=b[2];b=a[0];var f=a[1],h=a[2];a=a[3];var i=a*d+f*g-h*e,j=a*e+h*d-b*g,k=a*g+b*e-f*d;d=-b*d-f*e-h*g;c[0]=i*a+d*-b+j*-h-k*-f;c[1]=j*a+d*-f+k*-b-i*-h;c[2]=k*a+d*-h+i*-f-j*-b;return c};quat4.toMat3=function(a,b){b||(b=mat3.create());var c=a[0],d=a[1],e=a[2],g=a[3],f=c+c,h=d+d,i=e+e,j=c*f,k=c*h;c=c*i;var l=d*h;d=d*i;e=e*i;f=g*f;h=g*h;g=g*i;b[0]=1-(l+e);b[1]=k-g;b[2]=c+h;b[3]=k+g;b[4]=1-(j+e);b[5]=d-f;b[6]=c-h;b[7]=d+f;b[8]=1-(j+l);return b};
 quat4.toMat4=function(a,b){b||(b=mat4.create());var c=a[0],d=a[1],e=a[2],g=a[3],f=c+c,h=d+d,i=e+e,j=c*f,k=c*h;c=c*i;var l=d*h;d=d*i;e=e*i;f=g*f;h=g*h;g=g*i;b[0]=1-(l+e);b[1]=k-g;b[2]=c+h;b[3]=0;b[4]=k+g;b[5]=1-(j+e);b[6]=d-f;b[7]=0;b[8]=c-h;b[9]=d+f;b[10]=1-(j+l);b[11]=0;b[12]=0;b[13]=0;b[14]=0;b[15]=1;return b};quat4.slerp=function(a,b,c,d){d||(d=a);var e=c;if(a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]<0)e=-1*c;d[0]=1-c*a[0]+e*b[0];d[1]=1-c*a[1]+e*b[1];d[2]=1-c*a[2]+e*b[2];d[3]=1-c*a[3]+e*b[3];return d};
 quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
+
 	module.exports.mat4 = mat4;
+	module.exports.mat3 = mat3;
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes3d.js", function( _require, exports, module ){
-var classes3d = {
-
-	Vector3 : function (x, y, z) {
-		this._x = 0;
-		this._y = 0;
-		this._z = 0;
-
-		this.set.apply(this, arguments);
-	},
-
-	Material : function () {
-		this.diffuseColor = [0, 0, 0];
-		this.imageLink = '';
-		this.ready = true;
-		this.texture = null;
-	},
-
-	Transformations : function () {
-		this.position = new classes3d.Vector3();
-		this.rotation = new classes3d.Vector3(0, 0, 0);
-		this.scale = new classes3d.Vector3(0, 0, 0);
-	}
+_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Material.js", function( _require, exports, module ){
+/** @constructor */
+var Material = function () {
+	this.diffuseColor = [0, 0, 0];
+	this.imageLink = '';
+	this.ready = true;
+	this.texture = null;
 };
 
-classes3d.Vector3.prototype = {
+module.exports = Material;
+	return module;
+});
+
+_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Transformations.js", function( _require, exports, module ){
+var Vector3 = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Vector3.js" );
+
+/** @constructor */
+var Transformations = function () {
+	/** @type {Vector3} */
+	this.position = new Vector3();
+	/** @type {Vector3} */
+	this.rotation = new Vector3(0, 0, 0);
+	/** @type {Vector3} */
+	this.scale = new Vector3(0, 0, 0);
+};
+
+module.exports = Transformations;
+	return module;
+});
+
+_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Vector3.js", function( _require, exports, module ){
+/** @class Vector3
+ * @param x
+ * @param y
+ * @param z */
+var Vector3 = function (x, y, z) {
+	this._x = 0;
+	this._y = 0;
+	this._z = 0;
+
+	this.set.apply(this, arguments);
+};
+
+
+Vector3.prototype = /** @lends Vector3# */ {
 
 	/** @public */
 	set : function (x, y, z) {
@@ -1056,23 +1130,23 @@ classes3d.Vector3.prototype = {
 		this._z = typeof z === 'number' ? z : 0;
 	},
 
-	get x () { return this._x; },
-	get y () { return this._y; },
-	get z () { return this._z; },
+	get x() { return this._x; },
+	get y() { return this._y; },
+	get z() { return this._z; },
 
-	set x (value) { if (typeof value === 'number') this._x = value; },
-	set y (value) { if (typeof value === 'number') this._y = value; },
-	set z (value) { if (typeof value === 'number') this._z = value; }
+	set x(value) { if (typeof value === 'number') this._x = value; },
+	set y(value) { if (typeof value === 'number') this._y = value; },
+	set z(value) { if (typeof value === 'number') this._z = value; }
 };
 
-module.exports = classes3d;
-
+module.exports = Vector3;
 	return module;
 });
 
 _require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\mesh.js", function( _require, exports, module ){
 var Class = _require( "..\\..\\..\\app\\source\\game\\libs\\class.js" ),
-	classes3D = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes3d.js" );
+	Material = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Material.js" ),
+	Transformations = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Transformations.js" );
 
 /** @class Mesh
  * @extends {Class} */
@@ -1095,13 +1169,16 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._faces = faces;
 		this._materials = materials;
 
-		/** @type {classes3d.Transformations} */
-		this._transformations = new classes3D.Transformations();
+		/** @type {Transformations} */
+		this._transformations = new Transformations();
 
 		this._vertexIndexBuffers = {};
 
 		/** @type {WebGLBuffer} */
 		this._vertexPositionBuffer = this._webGL.createBuffer();
+
+		/** @type {WebGLBuffer} */
+		this._vertexNormalBuffer = this._webGL.createBuffer();
 
 		/** @type {WebGLBuffer} */
 		this._vertexColorBuffer = this._webGL.createBuffer();
@@ -1127,6 +1204,13 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._vertexPositionBuffer.itemSize = 3;
 		this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 
+		// create vertex normal buffer
+		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexNormalBuffer);
+		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexNormals), this._webGL.STATIC_DRAW);
+		this._vertexNormalBuffer.itemSize = 3;
+		this._vertexNormalBuffer.numItems = this._vertexNormals.length / this._vertexNormalBuffer.itemSize;
+
+		// create empty color and texture buffer
 		for (i = 0; i < this._vertexes.length / 3; i++) {
 			colors.push(0);
 			colors.push(0);
@@ -1195,12 +1279,17 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 	},
 
 	/** @public */
+	getVertexNormalBuffer : function () {
+		return this._vertexNormalBuffer;
+	},
+
+	/** @public */
 	getVertexTextureBuffer : function () {
 		return this._vertexTextureBuffer;
 	},
 
 	/** @public
-	 * @returns {{position: classes3D.Vector3, rotation: classes3D.Vector3, scale: classes3D.Vector3}} */
+	 * @returns {Transformations} */
 	getTransformations : function () {
 		return this._transformations;
 	}

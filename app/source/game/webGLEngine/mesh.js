@@ -1,5 +1,6 @@
 var Class = require('../libs/class'),
-	classes3D = require('./classes3d');
+	Material = require('./classes/Material'),
+	Transformations = require('./classes/Transformations');
 
 /** @class Mesh
  * @extends {Class} */
@@ -22,13 +23,16 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._faces = faces;
 		this._materials = materials;
 
-		/** @type {classes3d.Transformations} */
-		this._transformations = new classes3D.Transformations();
+		/** @type {Transformations} */
+		this._transformations = new Transformations();
 
 		this._vertexIndexBuffers = {};
 
 		/** @type {WebGLBuffer} */
 		this._vertexPositionBuffer = this._webGL.createBuffer();
+
+		/** @type {WebGLBuffer} */
+		this._vertexNormalBuffer = this._webGL.createBuffer();
 
 		/** @type {WebGLBuffer} */
 		this._vertexColorBuffer = this._webGL.createBuffer();
@@ -54,6 +58,13 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._vertexPositionBuffer.itemSize = 3;
 		this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 
+		// create vertex normal buffer
+		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexNormalBuffer);
+		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexNormals), this._webGL.STATIC_DRAW);
+		this._vertexNormalBuffer.itemSize = 3;
+		this._vertexNormalBuffer.numItems = this._vertexNormals.length / this._vertexNormalBuffer.itemSize;
+
+		// create empty color and texture buffer
 		for (i = 0; i < this._vertexes.length / 3; i++) {
 			colors.push(0);
 			colors.push(0);
@@ -122,12 +133,17 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 	},
 
 	/** @public */
+	getVertexNormalBuffer : function () {
+		return this._vertexNormalBuffer;
+	},
+
+	/** @public */
 	getVertexTextureBuffer : function () {
 		return this._vertexTextureBuffer;
 	},
 
 	/** @public
-	 * @returns {{position: classes3D.Vector3, rotation: classes3D.Vector3, scale: classes3D.Vector3}} */
+	 * @returns {Transformations} */
 	getTransformations : function () {
 		return this._transformations;
 	}
