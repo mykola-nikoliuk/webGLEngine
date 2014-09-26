@@ -77,10 +77,13 @@ var Engine = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLEngine.
 
 var hummer = engine.createMeshFromFile('./game/Humvee/humvee.obj');
 var transform = hummer.getTransformations();
-transform.position.y = -130;
-//transform.position.x = -130;
+//transform.position.y = -130;
+//transform.position.x = 330;
 //transform.rotation.z = -0.1;
 transform.rotation.x = -Math.PI / 2;
+
+engine._camera.position.y = -170;
+engine._camera.rotation.x = 0.3;
 	return module;
 });
 
@@ -115,8 +118,8 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		/** @private */
 		this.mvMatrixStack = [];
 
-		/** @private */
-		this.rTri = 0;
+		/** @type {classes3D.Transformations} */
+		this._camera = new classes3d.Transformations();
 
 		/** @private */
 		this.lastTime = new Date().getTime();
@@ -147,7 +150,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		this.initGL();
 		this.initShaders();
 
-				this.gl.clearColor(0.2, 0.2, 0.2, 1.0);
+//		this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		this.gl.enable(this.gl.DEPTH_TEST);
 
 		setInterval(utils.bind(this.drawScene, this), 30);
@@ -283,7 +286,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		if (this.lastTime != 0) {
 			var elapsed = timeNow - this.lastTime;
 
-			this.rTri += (90 * elapsed) / 1000000.0;
+			this._camera.rotation.y += (90 * elapsed) / 500000.0;
 		}
 		this.lastTime = timeNow;
 
@@ -294,15 +297,18 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
-		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, 0.2]);
-		glMatrix.mat4.rotate(this.mvMatrix, this.rTri, [0, 1, 0]);
+		// set camera position
+		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.x, [1, 0, 0]);
+		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.y, [0, 1, 0]);
+		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.z, [0, 0, 1]);
+		glMatrix.mat4.translate(this.mvMatrix,
+			[this._camera.position.x, this._camera.position.y, this._camera.position.z]);
 
 		// draw meshes
 		for (i = 0; i < this.meshes.length; i++) {
 
 			this.mvPushMatrix();
 
-			/** @type {Object.<string, Buffer>} */
 			vertexIndexBuffers = this.meshes[i].getVertexIndexBuffers();
 			vertexPositionBuffer = this.meshes[i].getVertexPositionBuffer();
 			vertexColorBuffer = this.meshes[i].getVertexColorBuffer();
@@ -310,11 +316,11 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			transformations = this.meshes[i].getTransformations();
 
 			// apply matrix transformations
-			glMatrix.mat4.translate(this.mvMatrix,
-				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.z, [0, 0, 1]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.y, [0, 1, 0]);
 			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.x, [1, 0, 0]);
+			glMatrix.mat4.translate(this.mvMatrix,
+				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexPositionBuffer);
 			this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
@@ -364,6 +370,11 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			this.gl.viewportWidth = window.innerWidth;
 			this.gl.viewportHeight = window.innerHeight;
 		}
+	},
+
+	/** @public */
+	setCameraPosition : function (x, y, z) {
+
 	},
 
 	/** @public
@@ -1012,9 +1023,8 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 });
 
 _require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes3d.js", function( _require, exports, module ){
-var classes3D = {
-	/** @class Vector3
-	 * @extends {Class} */
+var classes3d = {
+
 	Vector3 : function (x, y, z) {
 		this._x = 0;
 		this._y = 0;
@@ -1023,20 +1033,21 @@ var classes3D = {
 		this.set.apply(this, arguments);
 	},
 
-	/**
-	 * @class
-	 * @returns {{diffuseColor: number[], imageLink: string, ready: boolean, texture: null}}
-	 * @constructor
-	 */
 	Material : function () {
 		this.diffuseColor = [0, 0, 0];
 		this.imageLink = '';
 		this.ready = true;
 		this.texture = null;
+	},
+
+	Transformations : function () {
+		this.position = new classes3d.Vector3();
+		this.rotation = new classes3d.Vector3(0, 0, 0);
+		this.scale = new classes3d.Vector3(0, 0, 0);
 	}
 };
 
-classes3D.Vector3.prototype = {
+classes3d.Vector3.prototype = {
 
 	/** @public */
 	set : function (x, y, z) {
@@ -1045,28 +1056,23 @@ classes3D.Vector3.prototype = {
 		this._z = typeof z === 'number' ? z : 0;
 	},
 
-	/** @public */
-	get x() { return this._x; },
-	/** @public */
-	get y() { return this._y; },
-	/** @public */
-	get z() { return this._z; },
+	get x () { return this._x; },
+	get y () { return this._y; },
+	get z () { return this._z; },
 
-	/** @public */
-	set x(value) { if (typeof value === 'number') this._x = value; },
-	/** @public */
-	set y(value) { if (typeof value === 'number') this._y = value; },
-	/** @public */
-	set z(value) { if (typeof value === 'number') this._z = value; }
+	set x (value) { if (typeof value === 'number') this._x = value; },
+	set y (value) { if (typeof value === 'number') this._y = value; },
+	set z (value) { if (typeof value === 'number') this._z = value; }
 };
 
-module.exports = classes3D;
+module.exports = classes3d;
+
 	return module;
 });
 
 _require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\mesh.js", function( _require, exports, module ){
 var Class = _require( "..\\..\\..\\app\\source\\game\\libs\\class.js" ),
-	classes3D = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes3D.js" );
+	classes3D = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes3d.js" );
 
 /** @class Mesh
  * @extends {Class} */
@@ -1089,13 +1095,8 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._faces = faces;
 		this._materials = materials;
 
-		/** @private
-		 * @type {{position: classes3D.Vector3, rotation: classes3D.Vector3, scale: classes3D.Vector3}} */
-		this._transformations = {
-			position: new classes3D.Vector3(0, 0, 0),
-			rotation: new classes3D.Vector3(0, 0, 0),
-			scale: new classes3D.Vector3(0, 0, 0)
-		};
+		/** @type {classes3d.Transformations} */
+		this._transformations = new classes3D.Transformations();
 
 		this._vertexIndexBuffers = {};
 
@@ -1206,59 +1207,6 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 });
 
 module.exports = Mesh;
-	return module;
-});
-
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes3D.js", function( _require, exports, module ){
-var classes3D = {
-	/** @class Vector3
-	 * @extends {Class} */
-	Vector3 : function (x, y, z) {
-		this._x = 0;
-		this._y = 0;
-		this._z = 0;
-
-		this.set.apply(this, arguments);
-	},
-
-	/**
-	 * @class
-	 * @returns {{diffuseColor: number[], imageLink: string, ready: boolean, texture: null}}
-	 * @constructor
-	 */
-	Material : function () {
-		this.diffuseColor = [0, 0, 0];
-		this.imageLink = '';
-		this.ready = true;
-		this.texture = null;
-	}
-};
-
-classes3D.Vector3.prototype = {
-
-	/** @public */
-	set : function (x, y, z) {
-		this._x = typeof x === 'number' ? x : 0;
-		this._y = typeof y === 'number' ? y : 0;
-		this._z = typeof z === 'number' ? z : 0;
-	},
-
-	/** @public */
-	get x() { return this._x; },
-	/** @public */
-	get y() { return this._y; },
-	/** @public */
-	get z() { return this._z; },
-
-	/** @public */
-	set x(value) { if (typeof value === 'number') this._x = value; },
-	/** @public */
-	set y(value) { if (typeof value === 'number') this._y = value; },
-	/** @public */
-	set z(value) { if (typeof value === 'number') this._z = value; }
-};
-
-module.exports = classes3D;
 	return module;
 });
 

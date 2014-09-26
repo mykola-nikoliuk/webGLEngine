@@ -28,10 +28,8 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		/** @private */
 		this.mvMatrixStack = [];
 
-		this._camera = {
-			position : null,
-			rotation : null
-		};
+		/** @type {classes3D.Transformations} */
+		this._camera = new classes3d.Transformations();
 
 		/** @private */
 		this.lastTime = new Date().getTime();
@@ -198,7 +196,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		if (this.lastTime != 0) {
 			var elapsed = timeNow - this.lastTime;
 
-			this.rTri += (90 * elapsed) / 1000000.0;
+			this._camera.rotation.y += (90 * elapsed) / 500000.0;
 		}
 		this.lastTime = timeNow;
 
@@ -209,15 +207,18 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
-		glMatrix.mat4.rotate(this.mvMatrix, this.rTri, [0, 1, 0]);
-		glMatrix.mat4.translate(this.mvMatrix, [0.0, 0.0, 0.0]);
+		// set camera position
+		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.x, [1, 0, 0]);
+		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.y, [0, 1, 0]);
+		glMatrix.mat4.rotate(this.mvMatrix, this._camera.rotation.z, [0, 0, 1]);
+		glMatrix.mat4.translate(this.mvMatrix,
+			[this._camera.position.x, this._camera.position.y, this._camera.position.z]);
 
 		// draw meshes
 		for (i = 0; i < this.meshes.length; i++) {
 
 			this.mvPushMatrix();
 
-			/** @type {Object.<string, Buffer>} */
 			vertexIndexBuffers = this.meshes[i].getVertexIndexBuffers();
 			vertexPositionBuffer = this.meshes[i].getVertexPositionBuffer();
 			vertexColorBuffer = this.meshes[i].getVertexColorBuffer();
