@@ -11,20 +11,62 @@
 
     varying vec4 vColor;
     varying vec2 vTextureCoord;
-    varying vec3 vLightWeighting;
+    varying vec3 vTransformedNormal;
+    varying vec4 vPosition;
+
+    uniform float uMaterialShininess;
+
+    uniform bool uShowSpecularHighlights;
+    uniform bool uUseLighting;
+    uniform bool uUseTexture;
+
+    uniform vec3 uAmbientColor;
+
+    uniform vec3 uLightingDirection;
+    uniform vec3 uDirectionalColor;
+
+    uniform vec3 uPointLightingLocation;
+    uniform vec3 uPointLightingSpecularColor;
 
     uniform sampler2D uSampler;
-    uniform bool uTextureEnabled;
 
-    vec4 textureColor;
+
 
     void main(void) {
+
+      vec3 lightWeighting = vec3(1.0, 1.0, 1.0);
       vec4 totalColor = vColor;
-      if (uTextureEnabled) {
+      if (uUseTexture) {
         totalColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
       }
-      gl_FragColor = vec4(totalColor.rgb * vLightWeighting, totalColor.a);
+
+      if (uUseLighting) {
+        vec3 lightDirection = normalize(uLightingDirection - vPosition.xyz);
+        vec3 normal = normalize(vTransformedNormal);
+
+        float specularLightWeighting = 0.0;
+        //if (uShowSpecularHighlights) {
+          vec3 eyeDirection = normalize(-vPosition.xyz);
+          vec3 reflectionDirection = reflect(-lightDirection, normal);
+          specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), 20.0);
+        //}
+
+        float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+        lightWeighting =
+          uDirectionalColor * specularLightWeighting
+          + vColor.rgb * diffuseLightWeighting;
+      }
+
+      gl_FragColor = vec4(totalColor.rgb * lightWeighting, totalColor.a);;
+
+
+      //vec4 textureColor;
+      //if (uTextureEnabled) {
+        //totalColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+     // }
+      //gl_FragColor = vec4(totalColor.rgb * vLightWeighting, totalColor.a);
     }
+
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
@@ -37,30 +79,19 @@
     uniform mat4 uPMatrix;
     uniform mat3 uNMatrix;
 
-    uniform vec3 uAmbientColor;
-
-    uniform vec3 uLightingDirection;
-    uniform vec3 uDirectionalColor;
-
-    uniform bool uUseLighting;
-
     varying vec4 vColor;
     varying vec2 vTextureCoord;
-    varying vec3 vLightWeighting;
+    varying vec3 vTransformedNormal;
+    varying vec4 vPosition;
 
     void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+        gl_Position = uPMatrix * vPosition;
         vColor = aVertexColor;
         vTextureCoord = aTextureCoord;
-
-        if (!uUseLighting) {
-            vLightWeighting = vec3(1.0, 1.0, 1.0);
-        } else {
-            vec3 transformedNormal = uNMatrix * aVertexNormal;
-            float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
-            vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
-        }
+        vTransformedNormal = uNMatrix * aVertexNormal;
     }
+
 </script>
 
 <script src="game/bundle.js"></script>

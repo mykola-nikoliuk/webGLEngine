@@ -77,6 +77,7 @@ var Engine = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLEngine.
 	camera = engine.getCamera();
 
 var hummer = engine.createMeshFromFile('./game/Humvee/humvee.obj');
+//var hummer = engine.createMeshFromFile('./game/cubus/faun_stw.obj');
 var transform = hummer.getTransformations();
 //transform.position.y = -130;
 //transform.position.x = 330;
@@ -264,7 +265,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		this.shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this.shaderProgram, "uAmbientColor");
 		this.shaderProgram.lightingDirectionUniform = this._gl.getUniformLocation(this.shaderProgram, "uLightingDirection");
 		this.shaderProgram.directionalColorUniform = this._gl.getUniformLocation(this.shaderProgram, "uDirectionalColor");
-		this.shaderProgram.textureEnabled = this._gl.getUniformLocation(this.shaderProgram, "uTextureEnabled");
+		this.shaderProgram.textureEnabled = this._gl.getUniformLocation(this.shaderProgram, "uUseTexture");
 	},
 
 	/** @private */
@@ -383,16 +384,16 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 						this._gl.uniform1i(this.shaderProgram.useLightingUniform, this._isLightingEnable);
 
 						if (this._isLightingEnable) {
-							this._gl.uniform3f(this.shaderProgram.ambientColorUniform, 0.0, 0.0, 0.0);
+							this._gl.uniform3f(this.shaderProgram.ambientColorUniform, 0.2, 0.2, 0.2);
 
-							var lightingDirection = [-0.5, -0.25, -1.0];
+							var lightingDirection = [0, 0.0, 0.0];
 
 							var adjustedLD = vec3.create();
 							vec3.normalize(lightingDirection, adjustedLD);
 							vec3.scale(adjustedLD, -1);
 							this._gl.uniform3fv(this.shaderProgram.lightingDirectionUniform, adjustedLD);
 
-							this._gl.uniform3f(this.shaderProgram.directionalColorUniform, 1, 1, 1);
+							this._gl.uniform3f(this.shaderProgram.directionalColorUniform, 2, 1.9, 1.6);
 						}
 					}
 					else {

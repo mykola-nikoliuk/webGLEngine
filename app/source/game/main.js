@@ -3,6 +3,7 @@ var Engine = require('./webGLEngine/webGLEngine'),
 	camera = engine.getCamera();
 
 var hummer = engine.createMeshFromFile('./game/Humvee/humvee.obj');
+//var hummer = engine.createMeshFromFile('./game/cubus/faun_stw.obj');
 var transform = hummer.getTransformations();
 //transform.position.y = -130;
 //transform.position.x = 330;
