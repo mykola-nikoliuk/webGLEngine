@@ -10,6 +10,7 @@ Releases
 		- light added;
 		- sample added;
 		- skybox added;
+		- project clean;
 
 	v0.1:
 		- render added;
