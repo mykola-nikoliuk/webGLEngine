@@ -6,6 +6,10 @@ Releases
 --------
 	v0.2
 		- dev branch added;
+		- project recostructed;
+		- light added;
+		- sample added;
+		- skybox added;
 
 	v0.1:
 		- render added;

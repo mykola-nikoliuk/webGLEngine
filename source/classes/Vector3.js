@@ -20,6 +20,13 @@ Vector3.prototype = /** @lends Vector3# */ {
 		this._z = typeof z === 'number' ? z : 0;
 	},
 
+	/** @public */
+	add : function (x, y, z) {
+		this._x += typeof x === 'number' ? x : 0;
+		this._y += typeof y === 'number' ? y : 0;
+		this._z += typeof z === 'number' ? z : 0;
+	},
+
 	get x() { return this._x; },
 	get y() { return this._y; },
 	get z() { return this._z; },

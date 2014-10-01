@@ -71,35 +71,18 @@ var _require = (function(){
 if ( typeof require === "undefined" ) {
 	require = _require;
 }
-_require.def( "..\\..\\..\\app\\source\\game\\main.js", function( _require, exports, module ){
-var Engine = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLEngine.js" ),
-	engine = new Engine(),
-	camera = engine.getCamera();
+_require.def( "..\\..\\source\\webGLEngine.js", function( _require, exports, module ){
+var Class = _require( "..\\..\\source\\libs\\class.js" ),
+	utils = _require( "..\\..\\source\\libs\\utils.js" ),
+	config = _require( "..\\..\\source\\webGLConfig.js" ),
+	glMatrix = _require( "..\\..\\source\\glMatrix-0.9.5.min.js" ),
+	Material = _require( "..\\..\\source\\classes\\Material.js" ),
+	Transformations = _require( "..\\..\\source\\classes\\Transformations.js" ),
+	Mesh = _require( "..\\..\\source\\mesh.js" );
 
-var hummer = engine.createMeshFromFile('./game/Humvee/humvee.obj');
-//var hummer = engine.createMeshFromFile('./game/cubus/faun_stw.obj');
-var transform = hummer.getTransformations();
-//transform.position.y = -130;
-//transform.position.x = 330;
-//transform.rotation.z = -0.1;
-transform.rotation.x = -Math.PI / 2;
-
-camera.position.set(0.3, -140, -500);
-	return module;
-});
-
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLEngine.js", function( _require, exports, module ){
-var Class = _require( "..\\..\\..\\app\\source\\game\\libs\\class.js" ),
-	utils = _require( "..\\..\\..\\app\\source\\game\\libs\\utils.js" ),
-	config = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLConfig.js" ),
-	glMatrix = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\glMatrix-0.9.5.min.js" ),
-	Material = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Material.js" ),
-	Transformations = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Transformations.js" ),
-	Mesh = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\mesh.js" );
-
-/** @class Engine
+/** @class webGLEngine
  * @extends {Class} */
-var Engine = Class.extend(/** @lends {Engine#} */ {
+var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 	/** @constructs */
 	init : function (renderType) {
@@ -138,13 +121,13 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 		/** @private
 		 * @type {boolean} */
-		this._isLightingEnable = true;
+		this._isLightingEnable = false;
 
 		// check is render type are correct
 		if (typeof renderType === 'undefined') {
-			renderType = Engine.TYPES.render3d;
+			renderType = webGLEngine.TYPES.render3d;
 		}
-		if (typeof renderType === 'number' && Engine.TYPES[renderType] !== 'undefined') {
+		if (typeof renderType === 'number' && webGLEngine.TYPES[renderType] !== 'undefined') {
 			this.renderType = renderType;
 			window.addEventListener('resize', utils.bind(this.onResize, this), false);
 			this.webGLStart();
@@ -314,17 +297,17 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		if (this.lastTime != 0) {
 			var elapsed = timeNow - this.lastTime;
 
-			if (this.meshes[0]) {
-				var transformations = this.meshes[0].getTransformations();
-				transformations.rotation.y = transformations.rotation.y + (90 * elapsed) / 500000.0;
-			}
+//			if (this.meshes[0]) {
+//				var transformations = this.meshes[0].getTransformations();
+//				transformations.rotation.y = transformations.rotation.y + (90 * elapsed) / 1000000.0;
+//			}
 		}
 		this.lastTime = timeNow;
 
 		this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
 		this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
-		glMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 10000.0, this.pMatrix);
+		glMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this.pMatrix);
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
@@ -357,10 +340,8 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
 			this._gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
 			this._gl.vertexAttribPointer(this.shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
-
 
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexColorBuffer);
 			this._gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
@@ -431,14 +412,24 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	
 	/** @public
 	 * @param {string} path
+	 * @param {object} params
 	 * @returns {Mesh|null} */
-	createMeshFromFile : function (path) {
-		var require = new XMLHttpRequest();
+	createMeshFromFile : function (path, params) {
+		var require = new XMLHttpRequest(),
+			parameters = {
+				textureRepeat: true
+			};
+
+		if (typeof params === 'object') {
+			if (typeof params.textureRepeat === 'boolean') {
+				parameters.textureRepeat = params.textureRepeat;
+			}
+		}
 
 		require.open('GET', path, false);
 		require.send(null);
 		if (require.status == 200) {
-			return this.parseObjFile(require.responseText, path);
+			return this.parseObjFile(require.responseText, path, parameters);
 		}
 		return null;
 	},
@@ -446,8 +437,9 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	/** @private
 	 * @param objFile
 	 * @param path
+	 * @param {object} parameters
 	 * @returns {Mesh} */
-	parseObjFile : function (objFile, path) {
+	parseObjFile : function (objFile, path, parameters) {
 		var i, j, nodes, material,
 			vertexes = [], textures = [], normals = [], faces = { noMaterial : [] },
 			materials = {},
@@ -515,7 +507,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 					require.open('GET', materialPath, false);
 					require.send(null);
 					if (require.status == 200) {
-						materials = this.parseMaterial(require.responseText, materialPath);
+						materials = this.parseMaterial(require.responseText, materialPath, parameters);
 						for (material in materials) {
 							if (materials.hasOwnProperty(material)) {
 								faces[material] = [];
@@ -541,7 +533,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	},
 
 	/** @private */
-	parseMaterial : function (mtlFile, path) {
+	parseMaterial : function (mtlFile, path, parameters) {
 		var mtlList, i, j, nodes, texture, material, allMaterials = {};
 			/** @type {Material} */
 		var currentMaterial = null;
@@ -560,6 +552,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 				case 'map_Kd':
 					if (currentMaterial) {
 						currentMaterial.ready = false;
+						currentMaterial.textureRepeat = parameters.textureRepeat;
 						currentMaterial.imageLink = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
 						currentMaterial.texture = texture = this._gl.createTexture();
 
@@ -584,12 +577,14 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	/** @private */
 	createTexture : function () {
 		var gl = this._gl,
-			currentMaterial = arguments[arguments.length - 1];
+			currentMaterial = arguments[arguments.length - 1],
+			repeatType = currentMaterial.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
 		gl.bindTexture(gl.TEXTURE_2D, currentMaterial.texture);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, currentMaterial.texture.image);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		currentMaterial.ready = true;
 	}
@@ -597,16 +592,16 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 /** @public
  * @type {Object.<string, number>} */
-Engine.TYPES = {
+webGLEngine.TYPES = {
 	render2d : 0,
 	render3d : 1
 };
 
-module.exports = Engine;
+window.webGLEngine = webGLEngine; 
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\libs\\class.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\libs\\class.js", function( _require, exports, module ){
 /* Simple JavaScript Inheritance by John Resig http://ejohn.org/ MIT Licensed. Inspired by base2 and Prototype */
 /* description: http://blog.buymeasoda.com/understanding-john-resigs-simple-javascript-i/ */
 
@@ -695,7 +690,146 @@ module.exports = Class;
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\libs\\utils.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\libs\\utils.js", function( _require, exports, module ){
+
+/** creates managed timeout based on setTimeout
+ * @class {Timer} */
+var Timer = function () {
+
+	/** @private */
+	this.timerInterval = null;
+	/** @private */
+	this.timerTimeout = null;
+	/** @private */
+	this.timerEnable = false;
+
+	/** @private
+	 * @type {function} */
+	this.func = function () {};
+	/** @private
+	 * @type {object} */
+	this.thisArg = {};
+	/** @private
+	 * @type {number} */
+	this.timeout = 0;
+	/** @private
+	 * @type {number} */
+	this.pauseTimeout = 0;
+	/** @private
+	 * @type {number} */
+	this.startTime = 0;
+	/** @private
+	 * @type {boolean} */
+	this.isItTimeout = false;
+	/** @private
+	 * @type {boolean} */
+	this.isTimeoutMode = false;
+};
+
+Timer.prototype = {
+	/** set function to timeout
+	 * @public
+	 * @param {function} func
+	 * @param {object} thisArg
+	 * @param {number} timeout
+	 * @param {boolean} callOnce */
+	start : function (func, thisArg, timeout, callOnce) {
+		if (!this.timerInterval) {
+			if (typeof func === 'function')
+				this.func = func;
+			else
+				return;
+
+			if (typeof thisArg === 'object' && thisArg !== null)
+				this.thisArg = thisArg;
+			else
+				this.thisArg = {};
+
+			if (typeof timeout === 'number')
+				this.timeout = timeout;
+			else
+				this.timeout = 0;
+
+			this.isItTimeout = typeof callOnce === 'boolean' ? callOnce : false;
+
+			this.createTimer();
+			this.timerEnable = true;
+			this.isTimeoutMode = false;
+		}
+	},
+
+	/** @public */
+	pause : function () {
+		if (this.timerEnable && this.timerInterval) {
+			if (this.isTimeoutMode)
+				clearTimeout(this.timerTimeout);
+			else
+				clearInterval(this.timerInterval);
+			this.isTimeoutMode = true;
+			this.timerInterval = null;
+			this.pauseTimeout -= Date.now() - this.startTime;
+			if (this.pauseTimeout < 0)
+				this.pauseTimeout = 0;
+		}
+	},
+
+	/** @public */
+	resume : function () {
+		if (this.timerEnable && !this.timerInterval) {
+
+			var func = function (func, thisArg) {
+				return function () {
+					return func.apply(thisArg, arguments);
+				};
+			}.call(this, this.resumeInterval, this);
+
+			this.startTime = Date.now();
+			this.timerInterval = setTimeout(func, this.pauseTimeout);
+		}
+	},
+
+	/** @public */
+	stop : function () {
+		if (this.timerEnable) {
+			if (this.timerInterval)
+				clearInterval(this.timerInterval);
+			this.timerInterval = null;
+			this.timerEnable = false;
+		}
+	},
+
+	/** @public */
+	isTimerEnabled : function () {
+		return this.timerEnable;
+	},
+
+	/** @private */
+	resumeInterval : function () {
+		this.isTimeoutMode = false;
+		this.createTimer();
+	},
+
+	/** @private */
+	createTimer : function () {
+		var func = function (func, thisArg) {
+			return function () {
+				return func.apply(thisArg, arguments);
+			};
+		}.call(this, this.nativeFunction, this);
+
+		this.startTime = Date.now();
+		this.timerInterval = setInterval(func, this.timeout);
+	},
+
+	/** @private */
+	nativeFunction : function () {
+		this.func.apply(this.thisArg);
+		this.startTime = Date.now();
+		if (this.isItTimeout)
+			this.stop();
+	}
+};
+
 module.exports = {
 	Console : function () {
 		var consoleID = 'console-block',
@@ -884,162 +1018,31 @@ module.exports = {
 		if (typeof text === 'string')
 			text = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/ /g, "&nbsp;");
 		return text;
-	}
+	},
+
+	Timer : Timer
 };
 
-/** creates managed timeout based on setTimeout
- * @class {Timer} */
-var Timer = function () {
-
-	/** @private */
-	this.timerInterval = null;
-	/** @private */
-	this.timerTimeout = null;
-	/** @private */
-	this.timerEnable = false;
-
-	/** @private
-	 * @type {function} */
-	this.func = function () {};
-	/** @private
-	 * @type {object} */
-	this.thisArg = {};
-	/** @private
-	 * @type {number} */
-	this.timeout = 0;
-	/** @private
-	 * @type {number} */
-	this.pauseTimeout = 0;
-	/** @private
-	 * @type {number} */
-	this.startTime = 0;
-	/** @private
-	 * @type {boolean} */
-	this.isItTimeout = false;
-	/** @private
-	 * @type {boolean} */
-	this.isTimeoutMode = false;
-};
-
-Timer.prototype = {
-	/** set function to timeout
-	 * @public
-	 * @param {function} func
-	 * @param {object} thisArg
-	 * @param {number} timeout
-	 * @param {boolean} callOnce */
-	start : function (func, thisArg, timeout, callOnce) {
-		if (!this.timerInterval) {
-			if (typeof func === 'function')
-				this.func = func;
-			else
-				return;
-
-			if (typeof thisArg === 'object' && thisArg !== null)
-				this.thisArg = thisArg;
-			else
-				this.thisArg = {};
-
-			if (typeof timeout === 'number')
-				this.timeout = timeout;
-			else
-				this.timeout = 0;
-
-			this.isItTimeout = typeof callOnce === 'boolean' ? callOnce : false;
-
-			this.createTimer();
-			this.timerEnable = true;
-			this.isTimeoutMode = false;
-		}
-	},
-
-	/** @public */
-	pause : function () {
-		if (this.timerEnable && this.timerInterval) {
-			if (this.isTimeoutMode)
-				clearTimeout(this.timerTimeout);
-			else
-				clearInterval(this.timerInterval);
-			this.isTimeoutMode = true;
-			this.timerInterval = null;
-			this.pauseTimeout -= Date.now() - this.startTime;
-			if (this.pauseTimeout < 0)
-				this.pauseTimeout = 0;
-		}
-	},
-
-	/** @public */
-	resume : function () {
-		if (this.timerEnable && !this.timerInterval) {
-
-			var func = function (func, thisArg) {
-				return function () {
-					return func.apply(thisArg, arguments);
-				};
-			}.call(this, this.resumeInterval, this);
-
-			this.startTime = Date.now();
-			this.timerInterval = setTimeout(func, this.pauseTimeout);
-		}
-	},
-
-	/** @public */
-	stop : function () {
-		if (this.timerEnable) {
-			if (this.timerInterval)
-				clearInterval(this.timerInterval);
-			this.timerInterval = null;
-			this.timerEnable = false;
-		}
-	},
-
-	/** @public */
-	isTimerEnabled : function () {
-		return this.timerEnable;
-	},
-
-	/** @private */
-	resumeInterval : function () {
-		this.isTimeoutMode = false;
-		this.createTimer();
-	},
-
-	/** @private */
-	createTimer : function () {
-		var func = function (func, thisArg) {
-			return function () {
-				return func.apply(thisArg, arguments);
-			};
-		}.call(this, this.nativeFunction, this);
-
-		this.startTime = Date.now();
-		this.timerInterval = setInterval(func, this.timeout);
-	},
-
-	/** @private */
-	nativeFunction : function () {
-		this.func.apply(this.thisArg);
-		this.startTime = Date.now();
-		if (this.isItTimeout)
-			this.stop();
-	}
-};
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\webGLConfig.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\webGLConfig.js", function( _require, exports, module ){
 module.exports = {
 	version : '0.1',
 
 	html : {
 		canvasID : 'webGLCanvas'
+	},
+
+	render : {
+//		textureClampTypes : ['REPEAT', 'CLAMP_TO_EDGE']
 	}
 };
 
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\glMatrix-0.9.5.min.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\glMatrix-0.9.5.min.js", function( _require, exports, module ){
 // glMatrix v0.9.5
 glMatrixArrayType=typeof Float32Array!="undefined"?Float32Array:typeof WebGLFloatArray!="undefined"?WebGLFloatArray:Array;var vec3={};vec3.create=function(a){var b=new glMatrixArrayType(3);if(a){b[0]=a[0];b[1]=a[1];b[2]=a[2]}return b};vec3.set=function(a,b){b[0]=a[0];b[1]=a[1];b[2]=a[2];return b};vec3.add=function(a,b,c){if(!c||a==c){a[0]+=b[0];a[1]+=b[1];a[2]+=b[2];return a}c[0]=a[0]+b[0];c[1]=a[1]+b[1];c[2]=a[2]+b[2];return c};
 vec3.subtract=function(a,b,c){if(!c||a==c){a[0]-=b[0];a[1]-=b[1];a[2]-=b[2];return a}c[0]=a[0]-b[0];c[1]=a[1]-b[1];c[2]=a[2]-b[2];return c};vec3.negate=function(a,b){b||(b=a);b[0]=-a[0];b[1]=-a[1];b[2]=-a[2];return b};vec3.scale=function(a,b,c){if(!c||a==c){a[0]*=b;a[1]*=b;a[2]*=b;return a}c[0]=a[0]*b;c[1]=a[1]*b;c[2]=a[2]*b;return c};
@@ -1078,21 +1081,22 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Material.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\classes\\Material.js", function( _require, exports, module ){
 /** @constructor */
 var Material = function () {
 	this.diffuseColor = [0, 0, 0];
 	this.imageLink = '';
 	this.ready = true;
 	this.texture = null;
+	this.textureRepeat = true;
 };
 
 module.exports = Material;
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Transformations.js", function( _require, exports, module ){
-var Vector3 = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Vector3.js" );
+_require.def( "..\\..\\source\\classes\\Transformations.js", function( _require, exports, module ){
+var Vector3 = _require( "..\\..\\source\\classes\\Vector3.js" );
 
 /** @constructor */
 var Transformations = function () {
@@ -1108,7 +1112,7 @@ module.exports = Transformations;
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Vector3.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\classes\\Vector3.js", function( _require, exports, module ){
 /** @class Vector3
  * @param x
  * @param y
@@ -1131,6 +1135,13 @@ Vector3.prototype = /** @lends Vector3# */ {
 		this._z = typeof z === 'number' ? z : 0;
 	},
 
+	/** @public */
+	add : function (x, y, z) {
+		this._x += typeof x === 'number' ? x : 0;
+		this._y += typeof y === 'number' ? y : 0;
+		this._z += typeof z === 'number' ? z : 0;
+	},
+
 	get x() { return this._x; },
 	get y() { return this._y; },
 	get z() { return this._z; },
@@ -1144,10 +1155,10 @@ module.exports = Vector3;
 	return module;
 });
 
-_require.def( "..\\..\\..\\app\\source\\game\\webGLEngine\\mesh.js", function( _require, exports, module ){
-var Class = _require( "..\\..\\..\\app\\source\\game\\libs\\class.js" ),
-	Material = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Material.js" ),
-	Transformations = _require( "..\\..\\..\\app\\source\\game\\webGLEngine\\classes\\Transformations.js" );
+_require.def( "..\\..\\source\\mesh.js", function( _require, exports, module ){
+var Class = _require( "..\\..\\source\\libs\\class.js" ),
+	Material = _require( "..\\..\\source\\classes\\Material.js" ),
+	Transformations = _require( "..\\..\\source\\classes\\Transformations.js" );
 
 /** @class Mesh
  * @extends {Class} */
@@ -1192,7 +1203,7 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 
 	/** @private */
 	initBuffers : function () {
-		var colors = [], indexes = [], textures = [],
+		var colors = [], indexes = [], textures = [], normals = [],
 			i, j, material, vertexIndexBuffer,
 			colorIndex;
 
@@ -1205,18 +1216,15 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._vertexPositionBuffer.itemSize = 3;
 		this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 
-		// create vertex normal buffer
-		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexNormalBuffer);
-		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexNormals), this._webGL.STATIC_DRAW);
-		this._vertexNormalBuffer.itemSize = 3;
-		this._vertexNormalBuffer.numItems = this._vertexNormals.length / this._vertexNormalBuffer.itemSize;
-
-		// create empty color and texture buffer
+	// create empty color and texture buffer
 		for (i = 0; i < this._vertexes.length / 3; i++) {
 			colors.push(0);
 			colors.push(0);
 			colors.push(0);
 			colors.push(1);
+			normals.push(0);
+			normals.push(0);
+			normals.push(0);
 			textures.push(0);
 			textures.push(0);
 		}
@@ -1233,6 +1241,9 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 					indexes.push(this._faces[material][i].vertexIndex - 1);
 					textures[(this._faces[material][i].vertexIndex - 1) * 2] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2];
 					textures[(this._faces[material][i].vertexIndex - 1) * 2 + 1] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2 + 1];
+					normals[(this._faces[material][i].vertexIndex - 1) * 3] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3];
+					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 1] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 1];
+					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 2] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 2];
 					for (j = 0; j < 3; j++) {
 						colors[colorIndex + j] = this._materials[material].diffuseColor[j];
 					}
@@ -1250,6 +1261,12 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 				};
 			}
 		}
+
+		// create vertex normal buffer
+		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexNormalBuffer);
+		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(normals), this._webGL.STATIC_DRAW);
+		this._vertexNormalBuffer.itemSize = 3;
+		this._vertexNormalBuffer.numItems = normals.length / this._vertexNormalBuffer.itemSize;
 
 		// create vertex color buffer
 		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexColorBuffer);
@@ -1301,7 +1318,7 @@ module.exports = Mesh;
 });
 
 (function(){
-_require( "..\\..\\..\\app\\source\\game\\main.js" );
+_require( "..\\..\\source\\webGLEngine.js" );
 }());
 
-//# sourceMappingURL=./bundle.js.map
+//# sourceMappingURL=./webGLEngine.js.map

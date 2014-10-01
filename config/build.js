@@ -9,39 +9,44 @@
 var fs   = require("fs"),
 	path = require('path');
 
+console.log(path.dirname(process.argv[1]));
+
 var config = {
 	folders : {
 		root    : path.join(path.dirname(process.argv[1]), '..'),
-		project : 'app/source',
-		js      : 'game',
+		project : 'source',
 		build   : 'build',
 		tools   : 'tools'
 	},
-	main    : 'main.js'
+	main    : 'webGLEngine.js'
 };
-
 var cjsc = require(path.join(config.folders.root, config.folders.tools, 'cjsc/cjsc-module.js'));
 console.log('var config = ' + JSON.stringify(config, null, " "));
 
 createFolders([
-	//config.folders.build,
-	path.join(config.folders.build, 'release/game')
+	path.join(config.folders.build, 'release')
 ]);
 
-process.chdir(path.join(config.folders.root, config.folders.build, 'release/game'));
+process.chdir(path.join(config.folders.root, config.folders.build, 'release'));
+
+console.log('STILL OK');
+
 cjsc([
 	process.argv[0],
 	process.argv[1],
-	'../../../app/source/game/main.js',
-	'bundle.js',
-	'--source-map=bundle.js.map',
+	'../../source/webGLEngine.js',
+	'webGLEngine.js',
+	'--source-map=webGLEngine.js.map',
 	'--config=' + path.join(config.folders.root, 'config/config.json')
 ]);
-/*
- copyFilesRecursive([
- { from: path.join(config.folders.root, config.folders.project }
- ]);
- */
+
+copyFile('webGLEngine.js', '../sample/js/webGLEngine.js');
+
+function copyFile (source, destination) {
+	if (fs.existsSync(source) && !fs.existsSync(destination)) {
+		fs.writeFileSync(destination, fs.readFileSync(source));
+	}
+}
 
 function createFolders (folderArray) {
 	for (var i = 0; i < folderArray.length; i++) {

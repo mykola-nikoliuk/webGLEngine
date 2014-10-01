@@ -1,4 +1,4 @@
-var Class = require('../libs/class'),
+var Class = require('libs/class'),
 	Material = require('./classes/Material'),
 	Transformations = require('./classes/Transformations');
 
@@ -45,7 +45,7 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 
 	/** @private */
 	initBuffers : function () {
-		var colors = [], indexes = [], textures = [],
+		var colors = [], indexes = [], textures = [], normals = [],
 			i, j, material, vertexIndexBuffer,
 			colorIndex;
 
@@ -58,18 +58,15 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._vertexPositionBuffer.itemSize = 3;
 		this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 
-		// create vertex normal buffer
-		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexNormalBuffer);
-		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexNormals), this._webGL.STATIC_DRAW);
-		this._vertexNormalBuffer.itemSize = 3;
-		this._vertexNormalBuffer.numItems = this._vertexNormals.length / this._vertexNormalBuffer.itemSize;
-
-		// create empty color and texture buffer
+	// create empty color and texture buffer
 		for (i = 0; i < this._vertexes.length / 3; i++) {
 			colors.push(0);
 			colors.push(0);
 			colors.push(0);
 			colors.push(1);
+			normals.push(0);
+			normals.push(0);
+			normals.push(0);
 			textures.push(0);
 			textures.push(0);
 		}
@@ -86,6 +83,9 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 					indexes.push(this._faces[material][i].vertexIndex - 1);
 					textures[(this._faces[material][i].vertexIndex - 1) * 2] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2];
 					textures[(this._faces[material][i].vertexIndex - 1) * 2 + 1] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2 + 1];
+					normals[(this._faces[material][i].vertexIndex - 1) * 3] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3];
+					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 1] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 1];
+					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 2] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 2];
 					for (j = 0; j < 3; j++) {
 						colors[colorIndex + j] = this._materials[material].diffuseColor[j];
 					}
@@ -103,6 +103,12 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 				};
 			}
 		}
+
+		// create vertex normal buffer
+		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexNormalBuffer);
+		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(normals), this._webGL.STATIC_DRAW);
+		this._vertexNormalBuffer.itemSize = 3;
+		this._vertexNormalBuffer.numItems = normals.length / this._vertexNormalBuffer.itemSize;
 
 		// create vertex color buffer
 		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexColorBuffer);

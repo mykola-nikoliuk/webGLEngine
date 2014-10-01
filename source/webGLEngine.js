@@ -1,14 +1,14 @@
-var Class = require('./../libs/class'),
-	utils = require('./../libs/utils'),
+var Class = require('./libs/class'),
+	utils = require('./libs/utils'),
 	config = require('./webGLConfig'),
 	glMatrix = require('glMatrix'),
 	Material = require('./classes/Material'),
 	Transformations = require('./classes/Transformations'),
 	Mesh = require('./mesh');
 
-/** @class Engine
+/** @class webGLEngine
  * @extends {Class} */
-var Engine = Class.extend(/** @lends {Engine#} */ {
+var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 	/** @constructs */
 	init : function (renderType) {
@@ -47,13 +47,13 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 		/** @private
 		 * @type {boolean} */
-		this._isLightingEnable = true;
+		this._isLightingEnable = false;
 
 		// check is render type are correct
 		if (typeof renderType === 'undefined') {
-			renderType = Engine.TYPES.render3d;
+			renderType = webGLEngine.TYPES.render3d;
 		}
-		if (typeof renderType === 'number' && Engine.TYPES[renderType] !== 'undefined') {
+		if (typeof renderType === 'number' && webGLEngine.TYPES[renderType] !== 'undefined') {
 			this.renderType = renderType;
 			window.addEventListener('resize', utils.bind(this.onResize, this), false);
 			this.webGLStart();
@@ -223,17 +223,17 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 		if (this.lastTime != 0) {
 			var elapsed = timeNow - this.lastTime;
 
-			if (this.meshes[0]) {
-				var transformations = this.meshes[0].getTransformations();
-				transformations.rotation.y = transformations.rotation.y + (90 * elapsed) / 500000.0;
-			}
+//			if (this.meshes[0]) {
+//				var transformations = this.meshes[0].getTransformations();
+//				transformations.rotation.y = transformations.rotation.y + (90 * elapsed) / 1000000.0;
+//			}
 		}
 		this.lastTime = timeNow;
 
 		this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
 		this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
-		glMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 10000.0, this.pMatrix);
+		glMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this.pMatrix);
 
 		glMatrix.mat4.identity(this.mvMatrix);
 
@@ -266,10 +266,8 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
 			this._gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
 			this._gl.vertexAttribPointer(this.shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
-
 
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexColorBuffer);
 			this._gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
@@ -340,14 +338,24 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	
 	/** @public
 	 * @param {string} path
+	 * @param {object} params
 	 * @returns {Mesh|null} */
-	createMeshFromFile : function (path) {
-		var require = new XMLHttpRequest();
+	createMeshFromFile : function (path, params) {
+		var require = new XMLHttpRequest(),
+			parameters = {
+				textureRepeat: true
+			};
+
+		if (typeof params === 'object') {
+			if (typeof params.textureRepeat === 'boolean') {
+				parameters.textureRepeat = params.textureRepeat;
+			}
+		}
 
 		require.open('GET', path, false);
 		require.send(null);
 		if (require.status == 200) {
-			return this.parseObjFile(require.responseText, path);
+			return this.parseObjFile(require.responseText, path, parameters);
 		}
 		return null;
 	},
@@ -355,8 +363,9 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	/** @private
 	 * @param objFile
 	 * @param path
+	 * @param {object} parameters
 	 * @returns {Mesh} */
-	parseObjFile : function (objFile, path) {
+	parseObjFile : function (objFile, path, parameters) {
 		var i, j, nodes, material,
 			vertexes = [], textures = [], normals = [], faces = { noMaterial : [] },
 			materials = {},
@@ -424,7 +433,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 					require.open('GET', materialPath, false);
 					require.send(null);
 					if (require.status == 200) {
-						materials = this.parseMaterial(require.responseText, materialPath);
+						materials = this.parseMaterial(require.responseText, materialPath, parameters);
 						for (material in materials) {
 							if (materials.hasOwnProperty(material)) {
 								faces[material] = [];
@@ -450,7 +459,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	},
 
 	/** @private */
-	parseMaterial : function (mtlFile, path) {
+	parseMaterial : function (mtlFile, path, parameters) {
 		var mtlList, i, j, nodes, texture, material, allMaterials = {};
 			/** @type {Material} */
 		var currentMaterial = null;
@@ -469,6 +478,7 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 				case 'map_Kd':
 					if (currentMaterial) {
 						currentMaterial.ready = false;
+						currentMaterial.textureRepeat = parameters.textureRepeat;
 						currentMaterial.imageLink = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
 						currentMaterial.texture = texture = this._gl.createTexture();
 
@@ -493,12 +503,14 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 	/** @private */
 	createTexture : function () {
 		var gl = this._gl,
-			currentMaterial = arguments[arguments.length - 1];
+			currentMaterial = arguments[arguments.length - 1],
+			repeatType = currentMaterial.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
 		gl.bindTexture(gl.TEXTURE_2D, currentMaterial.texture);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, currentMaterial.texture.image);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		currentMaterial.ready = true;
 	}
@@ -506,9 +518,9 @@ var Engine = Class.extend(/** @lends {Engine#} */ {
 
 /** @public
  * @type {Object.<string, number>} */
-Engine.TYPES = {
+webGLEngine.TYPES = {
 	render2d : 0,
 	render3d : 1
 };
 
-module.exports = Engine;
+window.webGLEngine = webGLEngine;

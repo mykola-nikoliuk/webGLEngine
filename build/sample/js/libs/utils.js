@@ -1,4 +1,8 @@
-module.exports = {
+
+function InitUtilities() {
+}
+
+InitUtilities.prototype = {
 	Console : function () {
 		var consoleID = 'console-block',
 			startTime = new Date().getTime(),
@@ -189,9 +193,10 @@ module.exports = {
 	}
 };
 
+
 /** creates managed timeout based on setTimeout
  * @class {Timer} */
-var Timer = function () {
+InitUtilities.prototype.Timer = function () {
 
 	/** @private */
 	this.timerInterval = null;
@@ -223,7 +228,7 @@ var Timer = function () {
 	this.isTimeoutMode = false;
 };
 
-Timer.prototype = {
+InitUtilities.prototype.Timer.prototype = {
 	/** set function to timeout
 	 * @public
 	 * @param {function} func

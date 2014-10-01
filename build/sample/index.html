@@ -48,7 +48,7 @@
         //if (uShowSpecularHighlights) {
           vec3 eyeDirection = normalize(-vPosition.xyz);
           vec3 reflectionDirection = reflect(-lightDirection, normal);
-          specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), 20.0);
+          specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), 1.0);
         //}
 
         float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
@@ -66,7 +66,6 @@
      // }
       //gl_FragColor = vec4(totalColor.rgb * vLightWeighting, totalColor.a);
     }
-
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
@@ -91,11 +90,11 @@
         vTextureCoord = aTextureCoord;
         vTransformedNormal = uNMatrix * aVertexNormal;
     }
-
 </script>
 
-<script src="game/bundle.js"></script>
-<script src="../../app/source/game/webGLEngine/glMatrix-0.9.5.min.js"></script>
+<script src="js/libs/utils.js"></script>
+<script src="js/webGLEngine.js"></script>
+<script src="js/main.js"></script>
 
 </body>
 </html>

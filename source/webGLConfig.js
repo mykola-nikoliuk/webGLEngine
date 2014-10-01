@@ -3,5 +3,9 @@ module.exports = {
 
 	html : {
 		canvasID : 'webGLCanvas'
+	},
+
+	render : {
+//		textureClampTypes : ['REPEAT', 'CLAMP_TO_EDGE']
 	}
 };
