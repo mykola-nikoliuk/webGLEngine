@@ -219,17 +219,6 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 			transformations,
 			i, material;
 
-		var timeNow = new Date().getTime();
-		if (this.lastTime != 0) {
-			var elapsed = timeNow - this.lastTime;
-
-//			if (this.meshes[0]) {
-//				var transformations = this.meshes[0].getTransformations();
-//				transformations.rotation.y = transformations.rotation.y + (90 * elapsed) / 1000000.0;
-//			}
-		}
-		this.lastTime = timeNow;
-
 		this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
 		this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 

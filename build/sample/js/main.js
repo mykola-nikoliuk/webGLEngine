@@ -15,7 +15,7 @@ var ns = {
 			down  : false
 		};
 		this._meshes = {
-			sky    : this._engine.createMeshFromFile('./resources/world/sky.obj', { textureRepeat : false }),
+//			sky    : this._engine.createMeshFromFile('./resources/world/sky.obj', { textureRepeat : false }),
 			hummer : this._engine.createMeshFromFile('./resources/Humvee/humvee.obj')
 		};
 
@@ -29,8 +29,8 @@ var ns = {
 
 		this._camera.position.set(0, -140, -500);
 
-		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
-			-this._camera.position.y, -this._camera.position.z);
+//		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
+//			-this._camera.position.y, -this._camera.position.z);
 	},
 
 	/** @public */
@@ -89,8 +89,8 @@ var ns = {
 
 		this._camera.position.add(X * speed, Y * speed, Z * speed);
 
-		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
-			-this._camera.position.y, -this._camera.position.z);
+//		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
+//			-this._camera.position.y, -this._camera.position.z);
 	},
 
 	/** @public */
