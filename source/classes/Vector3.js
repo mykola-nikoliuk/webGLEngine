@@ -33,7 +33,15 @@ Vector3.prototype = /** @lends Vector3# */ {
 
 	set x(value) { if (typeof value === 'number') this._x = value; },
 	set y(value) { if (typeof value === 'number') this._y = value; },
-	set z(value) { if (typeof value === 'number') this._z = value; }
+	set z(value) { if (typeof value === 'number') this._z = value; },
+
+	get r() { return this._x; },
+	get g() { return this._y; },
+	get b() { return this._z; },
+
+	set r(value) { if (typeof value === 'number') this._x = value; },
+	set g(value) { if (typeof value === 'number') this._y = value; },
+	set b(value) { if (typeof value === 'number') this._z = value; }
 };
 
 module.exports = Vector3;

@@ -41,9 +41,13 @@ cjsc([
 ]);
 
 copyFile('webGLEngine.js', '../sample/js/webGLEngine.js');
+//copyFile('webGLEngine.js.map', '../sample/js/webGLEngine.js.map');
 
 function copyFile (source, destination) {
-	if (fs.existsSync(source) && !fs.existsSync(destination)) {
+	if (fs.existsSync(source)) {
+		if (fs.existsSync(destination)) {
+			fs.unlink(destination);
+		}
 		fs.writeFileSync(destination, fs.readFileSync(source));
 	}
 }

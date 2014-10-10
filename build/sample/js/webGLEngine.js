@@ -78,7 +78,9 @@ var Class = _require( "..\\..\\source\\libs\\class.js" ),
 	glMatrix = _require( "..\\..\\source\\glMatrix-0.9.5.min.js" ),
 	Material = _require( "..\\..\\source\\classes\\Material.js" ),
 	Transformations = _require( "..\\..\\source\\classes\\Transformations.js" ),
-	Mesh = _require( "..\\..\\source\\mesh.js" );
+	Mesh = _require( "..\\..\\source\\mesh.js" ),
+	Face = _require( "..\\..\\source\\face.js" ),
+	Light = _require( "..\\..\\source\\light.js" );
 
 /** @class webGLEngine
  * @extends {Class} */
@@ -116,12 +118,16 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		 * @type {Array.<Mesh>} */
 		this.meshes = [];
 
+		/** @type {Array.<Light>}
+		 * @private */
+		this._lights = [];
+
 		/** @private */
 		this.shaderProgram = null;
 
 		/** @private
 		 * @type {boolean} */
-		this._isLightingEnable = false;
+		this._isLightingEnable = true;
 
 		// check is render type are correct
 		if (typeof renderType === 'undefined') {
@@ -143,10 +149,8 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		this.initGL();
 		this.initShaders();
 
-//		this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		//		this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		this._gl.enable(this._gl.DEPTH_TEST);
-
-		setInterval(utils.bind(this.drawScene, this), 33);
 	},
 
 	/** @private */
@@ -245,10 +249,13 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		this.shaderProgram.nMatrixUniform = this._gl.getUniformLocation(this.shaderProgram, "uNMatrix");
 		this.shaderProgram.samplerUniform = this._gl.getUniformLocation(this.shaderProgram, "uSampler");
 		this.shaderProgram.useLightingUniform = this._gl.getUniformLocation(this.shaderProgram, "uUseLighting");
+		this.shaderProgram.useLightUniform = this._gl.getUniformLocation(this.shaderProgram, "uUseLight");
 		this.shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this.shaderProgram, "uAmbientColor");
-		this.shaderProgram.lightingDirectionUniform = this._gl.getUniformLocation(this.shaderProgram, "uLightingDirection");
-		this.shaderProgram.directionalColorUniform = this._gl.getUniformLocation(this.shaderProgram, "uDirectionalColor");
+		this.shaderProgram.lightingPositionUniform = this._gl.getUniformLocation(this.shaderProgram, "uLightPosition");
+		this.shaderProgram.lightColorUniform = this._gl.getUniformLocation(this.shaderProgram, "uLightColor");
+		this.shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this.shaderProgram, "uLightDistance");
 		this.shaderProgram.textureEnabled = this._gl.getUniformLocation(this.shaderProgram, "uUseTexture");
+		this.shaderProgram.materialSpecular = this._gl.getUniformLocation(this.shaderProgram, "uMaterialSpecular");
 	},
 
 	/** @private */
@@ -282,17 +289,8 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		return degrees * Math.PI / 180;
 	},
 
-	/** @private */
-	drawScene : function () {
-
-		var vertexIndexBuffers,
-			vertexPositionBuffer,
-			vertexNormalBuffer,
-			vertexColorBuffer,
-			vertexTextureBuffer,
-			transformations,
-			i, material; 
-
+	/** @public */
+	beginDraw : function () {
 		this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
 		this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
@@ -306,81 +304,129 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		glMatrix.mat4.rotateZ(this.mvMatrix, this._camera.rotation.z);
 		glMatrix.mat4.translate(this.mvMatrix,
 			[this._camera.position.x, this._camera.position.y, this._camera.position.z]);
+	},
 
-		// draw meshes
-		for (i = 0; i < this.meshes.length; i++) {
+	/** @public
+	 * @param {Mesh} mesh */
+	draw : function (mesh) {
 
-			this.mvPushMatrix();
+		var vertexIndexBuffers,
+			vertexPositionBuffer,
+			vertexNormalBuffer,
+			vertexColorBuffer,
+			vertexTextureBuffer,
+			transformations,
+			i, material;
 
-			vertexIndexBuffers = this.meshes[i].getVertexIndexBuffers();
-			vertexPositionBuffer = this.meshes[i].getVertexPositionBuffer();
-			vertexNormalBuffer = this.meshes[i].getVertexNormalBuffer();
-			vertexColorBuffer = this.meshes[i].getVertexColorBuffer();
-			vertexTextureBuffer = this.meshes[i].getVertexTextureBuffer();
-			transformations = this.meshes[i].getTransformations();
+		this.mvPushMatrix();
 
-			// apply matrix transformations
-			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.z, [0, 0, 1]);
-			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.y, [0, 1, 0]);
-			glMatrix.mat4.rotate(this.mvMatrix, transformations.rotation.x, [1, 0, 0]);
-			glMatrix.mat4.translate(this.mvMatrix,
-				[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
+		vertexIndexBuffers = mesh.getVertexIndexBuffers();
+		vertexPositionBuffer = mesh.getVertexPositionBuffer();
+		vertexNormalBuffer = mesh.getVertexNormalBuffer();
+		vertexColorBuffer = mesh.getVertexColorBuffer();
+		vertexTextureBuffer = mesh.getVertexTextureBuffer();
+		transformations = mesh.getTransformations();
 
-			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
-			this._gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+		// apply matrix transformations
+		glMatrix.mat4.rotateZ(this.mvMatrix, transformations.rotation.z);
+		glMatrix.mat4.rotateY(this.mvMatrix, transformations.rotation.y);
+		glMatrix.mat4.rotateX(this.mvMatrix, transformations.rotation.x);
+		glMatrix.mat4.translate(this.mvMatrix,
+			[transformations.position.x, transformations.position.y, transformations.position.z, 0.0]);
 
-			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
-			this._gl.vertexAttribPointer(this.shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
+		this._gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexColorBuffer);
-			this._gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
+		this._gl.vertexAttribPointer(this.shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-			for (material in vertexIndexBuffers) {
-				if (vertexIndexBuffers.hasOwnProperty(material)) {
+		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexColorBuffer);
+		this._gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-					if (!vertexIndexBuffers[material].material.ready) continue;
+		for (material in vertexIndexBuffers) {
+			if (vertexIndexBuffers.hasOwnProperty(material)) {
 
-					// set texture if it has material, texture and texture already loaded
-					if (material !== 'noMaterial' && vertexIndexBuffers[material].material.texture) {
-						this._gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
-						this._gl.uniform1i(this.shaderProgram.textureEnabled, true);
+				if (!vertexIndexBuffers[material].material.ready) continue;
 
-						this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexTextureBuffer);
-						this._gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, vertexTextureBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				// set texture if it has material, texture and texture already loaded
+				if (material !== 'noMaterial' && vertexIndexBuffers[material].material.texture) {
+					this._gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+					this._gl.uniform1i(this.shaderProgram.textureEnabled, true);
 
-						this._gl.activeTexture(this._gl.TEXTURE0);
-						this._gl.bindTexture(this._gl.TEXTURE_2D, vertexIndexBuffers[material].material.texture);
-						this._gl.uniform1i(this.shaderProgram.samplerUniform, 0);
-						this._gl.uniform1i(this.shaderProgram.useLightingUniform, this._isLightingEnable);
+					this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexTextureBuffer);
+					this._gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, vertexTextureBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-						if (this._isLightingEnable) {
-							this._gl.uniform3f(this.shaderProgram.ambientColorUniform, 0.2, 0.2, 0.2);
-
-							var lightingDirection = [0, 0.0, 0.0];
-
-							var adjustedLD = vec3.create();
-							vec3.normalize(lightingDirection, adjustedLD);
-							vec3.scale(adjustedLD, -1);
-							this._gl.uniform3fv(this.shaderProgram.lightingDirectionUniform, adjustedLD);
-
-							this._gl.uniform3f(this.shaderProgram.directionalColorUniform, 2, 1.9, 1.6);
-						}
-					}
-					else {
-						this._gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
-						this._gl.uniform1i(this.shaderProgram.textureEnabled, false);
-					}
-
-					//					this._gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
-
-					this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
-					this.setMatrixUniforms();
-					this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
+					this._gl.activeTexture(this._gl.TEXTURE0);
+					this._gl.bindTexture(this._gl.TEXTURE_2D, vertexIndexBuffers[material].material.texture);
+					this._gl.uniform1i(this.shaderProgram.samplerUniform, 0);
 				}
-			}
+				else {
+					this._gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+					this._gl.uniform1i(this.shaderProgram.textureEnabled, false);
+				}
 
-			this.mvPopMatrix();
+				this._gl.uniform1i(this.shaderProgram.useLightingUniform, this._isLightingEnable);
+
+
+				if (this._isLightingEnable) {
+					var lightEnables = [], positions = [], colors = [], distances = [],
+						position, color;
+
+					for (i = 0; i < this._lights.length; i++) {
+						position = this._lights[i].position;
+						color = this._lights[i].color;
+						lightEnables.push(this._lights[i].isEnabled());
+						positions.push(position.x + this.mvMatrix[0]);
+						positions.push(position.y + this.mvMatrix[1]);
+						positions.push(position.z + this.mvMatrix[2]);
+						colors.push(color.r);
+						colors.push(color.g);
+						colors.push(color.b);
+						distances.push(this._lights[i].distance)
+					}
+
+					this._gl.uniform1iv(this.shaderProgram.useLightUniform, lightEnables);
+					this._gl.uniform1fv(this.shaderProgram.lightingDistanceUniform, distances);
+					this._gl.uniform3fv(this.shaderProgram.lightColorUniform, colors);
+					this._gl.uniform3fv(this.shaderProgram.lightingPositionUniform, positions);
+					this._gl.uniform1f(this.shaderProgram.materialSpecular, vertexIndexBuffers[material].material.specular);
+
+					//						this._gl.uniform3f(this.shaderProgram.ambientColorUniform, 0.2, 0.2, 0.2);
+					//						var lightingDirection = [0.0, 0.0, 0.0];
+					//
+					//						var adjustedLD = glMatrix.vec3.create();
+					//						glMatrix.vec3.normalize(lightingDirection, adjustedLD);
+					//						glMatrix.vec3.scale(adjustedLD, -1);
+				}
+
+				//					this._gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+
+				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
+				this.setMatrixUniforms();
+				this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
+			}
 		}
+		this.mvPopMatrix();
+	},
+
+	/** @public
+	 * @param {number} type
+	 * @param {Array<number>} color
+	 * @param {Array<number>} param direction or position
+	 * @param {number} distance */
+	createLight : function (type, color, param, distance) {
+		this._lights.push(new Light(type, color, param, distance));
+		return this._lights[this._lights.length - 1];
+	},
+
+	/** @public */
+	turnOnLight : function () {
+		this._isLightingEnable = true;
+	},
+
+	/** @public */
+	turnOffLight : function () {
+		this._isLightingEnable = false;
 	},
 
 	/** @private */
@@ -398,7 +444,26 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 	getCamera : function () {
 		return this._camera;
 	},
-	
+
+	/** @public */
+	createMesh : function (vertexes, textures, normals, faces, materials) {
+		var normalFaces = { mat : [] };
+		var normalMaterials = { mat : new Material() };
+
+		normalMaterials['mat'].diffuseColor = [1, 1, 1];
+		normalMaterials['mat'].specular = 100;
+		normalMaterials['mat'].loadTexture(this._gl, './resources/planet/earth.jpg', false);
+		//
+		//		normals = [0,0,1];
+
+		for (var i = 0; i < faces.length; i++) {
+			normalFaces['mat'].push(new Face(faces[i], faces[i], faces[i]));
+		}
+		var mesh = new Mesh(this._gl, vertexes, textures, normals, normalFaces, normalMaterials);
+		this.meshes.push(mesh);
+		return mesh;
+	},
+
 	/** @public
 	 * @param {string} path
 	 * @param {object} params
@@ -406,7 +471,7 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 	createMeshFromFile : function (path, params) {
 		var require = new XMLHttpRequest(),
 			parameters = {
-				textureRepeat: true
+				textureRepeat : true
 			};
 
 		if (typeof params === 'object') {
@@ -470,11 +535,11 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 						if (isNaN(faceArray[0])) break;
 
-						face = {
-							vertexIndex  : Number(faceArray[0]),
-							textureIndex : faceArray.length > 1 ? Number(faceArray[1]) : 0,
-							normalIndex  : faceArray.length > 2 ? Number(faceArray[2]) : 0
-						};
+						face = new Face(
+								Number(faceArray[0]) - 1,
+								faceArray.length > 1 ? Number(faceArray[1]) - 1 : 0,
+								faceArray.length > 2 ? Number(faceArray[2]) - 1 : 0
+						);
 
 						if (j >= 4) {
 							faces[currentMaterial].push(firstFace);
@@ -523,8 +588,8 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 	/** @private */
 	parseMaterial : function (mtlFile, path, parameters) {
-		var mtlList, i, j, nodes, texture, material, allMaterials = {};
-			/** @type {Material} */
+		var mtlList, i, j, nodes, material, allMaterials = {};
+		/** @type {Material} */
 		var currentMaterial = null;
 
 		mtlList = mtlFile.split('\n');
@@ -540,14 +605,11 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 				case 'map_Kd':
 					if (currentMaterial) {
-						currentMaterial.ready = false;
-						currentMaterial.textureRepeat = parameters.textureRepeat;
-						currentMaterial.imageLink = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
-						currentMaterial.texture = texture = this._gl.createTexture();
-
-						texture.image = new Image();
-						texture.image.onload = utils.bind(this.createTexture, this, currentMaterial);
-						texture.image.src = currentMaterial.imageLink;
+						currentMaterial.loadTexture(
+							this._gl,
+							(path.substring(0, path.lastIndexOf("/") + 1) + nodes[1]),
+							parameters.textureRepeat
+						);
 					}
 					break;
 
@@ -561,21 +623,6 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 			}
 		}
 		return allMaterials;
-	},
-
-	/** @private */
-	createTexture : function () {
-		var gl = this._gl,
-			currentMaterial = arguments[arguments.length - 1],
-			repeatType = currentMaterial.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
-		gl.bindTexture(gl.TEXTURE_2D, currentMaterial.texture);
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, currentMaterial.texture.image);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		currentMaterial.ready = true;
 	}
 });
 
@@ -1067,17 +1114,57 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 
 	module.exports.mat4 = mat4;
 	module.exports.mat3 = mat3;
+	module.exports.vec3 = vec3;
 	return module;
 });
 
 _require.def( "..\\..\\source\\classes\\Material.js", function( _require, exports, module ){
+var utils = _require( "..\\..\\source\\libs\\utils.js" );
+
 /** @constructor */
 var Material = function () {
 	this.diffuseColor = [0, 0, 0];
+	this.specular = 0;
 	this.imageLink = '';
 	this.ready = true;
 	this.texture = null;
 	this.textureRepeat = true;
+};
+
+Material.prototype = {
+	/** @public */
+	loadTexture : function (gl, path, textureRepeat) {
+		if (typeof gl !== 'object') {
+			console.log('GL parameter is not a object');
+			return;
+		}
+		if (typeof path !== 'string') {
+			console.log('Texture path parameter is not a string');
+			return;
+		}
+		this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
+		this.ready = false;
+		this.imageLink = path;
+		this.texture = gl.createTexture();
+
+		this.texture.image = new Image();
+		this.texture.image.onload = utils.bind(this.createTexture, this, gl);
+		this.texture.image.src = this.imageLink;
+	},
+
+	/** @private */
+	createTexture : function () {
+		var gl = arguments[arguments.length - 1];
+		var repeatType = this.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
+		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		this.ready = true;
+	}
 };
 
 module.exports = Material;
@@ -1137,7 +1224,15 @@ Vector3.prototype = /** @lends Vector3# */ {
 
 	set x(value) { if (typeof value === 'number') this._x = value; },
 	set y(value) { if (typeof value === 'number') this._y = value; },
-	set z(value) { if (typeof value === 'number') this._z = value; }
+	set z(value) { if (typeof value === 'number') this._z = value; },
+
+	get r() { return this._x; },
+	get g() { return this._y; },
+	get b() { return this._z; },
+
+	set r(value) { if (typeof value === 'number') this._x = value; },
+	set g(value) { if (typeof value === 'number') this._y = value; },
+	set b(value) { if (typeof value === 'number') this._z = value; }
 };
 
 module.exports = Vector3;
@@ -1225,14 +1320,14 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 
 				indexes = [];
 				for (i = 0; i < this._faces[material].length; i++) {
-					colorIndex = (this._faces[material][i].vertexIndex - 1) * 4;
+					colorIndex = (this._faces[material][i].vertexIndex) * 4;
 
-					indexes.push(this._faces[material][i].vertexIndex - 1);
-					textures[(this._faces[material][i].vertexIndex - 1) * 2] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2];
-					textures[(this._faces[material][i].vertexIndex - 1) * 2 + 1] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2 + 1];
-					normals[(this._faces[material][i].vertexIndex - 1) * 3] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3];
-					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 1] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 1];
-					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 2] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 2];
+					indexes.push(this._faces[material][i].vertexIndex);
+					textures[this._faces[material][i].vertexIndex * 2] = this._vertextTextures[this._faces[material][i].textureIndex * 2];
+					textures[this._faces[material][i].vertexIndex * 2 + 1] = this._vertextTextures[this._faces[material][i].textureIndex * 2 + 1];
+					normals[this._faces[material][i].vertexIndex * 3] = this._vertexNormals[this._faces[material][i].normalIndex * 3];
+					normals[this._faces[material][i].vertexIndex * 3 + 1] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 1];
+					normals[this._faces[material][i].vertexIndex * 3 + 2] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 2];
 					for (j = 0; j < 3; j++) {
 						colors[colorIndex + j] = this._materials[material].diffuseColor[j];
 					}
@@ -1303,6 +1398,88 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 });
 
 module.exports = Mesh;
+	return module;
+});
+
+_require.def( "..\\..\\source\\face.js", function( _require, exports, module ){
+
+/** @class Face */
+var Face = function (vertexIndex, textureIndex, normalIndex) {
+	this.vertexIndex = typeof vertexIndex === 'number' ? vertexIndex : 0;
+	this.textureIndex = typeof textureIndex === 'number' ? textureIndex : 0;
+	this.normalIndex = typeof normalIndex === 'number' ? normalIndex : 0;
+};
+
+module.exports = Face;
+	return module;
+});
+
+_require.def( "..\\..\\source\\light.js", function( _require, exports, module ){
+var Class = _require( "..\\..\\source\\libs\\class.js" ),
+	Vector = _require( "..\\..\\source\\classes\\Vector3.js" );
+
+/** @class Light
+ * @param {number} type
+ * @param {Array<number>} color
+ * @param {Array<number>} param direction or position
+ * @param {number} distance */
+var Light = function (type, color, param, distance) {
+
+	this._type = 0;
+
+	this._enabled = true;
+
+	this._distance = typeof distance === 'number' ? distance : 10;
+
+	/** @private
+	 * @type {Vector3} */
+	this._color = new Vector();
+
+	/** @private
+	 * @type {Vector3} */
+	this._position = new Vector();
+
+	if (typeof color === 'object') {
+		this._color.r = typeof color[0] === 'number' ? color[0] : 0;
+		this._color.g = typeof color[1] === 'number' ? color[1] : 0;
+		this._color.b = typeof color[2] === 'number' ? color[2] : 0;
+	}
+
+	if (typeof param === 'object') {
+		this._position.r = typeof param[0] === 'number' ? param[0] : 0;
+		this._position.g = typeof param[1] === 'number' ? param[1] : 0;
+		this._position.b = typeof param[2] === 'number' ? param[2] : 0;
+	}
+};
+
+
+Light.prototype = {
+
+	/** @public */
+	turnOn : function () {
+		this._enabled = true;
+	},
+
+	/** @public */
+	turnOff : function () {
+		this._enabled = false;
+	},
+
+	/** @public */
+	isEnabled : function () {
+		return this._enabled;
+	},
+
+	get color () { return this._color; },
+	get position () { return this._position; },
+	get distance () { return this._distance; },
+
+	set color (color) {},
+	set position (position) {},
+	set distance (distance) {}
+};
+
+module.exports = Light;
 	return module;
 });
 

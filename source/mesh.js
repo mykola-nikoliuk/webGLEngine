@@ -1,4 +1,4 @@
-var Class = require('libs/class'),
+var Class = require('./libs/class'),
 	Material = require('./classes/Material'),
 	Transformations = require('./classes/Transformations');
 
@@ -78,14 +78,14 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 
 				indexes = [];
 				for (i = 0; i < this._faces[material].length; i++) {
-					colorIndex = (this._faces[material][i].vertexIndex - 1) * 4;
+					colorIndex = (this._faces[material][i].vertexIndex) * 4;
 
-					indexes.push(this._faces[material][i].vertexIndex - 1);
-					textures[(this._faces[material][i].vertexIndex - 1) * 2] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2];
-					textures[(this._faces[material][i].vertexIndex - 1) * 2 + 1] = this._vertextTextures[(this._faces[material][i].textureIndex - 1) * 2 + 1];
-					normals[(this._faces[material][i].vertexIndex - 1) * 3] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3];
-					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 1] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 1];
-					normals[(this._faces[material][i].vertexIndex - 1) * 3 + 2] = this._vertexNormals[(this._faces[material][i].normalIndex - 1) * 3 + 2];
+					indexes.push(this._faces[material][i].vertexIndex);
+					textures[this._faces[material][i].vertexIndex * 2] = this._vertextTextures[this._faces[material][i].textureIndex * 2];
+					textures[this._faces[material][i].vertexIndex * 2 + 1] = this._vertextTextures[this._faces[material][i].textureIndex * 2 + 1];
+					normals[this._faces[material][i].vertexIndex * 3] = this._vertexNormals[this._faces[material][i].normalIndex * 3];
+					normals[this._faces[material][i].vertexIndex * 3 + 1] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 1];
+					normals[this._faces[material][i].vertexIndex * 3 + 2] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 2];
 					for (j = 0; j < 3; j++) {
 						colors[colorIndex + j] = this._materials[material].diffuseColor[j];
 					}
