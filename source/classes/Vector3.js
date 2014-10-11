@@ -1,7 +1,8 @@
 /** @class Vector3
  * @param x
  * @param y
- * @param z */
+ * @param z
+ * @constructor */
 var Vector3 = function (x, y, z) {
 	this._x = 0;
 	this._y = 0;
@@ -25,6 +26,12 @@ Vector3.prototype = /** @lends Vector3# */ {
 		this._x += typeof x === 'number' ? x : 0;
 		this._y += typeof y === 'number' ? y : 0;
 		this._z += typeof z === 'number' ? z : 0;
+	},
+
+	/** @public
+	 * @returns {Float32Array} */
+	getArray : function () {
+		return [this._x, this._y, this._z];
 	},
 
 	get x() { return this._x; },

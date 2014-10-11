@@ -36,8 +36,8 @@ cjsc([
 	process.argv[1],
 	'../../source/webGLEngine.js',
 	'webGLEngine.js',
-	'--source-map=webGLEngine.js.map',
-	'--config=' + path.join(config.folders.root, 'config/config.json')
+	'--source-map=webGLEngine.js.map'//,
+	//'--config=' + path.join(config.folders.root, 'config/config.json')
 ]);
 
 copyFile('webGLEngine.js', '../sample/js/webGLEngine.js');

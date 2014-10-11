@@ -1,6 +1,6 @@
 {
 	"glMatrix" : {
-		"path"    : "../../source/glMatrix-0.9.5.min.js",
+		"path"    : "../../source/libs/glMatrix.js",
 		"exports" : ["mat4", "mat3", "vec3"]
 	}
 }

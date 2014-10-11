@@ -17,8 +17,7 @@ ns = {
 
 		this._meshes = {
 			sky    : this._engine.createMeshFromFile('./resources/world/sky.obj', { textureRepeat : false }),
-			planet : this.createSphere(200, 96)//,
-//			hummer : this._engine.createMeshFromFile('./resources/Humvee/humvee.obj')
+			planet : this.createSphere(200, 96)
 		};
 
 		this._system = {
@@ -33,32 +32,10 @@ ns = {
 		if (this._engine) {
 			setInterval(this.utils.bind(this.mainProc, this), 33);
 		}
-
-//		var i = 0;
-//
-//		var timer = setInterval(function () {
-//			console.log(i++);
-//		}, 100);
-//
-//		var array = [1];
-//
-//		setTimeout(function () {
-//			console.log('start');
-//			for (var index = 0; index < 100000; index++) {
-//				array = array.concat([1]);
-//			}
-//			clearInterval(timer);
-//			console.log('end');
-//		}, 50);
-
-
-
 	},
 
 	/** @public */
 	configure : function () {
-		//		this._meshes.hummer.getTransformations().rotation.x = -Math.PI / 2;
-
 		this._camera.position.set(0, -408, 0);
 		this._camera.rotation.set(1.6, Math.PI / 2, 0);
 
@@ -66,7 +43,8 @@ ns = {
 			-this._camera.position.y, -this._camera.position.z);
 	},
 
-	/** @public */
+	/** Add global listeners to document
+	 * @public */
 	addListeners : function () {
 		this._system.canvas.addEventListener('mousedown', this.utils.bind(this.lockCursor, this), false);
 		document.addEventListener('keydown', this.utils.bind(this.keyDown, this), false);
@@ -78,24 +56,31 @@ ns = {
 		} else if ("onwebkitpointerlockchange" in document) {
 			document.addEventListener('webkitpointerlockchange', this.utils.bind(this.releaseCursor, this), false);
 		}
-
 	},
 
-	/** @private */
+	/** Creates lights for scene
+	 * @public */
 	createLights : function () {
 		this._engine.createLight(0, [1, 0, 0], [-600, 0, 000], 800);
 		this._engine.createLight(0, [0, 1, 0], [600, 0, 0], 1200.0);
-		this._engine.createLight(0, [1, 1, 1], [0, 0, 0], 1600.0);
+		this._engine.createLight(0, [1, 1, 1], [0, 0, 0], 10000.0);
 	},
 
-	/** @public */
+	/** Create sphere (mesh) from code
+	 * @public */
 	createSphere : function (radius, size) {
+
+		var vertexes = [], normals = [], textures = [], faces = {}, materials = {},
+			materialName = 'planetMaterial',
+			latNumber, longNumber;
+
 		radius = typeof radius === 'number' ? radius : 10;
 		size = typeof size === 'number' ? size : 16;
 
-		var vertexes = [], normals = [], textures = [], faces = [],
-			latNumber, longNumber;
+		materials[materialName] = new this._engine.classes.Material();
+		faces[materialName] = [];
 
+		// generates vertexes, normals and textures
 		for (latNumber = 0; latNumber <= size; latNumber++) {
 			var theta = latNumber * Math.PI / size;
 			var sinTheta = Math.sin(theta);
@@ -123,33 +108,29 @@ ns = {
 			}
 		}
 
+		// generates vertex indexes for faces
 		for (latNumber = 0; latNumber < size; latNumber++) {
 			for (longNumber = 0; longNumber < size; longNumber++) {
 				var first = (latNumber * (size + 1)) + longNumber;
 				var second = first + size + 1;
-				faces.push(first);
-				faces.push(second);
-				faces.push(first + 1);
-
-				faces.push(second);
-				faces.push(second + 1);
-				faces.push(first + 1);
+				faces[materialName].push(new this._engine.classes.Face(first, first, first));
+				faces[materialName].push(new this._engine.classes.Face(second, second, second));
+				faces[materialName].push(new this._engine.classes.Face(first + 1, first + 1, first + 1));
+				faces[materialName].push(new this._engine.classes.Face(second, second, second));
+				faces[materialName].push(new this._engine.classes.Face(second + 1, second + 1, second + 1));
+				faces[materialName].push(new this._engine.classes.Face(first + 1, first + 1, first + 1));
 			}
 		}
-//		vertexes = [
-//			-100, 100, 0,
-//			100, 100, 0,
-//			-100, -100, 0
-//		];
-//
-//		faces = [
-//			0, 1, 2
-//		];
 
-		return this._engine.createMesh(vertexes, textures, normals, faces, {});
+		materials[materialName].diffuseColor = [1, 1, 1];
+		materials[materialName].specular = 100;
+		materials[materialName].loadTexture(this._engine.getGLInstance(), './resources/planet/earth.jpg', false);
+
+		return this._engine.createMesh(vertexes, textures, normals, faces, materials);
 	},
 
-	/** @private */
+	/** Main loop function
+	 * @private */
 	mainProc : function () {
 		var engine = this._engine
 
@@ -162,20 +143,23 @@ ns = {
 		engine.draw(this._meshes.sky);
 		engine.turnOnLight();
 		engine.draw(this._meshes.planet);
-//		engine.draw(this._meshes.hummer);
 	},
 
-	/** @public */
+	/** Locks cursor into canvas for using mouse
+	 * @public */
 	lockCursor : function () {
 		document.addEventListener('mousemove', this._system.mouseMoveHandler, false);
+		//noinspection JSUnresolvedVariable
 		this._system.canvas.requestPointerLock = this._system.canvas.requestPointerLock ||
 			this._system.canvas.mozRequestPointerLock ||
 			this._system.canvas.webkitRequestPointerLock;
 		this._system.canvas.requestPointerLock();
 	},
 
-	/** @public */
+	/** Release mouse cursor
+	 * @public */
 	releaseCursor : function () {
+		//noinspection JSUnresolvedVariable
 		if(document.pointerLockElement !== this._system.canvas &&
 			document.mozPointerLockElement !== this._system.canvas &&
 			document.webkitPointerLockElement !== this._system.canvas) {
@@ -183,14 +167,17 @@ ns = {
 		}
 	},
 
-	/** @public */
+	/** Updates camera direction
+	 * @public */
 	updateCameraRotation : function (e) {
+		//noinspection JSUnresolvedVariable
 		var x = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
 			y = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
 		this._camera.rotation.add(y / 400, x / 400, 0);
 	},
 
-	/** @public */
+	/** Updates camera position
+	 * @public */
 	updateCameraPosition : function () {
 		var staticSpeed, speed, cosX, Y = 0, X = 0, Z = 0;
 		staticSpeed = 5;
@@ -226,7 +213,8 @@ ns = {
 					-this._camera.position.y, -this._camera.position.z);
 	},
 
-	/** @public */
+	/** Global key down handler
+	 * @public */
 	keyDown : function (e) {
 		switch (e.keyCode) {
 			case 65:
@@ -247,7 +235,8 @@ ns = {
 		}
 	},
 
-	/** @public */
+	/** Global key up handler
+	 * @public */
 	keyUp : function (e) {
 		switch (e.keyCode) {
 			case 65:
