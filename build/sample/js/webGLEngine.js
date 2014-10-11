@@ -74,9 +74,9 @@ if ( typeof require === "undefined" ) {
 _require.def( "..\\..\\source\\webGLEngine.js", function( _require, exports, module ){
 var glMatrix = _require( "..\\..\\source\\libs\\glMatrix.js" );
 var Class = _require( "..\\..\\source\\libs\\class.js" ),
-	Mesh = _require( "..\\..\\source\\classes\\Mesh2.js" ),
-	Face = _require( "..\\..\\source\\classes\\Face2.js" ),
-	Light = _require( "..\\..\\source\\classes\\Light2.js" ),
+	Mesh = _require( "..\\..\\source\\classes\\Mesh.js" ),
+	Face = _require( "..\\..\\source\\classes\\Faces.js" ),
+	Light = _require( "..\\..\\source\\classes\\Light.js" ),
 	utils = _require( "..\\..\\source\\libs\\utils.js" ),
 	config = _require( "..\\..\\source\\webGLConfig.js" ),
 	Material = _require( "..\\..\\source\\classes\\Material.js" ),
@@ -772,7 +772,7 @@ module.exports = Class;
 	return module;
 });
 
-_require.def( "..\\..\\source\\classes\\Mesh2.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\classes\\Mesh.js", function( _require, exports, module ){
 var Class = _require( "..\\..\\source\\libs\\class.js" ),
 	Material = _require( "..\\..\\source\\classes\\Material.js" ),
 	Transformations = _require( "..\\..\\source\\classes\\Transformations.js" );
@@ -1398,7 +1398,7 @@ module.exports = Vector3;
 	return module;
 });
 
-_require.def( "..\\..\\source\\classes\\Face2.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\classes\\Faces.js", function( _require, exports, module ){
 
 /** @class Face */
 var Face = function (vertexIndex, textureIndex, normalIndex) {
@@ -1411,7 +1411,7 @@ module.exports = Face;
 	return module;
 });
 
-_require.def( "..\\..\\source\\classes\\Light2.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\classes\\Light.js", function( _require, exports, module ){
 var Class = _require( "..\\..\\source\\libs\\class.js" ),
 	Vector = _require( "..\\..\\source\\classes\\Vector3.js" );
 
