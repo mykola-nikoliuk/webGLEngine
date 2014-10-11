@@ -75,7 +75,7 @@ _require.def( "..\\..\\source\\webGLEngine.js", function( _require, exports, mod
 var glMatrix = _require( "..\\..\\source\\libs\\glMatrix.js" );
 var Class = _require( "..\\..\\source\\libs\\class.js" ),
 	Mesh = _require( "..\\..\\source\\classes\\Mesh.js" ),
-	Face = _require( "..\\..\\source\\classes\\Faces.js" ),
+	Face = _require( "..\\..\\source\\classes\\Face.js" ),
 	Light = _require( "..\\..\\source\\classes\\Light.js" ),
 	utils = _require( "..\\..\\source\\libs\\utils.js" ),
 	config = _require( "..\\..\\source\\webGLConfig.js" ),
@@ -1398,7 +1398,7 @@ module.exports = Vector3;
 	return module;
 });
 
-_require.def( "..\\..\\source\\classes\\Faces.js", function( _require, exports, module ){
+_require.def( "..\\..\\source\\classes\\Face.js", function( _require, exports, module ){
 
 /** @class Face */
 var Face = function (vertexIndex, textureIndex, normalIndex) {

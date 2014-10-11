@@ -1,7 +1,7 @@
 var glMatrix = require('./libs/glMatrix');
 var Class = require('./libs/class'),
 	Mesh = require('./classes/Mesh'),
-	Face = require('./classes/Faces'),
+	Face = require('./classes/Face'),
 	Light = require('./classes/Light'),
 	utils = require('./libs/utils'),
 	config = require('./webGLConfig'),
