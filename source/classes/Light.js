@@ -1,5 +1,5 @@
-var Class = require('./libs/class'),
-	Vector = require('./classes/Vector3');
+var Class = require('./../libs/class'),
+	Vector = require('./Vector3');
 
 /** @class Light
  * @param {number} type

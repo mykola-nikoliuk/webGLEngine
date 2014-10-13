@@ -2,7 +2,7 @@ var utils = require('../libs/utils');
 
 /** @constructor */
 var Material = function () {
-	this.diffuseColor = [0, 0, 0];
+	this.diffuseColor = [1, 1, 1];
 	this.specular = 0;
 	this.imageLink = '';
 	this.ready = true;

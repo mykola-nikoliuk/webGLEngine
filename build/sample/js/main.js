@@ -17,7 +17,8 @@ ns = {
 
 		this._meshes = {
 			sky    : this._engine.createMeshFromFile('./resources/world/sky.obj', { textureRepeat : false }),
-			planet : this.createSphere(200, 96)
+			planet : this.createSphere(200, 96)//,
+//			mesh   : this._engine.createMeshFromFile('./resources/game/pigsybus/pigsybus.obj', { textureRepeat : false })
 		};
 
 		this._system = {
@@ -61,8 +62,8 @@ ns = {
 	/** Creates lights for scene
 	 * @public */
 	createLights : function () {
-		this._engine.createLight(0, [1, 0, 0], [-600, 0, 000], 800);
-		this._engine.createLight(0, [0, 1, 0], [600, 0, 0], 1200.0);
+		this._engine.createLight(0, [1, 0, 0], [-600, 0, 000], 10000);
+		this._engine.createLight(0, [0, 1, 0], [600, 0, 0], 10000.0);
 		this._engine.createLight(0, [1, 1, 1], [0, 0, 0], 10000.0);
 	},
 
@@ -124,7 +125,7 @@ ns = {
 
 		materials[materialName].diffuseColor = [1, 1, 1];
 		materials[materialName].specular = 100;
-		materials[materialName].loadTexture(this._engine.getGLInstance(), './resources/planet/earth.jpg', false);
+		materials[materialName].loadTexture(this._engine.getGLInstance(), './resources/planet/earth.png', false);
 
 		return this._engine.createMesh(vertexes, textures, normals, faces, materials);
 	},
@@ -143,6 +144,7 @@ ns = {
 		engine.draw(this._meshes.sky);
 		engine.turnOnLight();
 		engine.draw(this._meshes.planet);
+//		engine.draw(this._meshes.mesh);
 	},
 
 	/** Locks cursor into canvas for using mouse

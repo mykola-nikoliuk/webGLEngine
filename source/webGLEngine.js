@@ -224,6 +224,15 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		glMatrix.mat4.rotateY(this.mvMatrix, this._camera.rotation.y);
 		glMatrix.mat4.rotateZ(this.mvMatrix, this._camera.rotation.z);
 		glMatrix.mat4.translate(this.mvMatrix, this._camera.position.getArray());
+
+		if (true) {
+			this._gl.blendFunc(this._gl.ONE, this._gl.ONE);
+			this._gl.enable(this._gl.BLEND);
+			this._gl.disable(this._gl.DEPTH_TEST);
+		} else {
+			this._gl.disable(this._gl.BLEND);
+			this._gl.enable(this._gl.DEPTH_TEST);
+		}
 	},
 
 	/** @public
@@ -366,18 +375,6 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 	/** @public */
 	createMesh : function (vertexes, textures, normals, faces, materials) {
-//		var normalFaces = { mat : [] };
-//		var normalMaterials = { mat : new Material() };
-//
-//		normalMaterials['mat'].diffuseColor = [1, 1, 1];
-//		normalMaterials['mat'].specular = 100;
-//		normalMaterials['mat'].loadTexture(this._gl, './resources/planet/earth.jpg', false);
-		//
-		//		normals = [0,0,1];
-
-//		for (var i = 0; i < faces.length; i++) {
-//			normalFaces['mat'].push(new Face(faces[i], faces[i], faces[i]));
-//		}
 		var mesh = new Mesh(this._gl, vertexes, textures, normals, faces, materials);
 		this._meshes.push(mesh);
 		return mesh;
@@ -533,11 +530,19 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 					break;
 
 				case 'Kd':
-				{
 					for (j = 1; j < nodes.length; j++) {
 						currentMaterial.diffuseColor[j - 1] = Number(nodes[j]);
 					}
-				}
+					break;
+
+				case 'Ns':
+//				case 'Tr':
+					for (j = 1; j < nodes.length; j++) {
+						if (!isNaN(nodes[j])) {
+							currentMaterial.specular = Number(nodes[j]);
+							break;
+						}
+					}
 					break;
 			}
 		}

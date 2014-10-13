@@ -20,26 +20,20 @@
     uniform bool uUseLight[16];
     uniform bool uUseTexture;
 
-    //uniform vec3 uAmbientColor;
-
     uniform vec3 uLightPosition[16];
     uniform vec3 uLightColor[16];
     uniform float uLightDistance[16];
 
-    //uniform vec3 uPointLightingLocation;
-    //uniform vec3 uPointLightingSpecularColor;
-
     uniform sampler2D uSampler;
 
+    vec3 avarage (vec3 a, vec3 b) {
+      return vec3((a.r + b.r) / 2.0, (a.g + b.g) / 2.0, (a.b + b.b) / 2.0);
+    }
 
     void main(void) {
         vec3 lightWeighting[16];
-        vec4 totalColor = vColor;
+        vec4 totalColor = uUseTexture ? texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)) : vColor;
         vec3 lightColor = vec3(1, 1, 1);
-
-        if (uUseTexture) {
-            totalColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-        }
 
         if (uUseLighting) {
             lightColor = vec3(0, 0, 0);
@@ -52,7 +46,7 @@
                     float distanceLightWeighting = 1.0 - distanceLight / uLightDistance[i];
 
                     float diffuseLightWeighting = max(dot(lightDirection, normal), 0.0);
-                    lightWeighting[i] = uLightColor[i] * diffuseLightWeighting * distanceLightWeighting;
+                    lightWeighting[i] = vec3(1, 1, 1) * diffuseLightWeighting * distanceLightWeighting;
 
                     if (uMaterialSpecular != 0.0) {
                         float specularLightWeighting = 0.0;
@@ -66,13 +60,13 @@
                     if (lightWeighting[i].g < 0.0) lightWeighting[i].g = 0.0;
                     if (lightWeighting[i].b < 0.0) lightWeighting[i].b = 0.0;
 
-
-                    lightColor += lightWeighting[i];
+                    lightColor += uLightColor[i] * lightWeighting[i];
                 }
             }
+            totalColor = vec4(totalColor.rgb * lightColor, totalColor.a);
         }
 
-        gl_FragColor = vec4(totalColor.rgb * lightColor, totalColor.a);
+        gl_FragColor = vec4(totalColor.rgb, totalColor.a);
     }
 
 </script>
