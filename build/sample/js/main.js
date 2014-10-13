@@ -17,8 +17,8 @@ ns = {
 
 		this._meshes = {
 			sky    : this._engine.createMeshFromFile('./resources/world/sky.obj', { textureRepeat : false }),
-			planet : this.createSphere(200, 96)//,
-//			mesh   : this._engine.createMeshFromFile('./resources/game/pigsybus/pigsybus.obj', { textureRepeat : false })
+			planet : this.createSphere(200, 200),
+			mesh   : this._engine.createMeshFromFile('./resources/cat/cat.obj', { textureRepeat : false })
 		};
 
 		this._system = {
@@ -37,8 +37,15 @@ ns = {
 
 	/** @public */
 	configure : function () {
-		this._camera.position.set(0, -408, 0);
-		this._camera.rotation.set(1.6, Math.PI / 2, 0);
+		this._meshes.mesh.getTransformations().position.set(-30, 197.8, 0);
+		this._meshes.mesh.getTransformations().rotation.set(0, Math.PI / 2, 0.16);
+
+		this._meshes.mesh.getTransformations().scale.set(3, 3, 3);
+
+		this._meshes.sky.getTransformations().rotation.set(0, Math.PI, 0);
+
+		this._camera.position.set(50, -204, 0);
+		this._camera.rotation.set(0.0, Math.PI / 2, 0);
 
 		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
 			-this._camera.position.y, -this._camera.position.z);
@@ -62,9 +69,9 @@ ns = {
 	/** Creates lights for scene
 	 * @public */
 	createLights : function () {
-		this._engine.createLight(0, [1, 0, 0], [-600, 0, 000], 10000);
-		this._engine.createLight(0, [0, 1, 0], [600, 0, 0], 10000.0);
-		this._engine.createLight(0, [1, 1, 1], [0, 0, 0], 10000.0);
+//		this._engine.createLight(0, [1, 0, 0], [-600, 0, 000], 10000);
+//		this._engine.createLight(0, [0, 1, 0], [600, 0, 0], 10000.0);
+		this._engine.createLight(0, [1, 1, 1], [1000, 1000, 200], 10000.0);
 	},
 
 	/** Create sphere (mesh) from code
@@ -124,7 +131,7 @@ ns = {
 		}
 
 		materials[materialName].diffuseColor = [1, 1, 1];
-		materials[materialName].specular = 100;
+		materials[materialName].specular = 50;
 		materials[materialName].loadTexture(this._engine.getGLInstance(), './resources/planet/earth.png', false);
 
 		return this._engine.createMesh(vertexes, textures, normals, faces, materials);
@@ -137,14 +144,14 @@ ns = {
 
 		this.updateCameraPosition();
 
-		this._meshes.planet.getTransformations().rotation.set(Math.PI / 2, 0, Date.now() / 10000 % (Math.PI * 2));
+		this._meshes.planet.getTransformations().rotation.set(Math.PI / 2, 0, Date.now() / 5000 % (Math.PI * 2));
 
 		engine.beginDraw();
 		engine.turnOffLight();
 		engine.draw(this._meshes.sky);
 		engine.turnOnLight();
 		engine.draw(this._meshes.planet);
-//		engine.draw(this._meshes.mesh);
+		engine.draw(this._meshes.mesh);
 	},
 
 	/** Locks cursor into canvas for using mouse

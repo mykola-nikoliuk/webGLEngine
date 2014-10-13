@@ -7,7 +7,7 @@ var Transformations = function () {
 	/** @type {Vector3} */
 	this.rotation = new Vector3(0, 0, 0);
 	/** @type {Vector3} */
-	this.scale = new Vector3(0, 0, 0);
+	this.scale = new Vector3(1, 1, 1);
 };
 
 module.exports = Transformations;

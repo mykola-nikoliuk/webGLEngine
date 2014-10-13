@@ -225,8 +225,8 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		glMatrix.mat4.rotateZ(this.mvMatrix, this._camera.rotation.z);
 		glMatrix.mat4.translate(this.mvMatrix, this._camera.position.getArray());
 
-		if (true) {
-			this._gl.blendFunc(this._gl.ONE, this._gl.ONE);
+		if (false) {
+			this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
 			this._gl.enable(this._gl.BLEND);
 			this._gl.disable(this._gl.DEPTH_TEST);
 		} else {
@@ -256,11 +256,12 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		vertexTextureBuffer = mesh.getVertexTextureBuffer();
 		transformations = mesh.getTransformations();
 
-		// apply matrix transformations
+		// apply matrix tranwsformations
+		glMatrix.mat4.translate(this.mvMatrix, transformations.position.getArray());
 		glMatrix.mat4.rotateZ(this.mvMatrix, transformations.rotation.z);
 		glMatrix.mat4.rotateY(this.mvMatrix, transformations.rotation.y);
 		glMatrix.mat4.rotateX(this.mvMatrix, transformations.rotation.x);
-		glMatrix.mat4.translate(this.mvMatrix, transformations.position.getArray());
+		glMatrix.mat4.scale(this.mvMatrix, transformations.scale.getArray());
 
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
 		this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
@@ -511,7 +512,7 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		mtlList = mtlFile.split('\n');
 		for (i = 0; i < mtlList.length; i++) {
 			nodes = mtlList[i].split(' ');
-			switch (nodes[0]) {
+			switch (nodes[0].toLowerCase()) {
 				case 'newmtl':
 					/** @type {Material} */
 					material = new Material();
@@ -519,7 +520,7 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 					currentMaterial = material;
 					break;
 
-				case 'map_Kd':
+				case 'map_kd':
 					if (currentMaterial) {
 						currentMaterial.loadTexture(
 							this._gl,
@@ -529,13 +530,13 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 					}
 					break;
 
-				case 'Kd':
+				case 'kd':
 					for (j = 1; j < nodes.length; j++) {
 						currentMaterial.diffuseColor[j - 1] = Number(nodes[j]);
 					}
 					break;
 
-				case 'Ns':
+				case 'ns':
 //				case 'Tr':
 					for (j = 1; j < nodes.length; j++) {
 						if (!isNaN(nodes[j])) {
