@@ -21,10 +21,10 @@
       </option>
       <option name="outputFromStdout" value="false" />
       <option name="passParentEnvs" value="true" />
-      <option name="program" value="$ProjectFileDir$/config/make.cmd" />
+      <option name="program" value="$PROJECT_DIR$/tools/config/make.cmd" />
       <option name="scopeName" value="source" />
       <option name="trackOnlyRoot" value="false" />
-      <option name="workingDir" value="$ProjectFileDir$\config" />
+      <option name="workingDir" value="$ProjectFileDir$\tools\config" />
       <envs />
     </TaskOptions>
   </component>

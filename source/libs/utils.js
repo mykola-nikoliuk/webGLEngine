@@ -277,6 +277,47 @@ module.exports = {
 		};
 	},
 
+	/** @public
+	 * @param {string} url
+	 * @param {function} callback
+	 * @param {object} thisArg */
+	requestFile : function (url, callback, thisArg) {
+		var request = new XMLHttpRequest(),
+			args = Array.prototype.slice.call(arguments);
+
+		args.unshift(request);
+		args.unshift(this);
+		args.unshift(this.requestResult);
+
+		request.open('get', url, true);
+		request.onreadystatechange = this.bind.apply(this, args);
+		request.send(null);
+	},
+
+	/** @private
+	 * @param {Event} event
+	 * @param {XMLHttpRequest} request
+	 * @param {string} url
+	 * @param {function} callback
+	 * @param {object} thisArg */
+	requestResult : function (event, request, url, callback, thisArg) {
+		var response = '',
+				args = Array.prototype.slice.call(arguments, 5);
+
+		// If the request is "DONE" (completed or failed)
+		if (request.readyState === 4) {
+			// If we got HTTP status 200 (OK)
+			if (request.status !== 200) {
+				console.log('Can\'t download file: ' + url);
+			}
+			else {
+				response = request.responseText;
+			}
+			args.unshift(response);
+			callback.apply(thisArg, args);
+		}
+	},
+
 	secondsToTime : function (totalSeconds, useZero) {
 		var hours, minutes, seconds, time = '';
 		if (typeof useZero === 'undefined')

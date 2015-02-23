@@ -6,22 +6,23 @@ var Class = require('./../libs/class'),
  * @extends {Class} */
 var Mesh = Class.extend(/** @lends {Mesh#} */ {
 	/** @param {WebGLRenderingContext}  webGL
-	 * @param {Array.<number>} vertexes
-	 * @param {Array.<number>} vertexTexture
-	 * @param {Array.<number>} vertexNormals
-	 * @param {Array.<number>} faces
-	 * @param {Array.<object>} materials
 	 * @constructs */
-	init : function (webGL, vertexes, vertexTexture, vertexNormals, faces, materials) {
+	init : function (webGL) {
 
 		/** @type {WebGLRenderingContext} */
 		this._webGL = webGL;
 
-		this._vertexes = vertexes;
-		this._vertextTextures = vertexTexture;
-		this._vertexNormals = vertexNormals;
-		this._faces = faces;
-		this._materials = materials;
+		this._vertexes = null;
+		this._vertextTextures = null;
+		this._vertexNormals = null;
+		this._faces = null;
+		this._materials = null;
+
+		this._config = {
+			defaultMaterialName: 'noMaterial'
+		};
+
+		this._isReady = false;
 
 		/** @type {Transformations} */
 		this._transformations = new Transformations();
@@ -39,38 +40,55 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 
 		/** @type {WebGLBuffer} */
 		this._vertexTextureBuffer = this._webGL.createBuffer();
-
-		this.initBuffers();
 	},
 
-	/** @private */
-	initBuffers : function () {
-		var colors = [], indexes = [], textures = [], normals = [],
-			i, j, material, vertexIndexBuffer,
-			colorIndex;
-
-		/** @type {Buffer} */
-		lastMaterialName = null;
+	/** @public
+	 * @param {Array.<number>} vertexes
+	 * @param {Array.<number>} vertexTexture
+	 * @param {Array.<number>} vertexNormals
+	 * @param {Array.<number>} faces
+	 * @param {Array.<number>} materials */
+	fillBuffers : function (vertexes, vertexTexture, vertexNormals, faces, materials) {
+		this._vertexes = vertexes;
+		this._vertextTextures = vertexTexture;
+		this._vertexNormals = vertexNormals;
+		this._faces = faces;
+		this._materials = materials;
 
 		// create vertex index buffer
 		this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexPositionBuffer);
 		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexes), this._webGL.STATIC_DRAW);
 		this._vertexPositionBuffer.itemSize = 3;
 		this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
+	},
 
-	// create empty color and texture buffer
-		for (i = 0; i < this._vertexes.length / 3; i++) {
-			colors.push(0);
-			colors.push(0);
-			colors.push(0);
-			colors.push(1);
-			normals.push(0);
-			normals.push(0);
-			normals.push(0);
-			textures.push(0);
-			textures.push(0);
+	/** @public
+	 * @param {Array.<number>} [materials] */
+	initBuffers : function (materials) {
+		var colors = [], indexes = [], textures = [], normals = [],
+				i, j, material, vertexIndexBuffer,
+				colorIndex;
+
+
+		// create empty color and texture buffer
+//		for (i = 0; i < this._vertexes.length / 3; i++) {
+//			colors.push(1);
+//			colors.push(1);
+//			colors.push(1);
+//			colors.push(1);
+//		}
+
+		if (typeof materials !== 'undefined') {
+			for (material in this._materials) {
+				if (this._materials.hasOwnProperty(material)) {
+					if (materials.hasOwnProperty(material)) {
+						this._materials[material] = materials[material];
+					}
+				}
+			}
 		}
 
+		// create empty color and texture buffer
 		for (material in this._faces) {
 			if (this._faces.hasOwnProperty(material)) {
 
@@ -87,8 +105,9 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 					normals[this._faces[material][i].vertexIndex * 3 + 1] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 1];
 					normals[this._faces[material][i].vertexIndex * 3 + 2] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 2];
 					for (j = 0; j < 3; j++) {
-						colors[colorIndex + j] = this._materials[material].diffuseColor[j];
+						colors.push(this._materials[material].diffuseColor[j]);
 					}
+					colors.push(1);
 				}
 
 				vertexIndexBuffer = this._webGL.createBuffer();
@@ -121,6 +140,18 @@ var Mesh = Class.extend(/** @lends {Mesh#} */ {
 		this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(textures), this._webGL.STATIC_DRAW);
 		this._vertexTextureBuffer.itemSize = 2;
 		this._vertexTextureBuffer.numItems = this._vertextTextures.length / this._vertexTextureBuffer.itemSize;
+
+		this._isReady = true;
+	},
+
+	/** @public */
+	getDefaultMaterialName : function () {
+		return this._config.defaultMaterialName;
+	},
+
+	/** @public */
+	isReady : function () {
+		return this._isReady;
 	},
 
 	/** @public */

@@ -1,23 +1,37 @@
 var glMatrix = require('./libs/glMatrix');
 var Class = require('./libs/class'),
-	Mesh = require('./classes/Mesh'),
-	Face = require('./classes/Face'),
-	Light = require('./classes/Light'),
-	utils = require('./libs/utils'),
-	config = require('./webGLConfig'),
-	Material = require('./classes/Material'),
-	Transformations = require('./classes/Transformations');
+		Mesh = require('./classes/Mesh'),
+		Face = require('./classes/Face'),
+		Light = require('./classes/Light'),
+		utils = require('./libs/utils'),
+		Shader = require('./classes/Shader'),
+		config = require('./webGLConfig'),
+		Vector3 = require('./classes/Vector3'),
+		Material = require('./classes/Material'),
+		Transformations = require('./classes/Transformations');
 
-/** @class webGLEngine
+/** @class WebGLEngine
  * @extends {Class} */
-var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
+var WebGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
+
+	classes : {
+
+	},
 
 	/** @constructs */
 	init : function () {
 
+		console.log('> Start webGL initialization.');
+
 		/** @private
-		 * @type {CanvasRenderingContext2D|null} */
+		 * @type {CanvasRenderingContext2D} */
 		this._gl = null;
+
+		/** is render ready
+		 * @private */
+		this._isReady = false;
+
+		this._shader = null;
 
 		/** @private */
 		this._inited = false;
@@ -57,7 +71,8 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		 * @type {{Material: (Material|exports)}} */
 		this.classes = {
 			Material : Material,
-			Face     : Face
+			Face     : Face,
+			Vector   : Vector3
 		};
 
 		window.addEventListener('resize', utils.bind(this.onResize, this), false);
@@ -68,10 +83,7 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 	webGLStart : function () {
 		this.crateCanvas();
 		this.initGL();
-		this.initShaders();
-
-		//		this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		this._gl.enable(this._gl.DEPTH_TEST);
+		this.loadShaders();
 	},
 
 	/** @private */
@@ -138,11 +150,26 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 	},
 
 	/** @private */
+	loadShaders : function () {
+		this._shader = new Shader(this._gl);
+		console.log('> Start shaders loading.');
+		this._isReady = false;
+		this._shader.add(
+			this.initShaders,
+			this,
+			'webGLEngine/shaders/fragmentShader.fsh',
+			'webGLEngine/shaders/vertexShader.vsh'
+		);
+	},
+
+	/** @private */
 	initShaders : function () {
-		var fragmentShader = this.getShader(this._gl, "shader-fs");
-		var vertexShader = this.getShader(this._gl, "shader-vs");
+		var fragmentShader = this._shader.getFragmentShader();
+		var vertexShader = this._shader.getVertexShader();
 
 		this._shaderProgram = this._gl.createProgram();
+
+		//		console.log('test: ' + typeof this._shader);
 		this._gl.attachShader(this._shaderProgram, vertexShader);
 		this._gl.attachShader(this._shaderProgram, fragmentShader);
 		this._gl.linkProgram(this._shaderProgram);
@@ -177,6 +204,10 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
 		this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
 		this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
+
+		this._gl.enable(this._gl.DEPTH_TEST);
+
+		this._isReady = true;
 	},
 
 	/** @private */
@@ -235,17 +266,26 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		}
 	},
 
+	/** @public */
+	isReady : function () {
+		return this._isReady;
+	},
+
 	/** @public
 	 * @param {Mesh} mesh */
 	draw : function (mesh) {
 
+		if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
+			return;
+		}
+
 		var vertexIndexBuffers,
-			vertexPositionBuffer,
-			vertexNormalBuffer,
-			vertexColorBuffer,
-			vertexTextureBuffer,
-			transformations,
-			i, material;
+				vertexPositionBuffer,
+				vertexNormalBuffer,
+				vertexColorBuffer,
+				vertexTextureBuffer,
+				transformations,
+				i, material;
 
 		this.mvPushMatrix();
 
@@ -256,7 +296,7 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 		vertexTextureBuffer = mesh.getVertexTextureBuffer();
 		transformations = mesh.getTransformations();
 
-		// apply matrix tranwsformations
+		// apply matrix transformations
 		glMatrix.mat4.translate(this.mvMatrix, transformations.position.getArray());
 		glMatrix.mat4.rotateZ(this.mvMatrix, transformations.rotation.z);
 		glMatrix.mat4.rotateY(this.mvMatrix, transformations.rotation.y);
@@ -299,7 +339,7 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 				if (this._isLightingEnable) {
 					var lightEnables = [], positions = [], colors = [], distances = [],
-						position, color;
+							position, color;
 
 					for (i = 0; i < this._lights.length; i++) {
 						position = this._lights[i].position;
@@ -376,7 +416,9 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 	/** @public */
 	createMesh : function (vertexes, textures, normals, faces, materials) {
-		var mesh = new Mesh(this._gl, vertexes, textures, normals, faces, materials);
+		var mesh = new Mesh(this._gl);
+			mesh.fillBuffers(vertexes, textures, normals, faces, materials);
+		mesh.initBuffers();
 		this._meshes.push(mesh);
 		return mesh;
 	},
@@ -386,10 +428,14 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 	 * @param {object} params
 	 * @returns {Mesh|null} */
 	createMeshFromFile : function (path, params) {
-		var require = new XMLHttpRequest(),
-			parameters = {
-				textureRepeat : true
-			};
+		var mesh = new Mesh(this._gl),
+				parameters = {
+					textureRepeat : true
+				};
+
+		console.log('> Start loading mesh');
+
+		this._meshes.push(mesh);
 
 		if (typeof params === 'object') {
 			if (typeof params.textureRepeat === 'boolean') {
@@ -397,33 +443,41 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 			}
 		}
 
-		require.open('GET', path, false);
-		require.send(null);
-		if (require.status == 200) {
-			return this.parseObjFile(require.responseText, path, parameters);
-		}
-		return null;
+		utils.requestFile(path, this.parseObjFile, this, mesh, path, parameters);
+
+		return mesh;
 	},
 
 	/** @private
-	 * @param objFile
-	 * @param path
-	 * @param {object} parameters
-	 * @returns {Mesh} */
-	parseObjFile : function (objFile, path, parameters) {
+	 * @param {string} objFile
+	 * @param {Mesh} mesh
+	 * @param {string} path
+	 * @param {object} parameters */
+	parseObjFile : function (objFile, mesh, path, parameters) {
 		var i, j, nodes, material,
-			vertexes = [], textures = [], normals = [], faces = { noMaterial : [] },
-			materials = {},
-			currentMaterial = 'noMaterial',
-			require, objList, mesh, materialPath;
+				vertexes = [], textures = [], normals = [], faces = {},
+				materials = {},
+				currentMaterial = mesh.getDefaultMaterialName(),
+				vertexCounter,
+				hasMaterial = false,
+				objList, materialPath;
+
+		// TODO : Async and fill mesh
+
+		console.log('> Start parsing mesh');
+
+		materials[currentMaterial] = new Material();
+		faces[currentMaterial] = [];
 
 		objList = objFile.split('\n');
 		for (i = 0; i < objList.length; i++) {
 			nodes = objList[i].split(' ');
-			switch (nodes[0]) {
+			switch (nodes[0].toLowerCase()) {
 				case 'v':
-					for (j = 1; j < nodes.length; j++) {
+					vertexCounter = 0;
+					for (j = 1; j < nodes.length && vertexCounter < 3; j++) {
 						if (nodes[j] === '') continue;
+						vertexCounter++;
 						vertexes.push(Number(nodes[j]));
 					}
 					break;
@@ -473,41 +527,40 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 					break;
 
 				case 'mtllib':
+					hasMaterial = true;
 					materialPath = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
-					require = new XMLHttpRequest();
-					require.open('GET', materialPath, false);
-					require.send(null);
-					if (require.status == 200) {
-						materials = this.parseMaterial(require.responseText, materialPath, parameters);
-						for (material in materials) {
-							if (materials.hasOwnProperty(material)) {
-								faces[material] = [];
-							}
-						}
-					}
+					utils.requestFile(materialPath, this.parseMaterial, this, materialPath, mesh, parameters);
 					break;
 
 				case 'usemtl':
-					if (typeof materials[nodes[1]] !== 'undefined') {
-						currentMaterial = nodes[1];
+					if (!materials.hasOwnProperty(nodes[1])) {
+						materials[nodes[1]] = new Material();
+						faces[nodes[1]] = [];
 					}
+					currentMaterial = nodes[1];
 					break;
 			}
 		}
 
-		console.log('parsed');
-		/** @type {Material} */
-		materials['noMaterial'] = new Material();
-		mesh = new Mesh(this._gl, vertexes, textures, normals, faces, materials);
-		this._meshes.push(mesh);
-		return mesh;
+		console.log('> Mesh parsed');
+
+		mesh.fillBuffers(vertexes, textures, normals, faces, materials);
+		if (!hasMaterial) {
+			mesh.initBuffers();
+		}
 	},
 
-	/** @private */
-	parseMaterial : function (mtlFile, path, parameters) {
+	/** @private
+	 * @param {string} mtlFile
+	 * @param {string} path
+	 * @param {Mesh} mesh
+	 * @param {object} parameters */
+	parseMaterial : function (mtlFile, path, mesh, parameters) {
 		var mtlList, i, j, nodes, material, allMaterials = {};
 		/** @type {Material} */
 		var currentMaterial = null;
+
+		console.log('> Start parsing material');
 
 		mtlList = mtlFile.split('\n');
 		for (i = 0; i < mtlList.length; i++) {
@@ -532,12 +585,13 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 				case 'kd':
 					for (j = 1; j < nodes.length; j++) {
+						if (nodes[j] === '') continue;
 						currentMaterial.diffuseColor[j - 1] = Number(nodes[j]);
 					}
 					break;
 
 				case 'ns':
-//				case 'Tr':
+					//				case 'Tr':
 					for (j = 1; j < nodes.length; j++) {
 						if (!isNaN(nodes[j])) {
 							currentMaterial.specular = Number(nodes[j]);
@@ -547,7 +601,10 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 					break;
 			}
 		}
-		return allMaterials;
+
+		console.log('> Material parsed');
+
+		mesh.initBuffers(allMaterials);
 	},
 
 	/** @public */
@@ -558,9 +615,9 @@ var webGLEngine = Class.extend(/** @lends {webGLEngine#} */ {
 
 /** @public
  * @type {Object.<string, number>} */
-webGLEngine.TYPES = {
+WebGLEngine.TYPES = {
 	render2d : 0,
 	render3d : 1
 };
 
-window.webGLEngine = webGLEngine;
+window.WebGLEngine = WebGLEngine;
