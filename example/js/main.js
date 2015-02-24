@@ -1,5 +1,80 @@
 document.addEventListener('DOMContentLoaded', function () { ns.init.apply(ns); }, false);
 
+var client = {
+
+	data : {
+		id       : '',
+		position : [0, 0, 0],
+		angle    : [0, 0, 0]
+	},
+
+	users : {},
+
+	/** @public */
+	init : function () {
+
+		var request = new XMLHttpRequest();
+		request.open('post', '', true);
+		request.onreadystatechange = function () { client.response.call(client, request); };
+		request.send(JSON.stringify(this.data));
+	},
+
+	/** @private */
+	response : function (request) {
+		if (request.readyState === 4) {
+			// If we got HTTP status 200 (OK)
+			if (request.status !== 200) {
+				console.log('Can\'t download file: ');
+			}
+			else {
+				var response = JSON.parse(request.responseText);
+
+				//noinspection FallThroughInSwitchStatementJS
+				switch (response.type) {
+					case 'logged':
+						this.data.id = response.id;
+
+					case 'update':
+						break;
+				}
+
+				for (var user in response.users) {
+					if (response.users.hasOwnProperty(user)) {
+						if (this.users.hasOwnProperty(user)) {
+							this.users[user].position = response.users[user].position;
+							this.users[user].angles = response.users[user].angles;
+						}
+						else {
+							// new user
+							ns.addNewPlayer(user);
+							console.log(user + ' has joined');
+							this.users[user] = {
+								position : response.users[user].position,
+								angles   : response.users[user].angles
+							};
+						}
+					}
+				}
+
+				for (user in this.users) {
+					if (this.users.hasOwnProperty(user)) {
+						if (!response.users.hasOwnProperty(user)) {
+							console.log(user + ' has leave the game');
+							ns.removePlayer(user);
+							delete this.users[user];
+						}
+					}
+				}
+
+				//				console.log(response.type);
+
+				this.init();
+			}
+		}
+	}
+};
+
+
 var ns = {
 
 	classes : {},
@@ -27,10 +102,11 @@ var ns = {
 		};
 
 		this._meshes = {
-			sky    : this._engine.createMeshFromFile('./resources/world/sky.obj', { textureRepeat : false }),
-//			planet : this.createSphere(this.config.game.planet.radius, 256, './resources/planet/blank.png'),
-//			runner : this.createSphere(this.config.game.runner.radius, 32, './resources/sphere/runner.png'),
-			car    : this._engine.createMeshFromFile('./resources/vaz_2104/vaz_2104.obj', { textureRepeat : false })
+			sky     : this._engine.createMeshFromFile('./resources/world/sky.obj', { textureRepeat : false }),
+			//			planet : this.createSphere(this.config.game.planet.radius, 256, './resources/planet/blank.png'),
+			//			runner : this.createSphere(this.config.game.runner.radius, 32, './resources/sphere/runner.png'),
+			//			car    : this._engine.createMeshFromFile('./resources/cat/cat.obj', { textureRepeat : false }),
+			players : {}
 		};
 
 		this._system = {
@@ -39,6 +115,9 @@ var ns = {
 		};
 
 		this.runnerPosition = new this._engine.classes.Vector();
+
+		client.init();
+		this.addNewPlayer('lkajf');
 
 		this.configure();
 		this.addListeners();
@@ -50,22 +129,34 @@ var ns = {
 	},
 
 	/** @public */
+	addNewPlayer : function (nickname) {
+		var scale = 1;
+		this._meshes.players[nickname] = this._engine.createMeshFromFile('./resources/head/head.obj', { textureRepeat : false });
+		this._meshes.players[nickname].getTransformations().scale.set(scale, scale, scale);
+	},
+
+	/** @public */
+	removePlayer : function (nickname) {
+		delete this._meshes.players[nickname];
+	},
+
+	/** @public */
 	configure : function () {
-//				this._meshes.runner.getTransformations().position.set(0, 197.8, 30);
-//				this._meshes.runner.getTransformations().rotation.set(-0.16, Math.PI, 0);
-//				this._meshes.runner.getTransformations().scale.set(3, 3, 3);
+		//				this._meshes.runner.getTransformations().position.set(0, 197.8, 30);
+		//				this._meshes.runner.getTransformations().rotation.set(-0.16, Math.PI, 0);
+		//				this._meshes.runner.getTransformations().scale.set(3, 3, 3);
 
-		var scale = 2;
+		//		var scale = 20;
 
-				this._meshes.car.getTransformations().scale.set(scale, scale, scale);
+		//				this._meshes.car.getTransformations().scale.set(scale, scale, scale);
 
-				this._meshes.sky.getTransformations().rotation.set(0, Math.PI, 0);
-//
-				this._camera.position.set(0, -102, -50);
-				this._camera.rotation.set(0.0, Math.PI / 2, 0);
+		this._meshes.sky.getTransformations().rotation.set(0, Math.PI, 0);
+		//
+		this._camera.position.set(0, -102, -50);
+		this._camera.rotation.set(0.0, Math.PI / 2, 0);
 
-				this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
-					-this._camera.position.y, -this._camera.position.z);
+		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
+			-this._camera.position.y, -this._camera.position.z);
 	},
 
 	/** Add global listeners to document
@@ -89,6 +180,11 @@ var ns = {
 		//		this._engine.createLight(0, [1, 0, 0], [-600, 0, 000], 10000);
 		//				this._engine.createLight(0, [0, 0, 1], [0, 0, 0], 100.0);
 		this._engine.createLight(0, [1, 1, 1], [0, 0, 0], 1000.0);
+	},
+
+	/** @private */
+	updatePlayersData : function () {
+
 	},
 
 	/** Create sphere (mesh) from code
@@ -166,11 +262,12 @@ var ns = {
 		// TODO: delete it
 		var time = Date.now();
 		var rotateAngle = -Date.now() / 8000 % (Math.PI * 2),
-				runnerAngle = rotateAngle * this.config.game.planet.radius / this.config.game.runner.radius;
+				runnerAngle = rotateAngle * this.config.game.planet.radius / this.config.game.runner.radius,
+				player;
 
 		if (this._engine.isReady()) {
 
-//					this._engine._lights[0]._position.set(this._camera.position.x, this._camera.position.y, this._camera.position.z);
+			//					this._engine._lights[0]._position.set(this._camera.position.x, this._camera.position.y, this._camera.position.z);
 
 			this._game.engine();
 
@@ -178,21 +275,41 @@ var ns = {
 
 			this.updateCameraPosition();
 
-//			this._meshes.planet.getTransformations().rotation.set(0, rotateAngle, Math.PI / 2);
+			//			this._meshes.planet.getTransformations().rotation.set(0, rotateAngle, Math.PI / 2);
 
-//			this._meshes.runner.getTransformations().rotation.set(runnerAngle, 0, 0);
-//					this._meshes.runner.getTransformations().scale.set(10, 10, 10);
-//					this._meshes.runner.getTransformations().position.set(0,0,0);
+			//			this._meshes.runner.getTransformations().rotation.set(runnerAngle, 0, 0);
+			//					this._meshes.runner.getTransformations().scale.set(10, 10, 10);
+			//					this._meshes.runner.getTransformations().position.set(0,0,0);
 
-//			this._game.convertPositions(this.runnerPosition.getArray(), this._meshes.runner.getTransformations());
+			//			this._game.convertPositions(this.runnerPosition.getArray(), this._meshes.runner.getTransformations());
+
 
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
 			engine.turnOnLight();
-//			engine.draw(this._meshes.planet);
-//			engine.draw(this._meshes.runner);
-			engine.draw(this._meshes.car);
+			//			engine.draw(this._meshes.planet);
+			//			engine.draw(this._meshes.runner);
+			//			engine.draw(this._meshes.car);
+
+			client.data.position = this._camera.position.getArray();
+			client.data.angles = this._camera.rotation.getArray();
+			for (var playerName in client.users) {
+				if (client.users.hasOwnProperty(playerName)) {
+					player = client.users[playerName];
+					this._meshes.players[playerName].getTransformations().position.set(
+						player.position[0],
+						-player.position[1],
+						player.position[2]
+					);
+					this._meshes.players[playerName].getTransformations().rotation.set(
+						player.angles[0],
+						-player.angles[1],
+						player.angles[2]
+					);
+					engine.draw(this._meshes.players[playerName]);
+				}
+			}
 
 			// TODO : delete it
 			this.count++;
@@ -284,8 +401,8 @@ var ns = {
 
 		this._camera.position.add(X * speed, Y * speed, Z * speed);
 
-//				this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
-//					-this._camera.position.y, -this._camera.position.z);
+		//				this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
+		//					-this._camera.position.y, -this._camera.position.z);
 	},
 
 	/** Global key down handler
