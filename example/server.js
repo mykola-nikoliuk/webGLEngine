@@ -1,3 +1,5 @@
+// TODO : REFACTOR
+
 var http = require('http'),
 		url = require('url'),
 		path = require('path'),
@@ -17,7 +19,7 @@ var users = {};
 var randomString = 'abcdefaslkghasjndgjnasoifghsidfna;jsddn;f';
 var keyLenght = 20;
 var userCounter = 0;
-var kickTimeout = 3 * 1000;
+var kickTimeout = 3000;
 
 http.createServer(function (req, res) {
 	var uri = url.parse(req.url).pathname;
@@ -42,14 +44,12 @@ http.createServer(function (req, res) {
 		}); //end path.exists
 	}
 	if (req.method === 'POST') {
+
 		var body = [], i, id;
 		req.on('data', function (chunk) { body.push(chunk); });
 		req.on('end', function () {
-			var response = JSON.parse(body), resData = {
-				type : null
-			};
-
-//			console.log(response.id);
+			var response = JSON.parse(body.join('')),
+					resData = { type : null };
 
 			if (users.hasOwnProperty(response.id)) {
 				id = response.id;

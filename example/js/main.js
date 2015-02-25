@@ -1,83 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () { ns.init.apply(ns); }, false);
 
-var client = {
-
-	data : {
-		id       : '',
-		position : [0, 0, 0],
-		angle    : [0, 0, 0]
-	},
-
-	users : {},
-
-	/** @public */
-	init : function () {
-
-		var request = new XMLHttpRequest();
-		request.open('post', '', true);
-		request.onreadystatechange = function () { client.response.call(client, request); };
-		request.send(JSON.stringify(this.data));
-	},
-
-	/** @private */
-	response : function (request) {
-		if (request.readyState === 4) {
-			// If we got HTTP status 200 (OK)
-			if (request.status !== 200) {
-				console.log('Can\'t download file: ');
-			}
-			else {
-				var response = JSON.parse(request.responseText);
-
-				//noinspection FallThroughInSwitchStatementJS
-				switch (response.type) {
-					case 'logged':
-						this.data.id = response.id;
-
-					case 'update':
-						break;
-				}
-
-				for (var user in response.users) {
-					if (response.users.hasOwnProperty(user)) {
-						if (this.users.hasOwnProperty(user)) {
-							this.users[user].position = response.users[user].position;
-							this.users[user].angles = response.users[user].angles;
-						}
-						else {
-							// new user
-							ns.addNewPlayer(user);
-							console.log(user + ' has joined');
-							this.users[user] = {
-								position : response.users[user].position,
-								angles   : response.users[user].angles
-							};
-						}
-					}
-				}
-
-				for (user in this.users) {
-					if (this.users.hasOwnProperty(user)) {
-						if (!response.users.hasOwnProperty(user)) {
-							console.log(user + ' has leave the game');
-							ns.removePlayer(user);
-							delete this.users[user];
-						}
-					}
-				}
-
-				//				console.log(response.type);
-
-				this.init();
-			}
-		}
-	}
-};
-
-
 var ns = {
 
 	classes : {},
+
+	/** @type {WebClient} */
+	client : new WebClient(),
 
 	init : function () {
 
@@ -116,8 +44,9 @@ var ns = {
 
 		this.runnerPosition = new this._engine.classes.Vector();
 
-		client.init();
-		this.addNewPlayer('lkajf');
+
+		this.client.setEventListener(this.clientEventListener, this);
+		this.client.connect();
 
 		this.configure();
 		this.addListeners();
@@ -125,6 +54,21 @@ var ns = {
 
 		if (this._engine) {
 			setInterval(this.utils.bind(this.mainProc, this), 1000 / this.config.engine.FPS);
+		}
+	},
+
+	/** @public */
+	clientEventListener : function (type) {
+		var events = this.client.events;
+
+		switch (type) {
+			case events.PLAYES_HAS_JOINED:
+				this.addNewPlayer(arguments[1]);
+				break;
+
+			case events.PLAYER_LEAVE:
+				this.removePlayer(arguments[1]);
+				break;
 		}
 	},
 
@@ -263,7 +207,8 @@ var ns = {
 		var time = Date.now();
 		var rotateAngle = -Date.now() / 8000 % (Math.PI * 2),
 				runnerAngle = rotateAngle * this.config.game.planet.radius / this.config.game.runner.radius,
-				player;
+				player,
+			clientData = this.client.getData();
 
 		if (this._engine.isReady()) {
 
@@ -292,11 +237,11 @@ var ns = {
 			//			engine.draw(this._meshes.runner);
 			//			engine.draw(this._meshes.car);
 
-			client.data.position = this._camera.position.getArray();
-			client.data.angles = this._camera.rotation.getArray();
-			for (var playerName in client.users) {
-				if (client.users.hasOwnProperty(playerName)) {
-					player = client.users[playerName];
+			clientData.position = this._camera.position.getArray();
+			clientData.angles = this._camera.rotation.getArray();
+			for (var playerName in clientData.users) {
+				if (clientData.users.hasOwnProperty(playerName)) {
+					player = clientData.users[playerName];
 					this._meshes.players[playerName].getTransformations().position.set(
 						player.position[0],
 						-player.position[1],
