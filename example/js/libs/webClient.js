@@ -54,7 +54,7 @@ WebClient.prototype = {
 		this._isRequestIsBusy = true;
 
 		this._request = this.getXmlHttp();
-		this._request.open('post', '', true);
+		this._request.open('post', '?t=' + Date.now(), true);
 		this._request.onreadystatechange = this.bind(this.response, this);
 		this._request.send(JSON.stringify(this._data));
 		this.turnOnTimeout();
