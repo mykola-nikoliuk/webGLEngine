@@ -1,5 +1,80 @@
 document.addEventListener('DOMContentLoaded', function () { ns.init.apply(ns); }, false);
 
+var client = {
+
+	data : {
+		id       : '',
+		position : [0, 0, 0],
+		angle    : [0, 0, 0]
+	},
+
+	users : {},
+
+	/** @public */
+	init : function () {
+
+		var request = new XMLHttpRequest();
+		request.open('post', '', true);
+		request.onreadystatechange = function () { client.response.call(client, request); };
+		request.send(JSON.stringify(this.data));
+	},
+
+	/** @private */
+	response : function (request) {
+		if (request.readyState === 4) {
+			// If we got HTTP status 200 (OK)
+			if (request.status !== 200) {
+				console.log('Can\'t download file: ');
+			}
+			else {
+				var response = JSON.parse(request.responseText);
+
+				//noinspection FallThroughInSwitchStatementJS
+				switch (response.type) {
+					case 'logged':
+						this.data.id = response.id;
+
+					case 'update':
+						break;
+				}
+
+				for (var user in response.users) {
+					if (response.users.hasOwnProperty(user)) {
+						if (this.users.hasOwnProperty(user)) {
+							this.users[user].position = response.users[user].position;
+							this.users[user].angles = response.users[user].angles;
+						}
+						else {
+							// new user
+							ns.addNewPlayer(user);
+							console.log(user + ' has joined');
+							this.users[user] = {
+								position : response.users[user].position,
+								angles   : response.users[user].angles
+							};
+						}
+					}
+				}
+
+				for (user in this.users) {
+					if (this.users.hasOwnProperty(user)) {
+						if (!response.users.hasOwnProperty(user)) {
+							console.log(user + ' has leave the game');
+							ns.removePlayer(user);
+							delete this.users[user];
+						}
+					}
+				}
+
+				//				console.log(response.type);
+
+				this.init();
+			}
+		}
+	}
+};
+
+
 var ns = {
 
 	classes : {},
