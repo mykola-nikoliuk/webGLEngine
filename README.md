@@ -8,7 +8,6 @@ The library that can simplify work with webGL
 
 Releases
 --------
-
 ### v0.2
 		- dev branch added;
 		- project reconstructed;
