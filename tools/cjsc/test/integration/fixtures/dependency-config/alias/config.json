@@ -1,5 +1,0 @@
-{
-	"module": {
-		"path": "./test/integration/fixtures/dependency-config/alias/module/concrete-module"
-	}
-}

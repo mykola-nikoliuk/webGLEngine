@@ -6,9 +6,8 @@
  * Time: 9:58 AM
  * © 2014 TRANSGAMING INC. AND ITS AFFILIATES. ALL RIGHTS RESERVED.
  */
-var fs = require("fs"),
-		path = require('path'),
-		cjsc;
+var fs   = require("fs"),
+		path = require('path');
 
 function copyFile(source, destination) {
 	if (fs.existsSync(source)) {
@@ -160,10 +159,8 @@ var config = {
 };
 
 var exampleProjectFolder = path.join(config.folders.root, config.folders.example, config.folders.projectName),
-		projectFolder = path.join(config.folders.root, config.folders.project),
-		releaseFolder = path.join(config.folders.root, config.folders.build, config.folders.release);
-
-cjsc = require(path.join(config.folders.root, config.folders.tools, 'cjsc/cjsc-module.js'));
+		projectFolder        = path.join(config.folders.root, config.folders.project),
+		releaseFolder        = path.join(config.folders.root, config.folders.build, config.folders.release);
 
 //config.folders.release = path.join(config.folders.build, config.folders.release);
 
@@ -179,16 +176,11 @@ copyDir(
 	path.join(releaseFolder, config.folders.shaders)
 );
 
-process.chdir(releaseFolder);
 
-// compile project
-cjsc([
-	process.argv[0],
-	process.argv[1],
-	path.join(projectFolder, 'webGLEngine.js'),
-	path.join(releaseFolder, 'webGLEngine.js'),
-	'--source-map=' + path.join(releaseFolder, 'webGLEngine.js.map')
-]);
+// TODO: fix copy to release
+copyFile(path.join(projectFolder, config.main), (path.join(releaseFolder, config.main));
+
+process.chdir(releaseFolder);
 
 rmDir(exampleProjectFolder);
 mkDir(exampleProjectFolder);
