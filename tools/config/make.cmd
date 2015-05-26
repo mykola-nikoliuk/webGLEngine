@@ -1,2 +1,2 @@
-%~dp0/../nodejs/node_modules/.bin/tsc.cmd %~dp0/../../source/webGLEngine.ts --out %~dp0/../../source/webGLEngine.js --sourcemap
-node build.js
+%~dp0/../nodejs/node %~dp0/../nodejs/node_modules/typescript/bin/tsc %~dp0/../../source/webGLEngine.ts --out %~dp0/../../source/webGLEngine.js --sourcemap --target ES5
+%~dp0/../nodejs/node %~dp0/build.js

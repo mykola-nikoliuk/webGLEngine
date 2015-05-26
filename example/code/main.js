@@ -90,7 +90,10 @@ var ns = {
 
 		this.utils = new InitUtilities();
 
-		this._engine = new webGLEngine.Engine();
+		this._engine = new webGLEngine.Engine(
+			this.config.webGL.shaders.fragment,
+			this.config.webGL.shaders.vertex
+		);
 		this._camera = this._engine.getCamera();
 		this._game = new this.classes.Game();
 		this._timers = {
@@ -105,10 +108,10 @@ var ns = {
 		};
 
 		this._meshes = {
-			sky     : this._engine.createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
+			sky     : this._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
 			//			planet : this.createSphere(this.config.game.planet.radius, 256, './resources/planet/blank.png'),
 			//			runner : this.createSphere(this.config.game.runner.radius, 32, './resources/sphere/runner.png'),
-			car     : this._engine.createMeshFromFile('./resources/mazda3/model/mazda3.obj', {textureRepeat : false}),
+			car     : this._engine._createMeshFromFile('./resources/mazda3/model/mazda3.obj', {textureRepeat : false}),
 			players : {}
 		};
 
@@ -150,7 +153,7 @@ var ns = {
 	/** @public */
 	addNewPlayer : function (nickname) {
 		var scale = 1;
-		this._meshes.players[nickname] = this._engine.createMeshFromFile('./resources/head/head.obj', {textureRepeat : false});
+		this._meshes.players[nickname] = this._engine._createMeshFromFile('./resources/head/head.obj', {textureRepeat : false});
 		this._meshes.players[nickname].getTransformations().scale.set(scale, scale, scale);
 	},
 
@@ -449,12 +452,13 @@ var ns = {
 
 			case 38:
 			case 29460:
-				this._game.jump();
+				this._game.accelerate();
 				this._timers.key_up = true;
 				break;
 
 			case 40:
 			case 29461:
+				this._game.disaccelerate();
 				this._timers.key_down = true;
 				break;
 

@@ -10,11 +10,6 @@
 
 module webGLEngine {
 
-	 enum MODE {
-		RENDER2D = 0,
-		RENDER3D = 1
-	}
-
 	export class Engine {
 
 		private _gl : any;
@@ -34,7 +29,7 @@ module webGLEngine {
 		private _shaderProgram;
 		private _isLightingEnable : boolean;
 
-		constructor() {
+		constructor(fragmentShaderPath : string, vertexShaderPath : string) {
 
 			console.log('> Start webGL initialization.');
 
@@ -57,19 +52,13 @@ module webGLEngine {
 			this._isLightingEnable = true;
 
 			window.addEventListener('resize', Utils.bind(this.onResize, this), false);
-			this.webGLStart();
+
+			this._crateCanvas();
+			this._initGL();
+			this._loadShaders(fragmentShaderPath, vertexShaderPath);
 		}
 
-
-		/** @private */
-		webGLStart() {
-			this.crateCanvas();
-			this.initGL();
-			this.loadShaders();
-		}
-
-		/** @private */
-		crateCanvas() {
+		private _crateCanvas() : void {
 			this._canvasNode = <HTMLCanvasElement>document.getElementById(config.html.canvasID);
 			if (this._canvasNode === null) {
 				this._canvasNode = document.createElement('canvas');
@@ -81,8 +70,7 @@ module webGLEngine {
 			}
 		}
 
-		/** @private */
-		initGL() {
+		private _initGL() {
 			try {
 				this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
 				this._inited = true;
@@ -95,56 +83,18 @@ module webGLEngine {
 			}
 		}
 
-		/** @private */
-		getShader(gl, id) {
-			var shaderScript = <HTMLScriptElement>document.getElementById(id);
-			if (!shaderScript) {
-				return null;
-			}
-
-			var str = "";
-			var k = shaderScript.firstChild;
-			while (k) {
-				if (k.nodeType == 3) {
-					str += k.textContent;
-				}
-				k = k.nextSibling;
-			}
-
-			var shader;
-			if (shaderScript.type == "x-shader/x-fragment") {
-				shader = gl.createShader(gl.FRAGMENT_SHADER);
-			} else if (shaderScript.type == "x-shader/x-vertex") {
-				shader = gl.createShader(gl.VERTEX_SHADER);
-			} else {
-				return null;
-			}
-
-			gl.shaderSource(shader, str);
-			gl.compileShader(shader);
-
-			if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-				console.log(gl.getShaderInfoLog(shader));
-				return null;
-			}
-
-			return shader;
-		}
-
-		/** @private */
-		loadShaders() {
+		private _loadShaders(fragmentShaderPath : string, vertexShaderPath : string) : void {
 			this._shader = new Types.Shader(this._gl);
 			console.log('> Start shaders loading.');
 			this._isReady = false;
 			this._shader.add(
-				new Utils.Callback(this.initShaders, this),
-				'webGLEngine/shaders/fragmentShader.fsh',
-				'webGLEngine/shaders/vertexShader.vsh'
+				new Utils.Callback(this._initShaders, this),
+				fragmentShaderPath,
+				vertexShaderPath
 			);
 		}
 
-		/** @private */
-		initShaders() {
+		private _initShaders() : void {
 			var fragmentShader = this._shader.getFragmentShader();
 			var vertexShader = this._shader.getVertexShader();
 
@@ -191,23 +141,20 @@ module webGLEngine {
 			this._isReady = true;
 		}
 
-		/** @private */
-		mvPushMatrix() {
+		private _mvPushMatrix() : void {
 			var copy = Utils.GLMatrix.mat4.create(undefined);
 			Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
 			this._mvMatrixStack.push(copy);
 		}
 
-		/** @private */
-		mvPopMatrix() {
+		private _mvPopMatrix() : void {
 			if (this._mvMatrixStack.length == 0) {
 				throw "Invalid popMatrix!";
 			}
 			this._mvMatrix = this._mvMatrixStack.pop();
 		}
 
-		/** @private */
-		setMatrixUniforms() {
+		private _setMatrixUniforms() : void {
 			this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
 			this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
 
@@ -217,13 +164,11 @@ module webGLEngine {
 			this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
 		}
 
-		/** @private */
-		degToRad(degrees) {
-			return degrees * Math.PI / 180;
-		}
+		//private _degToRad(degrees : number) : number {
+		//	return degrees * Math.PI / 180;
+		//}
 
-		/** @public */
-		beginDraw() {
+		public beginDraw() : void {
 			this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
 			this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
@@ -237,6 +182,7 @@ module webGLEngine {
 			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, this._camera.rotation.z);
 			Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.getArray());
 
+			//noinspection ConstantIfStatementJS
 			if (false) {
 				this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
 				this._gl.enable(this._gl.BLEND);
@@ -247,14 +193,11 @@ module webGLEngine {
 			}
 		}
 
-		/** @public */
-		isReady() {
+		public isReady() : boolean {
 			return this._isReady;
 		}
 
-		/** @public
-		 * @param {Mesh} mesh */
-		draw(mesh) {
+		public draw(mesh : Types.Mesh) : void {
 
 			if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
 				return;
@@ -268,7 +211,7 @@ module webGLEngine {
 				transformations,
 				i, material;
 
-			this.mvPushMatrix();
+			this._mvPushMatrix();
 
 			vertexIndexBuffers = mesh.getVertexIndexBuffers();
 			vertexPositionBuffer = mesh.getVertexPositionBuffer();
@@ -352,35 +295,37 @@ module webGLEngine {
 					//					this._gl.disableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
 
 					this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
-					this.setMatrixUniforms();
+					this._setMatrixUniforms();
 					this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
 				}
 			}
-			this.mvPopMatrix();
+			this._mvPopMatrix();
 		}
 
-		/** @public
-		 * @param {number} type
-		 * @param {Array<number>} color
-		 * @param {Array<number>} param direction or position
-		 * @param {number} distance */
-		createLight(type, color, param, distance) {
+		public createLight(type : number, color : number[], param : number[], distance : number) : Types.Light {
 			this._lights.push(new Types.Light(type, color, param, distance));
 			return this._lights[this._lights.length - 1];
 		}
 
-		/** @public */
-		turnOnLight() {
-			this._isLightingEnable = true;
+		public turnOnLight() : boolean {
+			var changed = false;
+			if (this._isLightingEnable) {
+				this._isLightingEnable = true;
+				changed = false;
+			}
+			return changed;
 		}
 
-		/** @public */
-		turnOffLight() {
-			this._isLightingEnable = false;
+		public turnOffLight() : boolean {
+			var changed = false;
+			if (this._isLightingEnable) {
+				this._isLightingEnable = false;
+				changed = true;
+			}
+			return changed;
 		}
 
-		/** @private */
-		onResize() {
+		public onResize() : void {
 			if (this._inited) {
 				this._canvasNode.setAttribute('width', window.innerWidth + 'px');
 				this._canvasNode.setAttribute('height', window.innerHeight + 'px');
@@ -389,14 +334,11 @@ module webGLEngine {
 			}
 		}
 
-		/** @public
-		 * @returns {Transformations} */
-		getCamera() {
+		public getCamera() : Types.Transformations {
 			return this._camera;
 		}
 
-		/** @public */
-		createMesh(vertexes, textures, normals, faces, materials) {
+		public createMesh(vertexes, textures, normals, faces, materials) : Types.Mesh {
 			var mesh = new Types.Mesh(this._gl);
 			mesh.fillBuffers(vertexes, textures, normals, faces, materials);
 			mesh.initBuffers();
@@ -404,14 +346,10 @@ module webGLEngine {
 			return mesh;
 		}
 
-		/** @public
-		 * @param {string} path
-		 * @param {object} params
-		 * @returns {Mesh|null} */
-		createMeshFromFile(path, params) {
+		private _createMeshFromFile(path : string, params : any) : Types.Mesh {
 			var mesh = new Types.Mesh(this._gl),
 				parameters = {
-					textureRepeat : true
+					textureRepeat: true
 				};
 
 			console.log('> Start loading mesh');
@@ -423,21 +361,15 @@ module webGLEngine {
 					parameters.textureRepeat = params.textureRepeat;
 				}
 			}
-
-			Utils.requestFile(path, new Utils.Callback(this.parseObjFile, this, mesh, path, parameters));
+			Utils.requestFile(path, new Utils.Callback(this._parseObjFile, this, mesh, path, parameters));
 
 			return mesh;
 		}
 
-		/** @private
-		 * @param {string} objFile
-		 * @param {Mesh} mesh
-		 * @param {string} path
-		 * @param {object} parameters */
-		parseObjFile(objFile, mesh, path, parameters) {
-			var i, j, nodes, material,
-				vertexes = [], textures = [], normals = [], faces = {},
-				materials = {},
+		private _parseObjFile(objFile : string, mesh : Types.Mesh, path : string, parameters : any) : void {
+			var i, j, nodes,
+				vertexes = [], textures = [], normals = [], faces = [],
+				materials = [],
 				currentMaterial = Types.Mesh.defaultMaterialName,
 				vertexCounter,
 				hasMaterial = false,
@@ -510,7 +442,7 @@ module webGLEngine {
 					case 'mtllib':
 						hasMaterial = true;
 						materialPath = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
-						Utils.requestFile(materialPath, new Utils.Callback(this.parseMaterial, this, materialPath, mesh, parameters));
+						Utils.requestFile(materialPath, new Utils.Callback(this._parseMaterial, this, materialPath, mesh, parameters));
 						break;
 
 					case 'usemtl':
@@ -531,12 +463,7 @@ module webGLEngine {
 			}
 		}
 
-		/** @private
-		 * @param {string} mtlFile
-		 * @param {string} path
-		 * @param {Mesh} mesh
-		 * @param {object} parameters */
-		parseMaterial(mtlFile, path, mesh, parameters) {
+		private _parseMaterial(mtlFile : string, path : string, mesh : Types.Mesh, parameters : any) : void {
 			var mtlList, i, j, nodes, material, allMaterials = {};
 			/** @type {Material} */
 			var currentMaterial = null;
@@ -588,8 +515,7 @@ module webGLEngine {
 			mesh.initBuffers(allMaterials);
 		}
 
-		/** @public */
-		getGLInstance() {
+		public getGLInstance() : any {
 			return this._gl;
 		}
 	}

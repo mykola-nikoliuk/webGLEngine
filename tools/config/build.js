@@ -77,12 +77,7 @@ function copyDir(source, destination, mask, logging) {
 				mkDir(destinationPath);
 				copyDir(sourcePath, destinationPath, mask);
 			} else { // copy file
-				if (fs.existsSync(sourcePath) && !fs.existsSync(destinationPath)) {
-					if (logging) {
-						console.log('copyDir: copy file "' + file + '"')
-					}
-					fs.writeFileSync(destinationPath, fs.readFileSync(sourcePath));
-				}
+				copyFile(sourcePath, destinationPath);
 			}
 		});
 	}
@@ -151,14 +146,14 @@ var config = {
 		build       : 'build',
 		release     : 'release',
 		shaders     : 'shaders',
-		example     : 'example',
+		examplePath : 'example/code/libs/webGLEngine',
 		projectName : 'webGLEngine',
 		tools       : 'tools'
 	},
 	main    : 'webGLEngine.js'
 };
 
-var exampleProjectFolder = path.join(config.folders.root, config.folders.example, config.folders.projectName),
+var exampleProjectFolder = path.join(config.folders.root, config.folders.examplePath),
 		projectFolder        = path.join(config.folders.root, config.folders.project),
 		releaseFolder        = path.join(config.folders.root, config.folders.build, config.folders.release);
 
@@ -176,9 +171,8 @@ copyDir(
 	path.join(releaseFolder, config.folders.shaders)
 );
 
-
 // TODO: fix copy to release
-copyFile(path.join(projectFolder, config.main), (path.join(releaseFolder, config.main));
+copyFile(path.join(projectFolder, config.main), (path.join(releaseFolder, config.main)));
 
 process.chdir(releaseFolder);
 

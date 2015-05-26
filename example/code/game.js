@@ -32,6 +32,14 @@ ns.classes.Game = Class.extend(/** @lends {ns.classes.Game#} */ {
 			}
 		};
 
+		this.carEngine = new Game.Types.Car.Parts.Engine(
+			[0, 35, 80, 100, 115, 110, 100, 90, 70, 40, 0],
+			1000,
+			800,
+			10
+		);
+		this.throttle = 1;
+
 		this._gameData.playerPosition.x = this.getPositionFromTrackIndex();
 	},
 
@@ -52,6 +60,7 @@ ns.classes.Game = Class.extend(/** @lends {ns.classes.Game#} */ {
 	/** @public */
 	engine : function () {
 		this.moveHandler();
+		this.carEngine.update(this.throttle / 10, 0);
 //		this.o
 	},
 
@@ -79,19 +88,24 @@ ns.classes.Game = Class.extend(/** @lends {ns.classes.Game#} */ {
 		switch (this._gameData.movements.verticalDirection) {
 
 			case this._enums.moves.UP:
-				var time = this._gameData.movements.jumpTime + 1 / ns.config.engine.FPS,
-					gSpeed = 9.81 * Math.pow(time, 2),
-					speed = this._gameData.movements.verticalSpeed * time - gSpeed;
+				break;
 
-				this._gameData.movements.jumpTime = time;
 
-//				console.log(this._gameData.playerPosition.y - speed);
-
-				this._gameData.playerPosition.y = speed + this.config.runner.radius;
-				if (this._gameData.playerPosition.y < this.config.playerPosition.y + this.config.runner.radius) {
-					this._gameData.playerPosition.y = this.config.playerPosition.y + this.config.runner.radius;
-					this._gameData.movements.verticalDirection = this._enums.moves.NONE;
-				}
+			case this._enums.moves.UP:
+				break;
+				//var time = this._gameData.movements.jumpTime + 1 / ns.config.engine.FPS,
+				//	gSpeed = 9.81 * Math.pow(time, 2),
+				//	speed = this._gameData.movements.verticalSpeed * time - gSpeed;
+				//
+				//this._gameData.movements.jumpTime = time;
+//
+				console.log(this._gameData.playerPosition.y - speed);
+				//
+				//this._gameData.playerPosition.y = speed + this.config.runner.radius;
+				//if (this._gameData.playerPosition.y < this.config.playerPosition.y + this.config.runner.radius) {
+				//	this._gameData.playerPosition.y = this.config.playerPosition.y + this.config.runner.radius;
+				//	this._gameData.movements.verticalDirection = this._enums.moves.NONE;
+				//}
 				break;
 		}
 	},
@@ -117,6 +131,15 @@ ns.classes.Game = Class.extend(/** @lends {ns.classes.Game#} */ {
 			this._gameData.movements.verticalSpeed = this.config.move.verticalSpeed;
 		}
 	},
+
+	accelerate : function () {
+		this.throttle += 1;
+	},
+
+	disaccelerate : function () {
+		this.throttle -= 1;
+	},
+
 
 	/** @private */
 	getPositionFromTrackIndex : function () {
