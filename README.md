@@ -1,6 +1,6 @@
 # webGLEngine
 =============
-The library that can simplify work with webGL
+	The library that can simplify work with webGL
 ----------------------
 ### Supported browsers
 	- Chrome (webkit);
@@ -8,9 +8,9 @@ The library that can simplify work with webGL
 -----------------
 ### Configuration
 #### Build the project:
-		Execute "./tools/config/make.cmd.
-		Build will be created in root as "./build" folder.
-		Example also will be updated.
+	Execute "./tools/config/make.cmd.
+	Build will be created in root as "./build" folder.
+	Example also will be updated.
 ------------
 ### Releases
 #### v0.2
