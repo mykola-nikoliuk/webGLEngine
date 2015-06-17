@@ -12,7 +12,6 @@ var client = {
 
 	/** @public */
 	init : function () {
-
 		var request = new XMLHttpRequest();
 		request.open('post', '', true);
 		request.onreadystatechange = function () { client.response.call(client, request); };
@@ -79,8 +78,8 @@ var ns = {
 
 	classes : {},
 
-	/** @type {WebClient} */
-	client : new WebClient(),
+	///** @type {WebClient} */
+	//client : new WebClient(),
 
 	init : function () {
 
@@ -123,8 +122,8 @@ var ns = {
 		this.runnerPosition = new webGLEngine.Types.Vector3();
 
 
-		this.client.setEventListener(this.clientEventListener, this);
-		this.client.connect();
+		//this.client.setEventListener(this.clientEventListener, this);
+		//this.client.connect();
 
 		this.configure();
 		this.addListeners();
@@ -287,8 +286,8 @@ var ns = {
 		var time = Date.now();
 		var rotateAngle = -Date.now() / 8000 % (Math.PI * 2),
 				runnerAngle = rotateAngle * this.config.game.planet.radius / this.config.game.runner.radius,
-				player,
-				clientData  = this.client.getData();
+				player;
+				//clientData  = this.client.getData();
 
 		if (this._engine.isReady()) {
 
@@ -317,24 +316,24 @@ var ns = {
 			//			engine.draw(this._meshes.runner);
 			engine.draw(this._meshes.car);
 
-			clientData.position = this._camera.position.getArray();
-			clientData.angles = this._camera.rotation.getArray();
-			for (var playerName in clientData.users) {
-				if (clientData.users.hasOwnProperty(playerName)) {
-					player = clientData.users[playerName];
-					this._meshes.players[playerName].getTransformations().position.set(
-						player.position[0],
-						-player.position[1],
-						player.position[2]
-					);
-					this._meshes.players[playerName].getTransformations().rotation.set(
-						player.angles[0],
-						-player.angles[1],
-						player.angles[2]
-					);
-					engine.draw(this._meshes.players[playerName]);
-				}
-			}
+			//clientData.position = this._camera.position.getArray();
+			//clientData.angles = this._camera.rotation.getArray();
+			//for (var playerName in clientData.users) {
+			//	if (clientData.users.hasOwnProperty(playerName)) {
+			//		player = clientData.users[playerName];
+			//		this._meshes.players[playerName].getTransformations().position.set(
+			//			player.position[0],
+			//			-player.position[1],
+			//			player.position[2]
+			//		);
+			//		this._meshes.players[playerName].getTransformations().rotation.set(
+			//			player.angles[0],
+			//			-player.angles[1],
+			//			player.angles[2]
+			//		);
+			//		engine.draw(this._meshes.players[playerName]);
+			//	}
+			//}
 
 			// TODO : delete it
 			this.count++;

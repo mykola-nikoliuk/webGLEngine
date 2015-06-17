@@ -1628,7 +1628,7 @@ var webGLEngine;
         };
         Engine.prototype.turnOnLight = function () {
             var changed = false;
-            if (this._isLightingEnable) {
+            if (!this._isLightingEnable) {
                 this._isLightingEnable = true;
                 changed = false;
             }
