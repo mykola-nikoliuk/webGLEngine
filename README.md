@@ -7,8 +7,9 @@ The library that can simplify work with webGL
 	- Firefox (gecko).
 
 ## Configuration
-	* to build the project, execute tools\config\make.cmd. Build will be created in root as "build" folder.
-	* example library also will be updated.
+	* To build the project, execute tools\config\make.cmd.
+		Build will be created in root as "build" folder.
+		Example also will be updated.
 
 ## Releases
 --------
