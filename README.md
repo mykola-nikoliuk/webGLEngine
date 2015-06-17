@@ -7,7 +7,7 @@
 -----------------
 ### Configuration
 #### Build the project:
-	Execute "./tools/config/make.cmd.
+	Execute "./tools/config/make.cmd".
 	Build will be created in root as "./build" folder.
 	Example also will be updated.
 ------------
