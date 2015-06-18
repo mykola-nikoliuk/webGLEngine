@@ -25,4 +25,3 @@
 		- added import "obj" files with "mtl" inside;
 		- added transformation (move, rotate);
 		- first version created;
-		
