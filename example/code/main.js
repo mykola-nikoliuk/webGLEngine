@@ -108,8 +108,6 @@ var ns = {
 
 		this._meshes = {
 			sky     : this._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
-			//			planet : this.createSphere(this.config.game.planet.radius, 256, './resources/planet/blank.png'),
-			//			runner : this.createSphere(this.config.game.runner.radius, 32, './resources/sphere/runner.png'),
 			car     : this._engine._createMeshFromFile('./resources/mazda3/model/mazda3.obj', {textureRepeat : false}),
 			players : {}
 		};
@@ -173,13 +171,14 @@ var ns = {
 
 		this._meshes.sky.getTransformations().rotation.set(0, Math.PI, 0);
 		//
-		this._camera.position.set(0, -102, -50);
+		this._camera.position.set(0, 0, 0);
 		this._camera.rotation.set(0.0, Math.PI / 2, 0);
 
 		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
 			-this._camera.position.y, -this._camera.position.z);
 
 		this._meshes.car.getTransformations().scale.set(0.01, 0.01, 0.01);
+		this._meshes.car.getTransformations().position.set(70, -10, 0);
 	},
 
 	/** Add global listeners to document
