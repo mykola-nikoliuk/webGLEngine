@@ -279,14 +279,10 @@ var ns = {
 	/** Main loop function
 	 * @private */
 	mainProc : function () {
-		var engine   = this._engine,
-				position = this._game.getPlayerPosition();
+		var engine   = this._engine;
 
 		// TODO: delete it
 		var time = Date.now();
-		var rotateAngle = -Date.now() / 8000 % (Math.PI * 2),
-				runnerAngle = rotateAngle * this.config.game.planet.radius / this.config.game.runner.radius,
-				player;
 		//clientData  = this.client.getData();
 
 		if (this._engine.isReady()) {
@@ -294,8 +290,6 @@ var ns = {
 			//					this._engine._lights[0]._position.set(this._camera.position.x, this._camera.position.y, this._camera.position.z);
 
 			this._game.engine();
-
-			this.runnerPosition.set(position.x, position.y, position.z);
 
 			this.updateCameraPosition();
 

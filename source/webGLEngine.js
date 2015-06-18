@@ -1,4 +1,5 @@
-glMatrixArrayType = typeof Float32Array != "undefined" ? Float32Array : typeof WebGLFloatArray != "undefined" ? WebGLFloatArray : Array;
+glMatrixArrayType = typeof Float32Array != "undefined" ?
+    Float32Array : typeof WebGLFloatArray != "undefined" ? WebGLFloatArray : Array;
 var Utils;
 (function (Utils) {
     var GLMatrix;
@@ -417,7 +418,8 @@ var Utils;
                 c[7] = v * f + w * k + x * n + y * a;
                 c[8] = z * d + C * h + D * l + E * p;
                 c[9] = z * e + C * i + D * o + E * r;
-                c[10] = z * g + C * j + D * m + E * s;
+                c[10] = z *
+                    g + C * j + D * m + E * s;
                 c[11] = z * f + C * k + D * n + E * a;
                 c[12] = q * d + F * h + G * l + b * p;
                 c[13] = q * e + F * i + G * o + b * r;
@@ -540,7 +542,8 @@ var Utils;
                 d[0] = b * t + o * u + r * v;
                 d[1] = f * t + m * u + s * v;
                 d[2] = k * t + n * u + A * v;
-                d[3] = l * t + p * u + B * v;
+                d[3] = l * t + p * u + B *
+                    v;
                 d[4] = b * w + o * x + r * y;
                 d[5] = f * w + m * x + s * y;
                 d[6] = k * w + n * x + A * y;
@@ -730,7 +733,8 @@ var Utils;
                 d[6] = j;
                 d[7] = 0;
                 d[8] = f;
-                d[9] = o;
+                d[9] =
+                    o;
                 d[10] = b;
                 d[11] = 0;
                 d[12] = -(k * e + i * g + f * a);
@@ -751,8 +755,7 @@ var Utils;
 (function (Utils) {
     var Callback = (function () {
         function Callback(func, thisArg) {
-            if (func === void 0) { func = function () {
-            }; }
+            if (func === void 0) { func = function () { }; }
             if (thisArg === void 0) { thisArg = {}; }
             var args = [];
             for (var _i = 2; _i < arguments.length; _i++) {
@@ -1119,6 +1122,7 @@ var webGLEngine;
                         }
                     }
                 }
+                // create empty color and texture buffer
                 for (material in this._faces) {
                     if (this._faces.hasOwnProperty(material)) {
                         if (this._faces[material].length === 0)
@@ -1770,6 +1774,7 @@ var webGLEngine;
                         }
                         break;
                     case 'ns':
+                        //				case 'Tr':
                         for (j = 1; j < nodes.length; j++) {
                             if (!isNaN(nodes[j])) {
                                 currentMaterial.specular = Number(nodes[j]);
