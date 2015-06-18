@@ -16,14 +16,6 @@ ns.classes.Game = Class.extend(/** @lends {ns.classes.Game#} */ {
 				RIGHT : 3
 			}
 		}
-
-		this.carEngine = new Game.Types.Car.Parts.Engine(
-			[0, 35, 80, 100, 115, 110, 100, 90, 70, 40, 0],
-			1000,
-			800,
-			10
-		);
-		this.throttle = 1;
 	},
 
 	/** @public */
@@ -43,8 +35,6 @@ ns.classes.Game = Class.extend(/** @lends {ns.classes.Game#} */ {
 	/** @public */
 	engine : function () {
 		this.moveHandler();
-		this.carEngine.update(this.throttle / 10, 0);
-//		this.o
 	},
 
 	/** @private */
