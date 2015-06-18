@@ -1680,7 +1680,7 @@ var webGLEngine;
             console.log('> Start parsing mesh');
             materials[currentMaterial] = new webGLEngine.Types.Material();
             faces[currentMaterial] = [];
-            objList = objFile.split('\n');
+            objList = objFile.split(/\r\n|\n|\r/g);
             for (i = 0; i < objList.length; i++) {
                 nodes = objList[i].split(' ');
                 switch (nodes[0].toLowerCase()) {
@@ -1751,7 +1751,7 @@ var webGLEngine;
             /** @type {Material} */
             var currentMaterial = null;
             console.log('> Start parsing material');
-            mtlList = mtlFile.split('\n');
+            mtlList = mtlFile.split(/\r\n|\n|\r/g);
             for (i = 0; i < mtlList.length; i++) {
                 nodes = mtlList[i].split(' ');
                 switch (nodes[0].toLowerCase()) {

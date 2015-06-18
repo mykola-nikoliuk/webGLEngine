@@ -200,8 +200,8 @@ var ns = {
 	/** Creates lights for scene
 	 * @public */
 	createLights : function () {
-		//		this._engine.createLight(0, [1, 0, 0], [-600, 0, 000], 10000);
-		//				this._engine.createLight(0, [0, 0, 1], [0, 0, 0], 100.0);
+		//this._engine.createLight(0, [1, 0, 0], [0, 0, 0], 50);
+		//this._engine.createLight(0, [0, 0, 1], [0, 0, 0], 100.0);
 		this._engine.createLight(0, [1, 1, 1], [0, 0, 0], 1000.0);
 	},
 
@@ -287,7 +287,7 @@ var ns = {
 		var rotateAngle = -Date.now() / 8000 % (Math.PI * 2),
 				runnerAngle = rotateAngle * this.config.game.planet.radius / this.config.game.runner.radius,
 				player;
-				//clientData  = this.client.getData();
+		//clientData  = this.client.getData();
 
 		if (this._engine.isReady()) {
 
