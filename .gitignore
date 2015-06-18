@@ -1,0 +1,6 @@
+## Ignore temporary files
+
+# User-specific files
+source/*.map
+source/*.js
+build/*
