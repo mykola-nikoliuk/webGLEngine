@@ -25,7 +25,7 @@
 		2. Example will be opened in default browser.
 	* Second:
 		1. Upload or copy "./example" folder to you server;
-		2. Open link in supported browser (example: http://yourserver/yourpath/example/index.html).
+		2. Open link in browser (example: http://yourserver/yourpath/example/index.html).
 #### How to use:
 	Click on render, a browser will catch your mouse cursor.
 	Allow this function, if your browser requesting this permission.
