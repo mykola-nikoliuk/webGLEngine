@@ -1,8 +1,9 @@
 # webGLEngine
-	The library that can simplify work with webGL
 ----------------------
 ### Summary
 #### Details
+	The library that can simplify work with webGL
+
 	Version    : v0.3
 	Programmer : Mykola Nikoliuk
 	Repository : git@github.com:nick-nikoliuk/webGLEngine.git
@@ -17,8 +18,9 @@
 	Example also will be updated.
 ------------
 ### Example
-#### Build the project:	
-	Click on render, a browser will catch you mouse cursor.
+#### How to use:
+	Open index.html in supported browser.
+	Click on render, a browser will catch your mouse cursor.
 	Allow this function, if your browser requesting this permission.
 	Now you can use mouse to look around.
 	To release mouse press ESC.
@@ -26,7 +28,7 @@
 ------------
 ### Releases
 #### v0.3
-	-;
+	- example instruction added.
 #### v0.2
 	- dev branch added;
 	- project reconstructed;
