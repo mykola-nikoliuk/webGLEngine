@@ -18,8 +18,16 @@
 	Example also will be updated.
 ------------
 ### Example
+#### Starting:
+	You have two ways to start the example.
+	* First and more simple way:
+		1. Run "./example/run_server.cmd" to start server;
+		2. Example will be opened in default browser.
+	2. Second:
+		1. Upload or copy "./example" folder to you server;
+		2. Open link in supported browser 
+			(example: http://yourserver/yourpath/example/index.html).
 #### How to use:
-	Open index.html in supported browser.
 	Click on render, a browser will catch your mouse cursor.
 	Allow this function, if your browser requesting this permission.
 	Now you can use mouse to look around.
