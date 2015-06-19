@@ -1,13 +1,13 @@
 ### webGLEngine
 ----------------------
 #### Summary
-##### Details
+##### Details:
 	The library that can simplify work with webGL
 
 	Version    : v0.3
 	Programmer : Mykola Nikoliuk
 	Repository : git@github.com:nick-nikoliuk/webGLEngine.git
-##### Supported browsers
+##### Supported browsers:
 	- Chrome (webkit);
 	- Firefox (gecko).
 -----------------
