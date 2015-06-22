@@ -36,4 +36,9 @@ module Utils {
 			}
 		}
 	}
+
+	export function getFileNameFromPath(path : string) {
+		var nodes = path.split(/\\|\//g);
+		return nodes[nodes.length - 1];
+	}
 }

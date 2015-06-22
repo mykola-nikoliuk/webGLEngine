@@ -108,7 +108,8 @@ var ns = {
 
 		this._meshes = {
 			sky     : this._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
-			car     : this._engine._createMeshFromFile('./resources/mazda3/model/mazda3.obj', {textureRepeat : false}),
+			//car     : this._engine._createMeshFromFile('./resources/mazda3/model/mazda3.obj', {textureRepeat : false}),
+			street  : this._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false}),
 			players : {}
 		};
 
@@ -177,8 +178,9 @@ var ns = {
 		this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
 			-this._camera.position.y, -this._camera.position.z);
 
-		this._meshes.car.getTransformations().scale.set(0.01, 0.01, 0.01);
-		this._meshes.car.getTransformations().position.set(70, -10, 0);
+		this._meshes.street.getTransformations().scale.set(5, 5, 5);
+		//this._meshes.car.getTransformations().scale.set(0.01, 0.01, 0.01);
+		//this._meshes.car.getTransformations().position.set(70, -10, 0);
 	},
 
 	/** Add global listeners to document
@@ -278,7 +280,7 @@ var ns = {
 	/** Main loop function
 	 * @private */
 	mainProc : function () {
-		var engine   = this._engine;
+		var engine = this._engine;
 
 		// TODO: delete it
 		var time = Date.now();
@@ -304,10 +306,11 @@ var ns = {
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
+			engine.draw(this._meshes.street);
+			//engine.draw(this._meshes.car);
 			engine.turnOnLight();
 			//engine.draw(this._meshes.planet);
 			//			engine.draw(this._meshes.runner);
-			engine.draw(this._meshes.car);
 
 			//clientData.position = this._camera.position.getArray();
 			//clientData.angles = this._camera.rotation.getArray();

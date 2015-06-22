@@ -28,6 +28,14 @@ module webGLEngine {
 				return [this._x, this._y, this._z];
 			}
 
+			public getDistanceTo(point : Vector3) {
+				return Math.sqrt(Math.abs(
+					Math.pow(this._x - point._x, 2) +
+					Math.pow(this._y - point._y, 2) +
+					Math.pow(this._z - point._z, 2)
+				));
+			}
+
 			get x() {
 				return this._x;
 			}

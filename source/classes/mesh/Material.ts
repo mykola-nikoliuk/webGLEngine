@@ -1,4 +1,4 @@
-///<reference path="./utils/Utils.ts"/>
+///<reference path="./../utils/Utils.ts"/>
 
 module webGLEngine {
 
