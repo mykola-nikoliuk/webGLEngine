@@ -4,15 +4,33 @@ module webGLEngine {
 
 		export class Animation {
 			private _frames : Frame[];
+			private _targets : AnimationTarget[];
 
 			constructor(frames : Frame[]) {
 				this._frames = [];
+				this._targets = [];
 
 				if (frames instanceof Array) {
 					for (var i = 0; i < frames.length; i++) {
 						if (frames[i] instanceof Frame) {
 							this._frames.push(frames[i]);
 						}
+					}
+				}
+			}
+
+			public start(mesh : Mesh) : void {
+				this._targets.push(new AnimationTarget(mesh));
+			}
+
+			public update() : void {
+				for (var i = 0; i < this._targets.length; i++) {
+					if (this._targets[i].getFrameIndex() >= this._frames.length) {
+						this._frames.shift();
+						i--;
+					}
+					else {
+						// TODO: finish animation update
 					}
 				}
 			}
