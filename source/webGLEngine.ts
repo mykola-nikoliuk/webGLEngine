@@ -1,11 +1,13 @@
 ///<reference path="./classes/utils/Utils.ts"/>
-///<reference path="./classes/Mesh.ts"/>
-///<reference path="./classes/Face.ts"/>
+///<reference path="./classes/mesh/Mesh.ts"/>
+///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
-///<reference path="./classes/Vector3.ts"/>
-///<reference path="./classes/Material.ts"/>
-///<reference path="./classes/Transformations.ts"/>
+///<reference path="./classes/common/Vector3.ts"/>
+///<reference path="./classes/mesh/Material.ts"/>
+///<reference path="./classes/mesh/Transformations.ts"/>
+///<reference path="./classes/animation/Frame.ts"/>
+///<reference path="./classes/animation/Animation.ts"/>
 ///<reference path="webGLConfig.ts"/>
 
 module webGLEngine {
@@ -28,6 +30,8 @@ module webGLEngine {
 
 		private _shaderProgram;
 		private _isLightingEnable : boolean;
+
+		public Classes;
 
 		constructor(fragmentShaderPath : string, vertexShaderPath : string) {
 
@@ -352,7 +356,7 @@ module webGLEngine {
 					textureRepeat: true
 				};
 
-			console.log('> Start loading mesh');
+			console.log('> Start loading mesh => "' + Utils.getFileNameFromPath(path) + '"');
 
 			this._meshes.push(mesh);
 
@@ -377,14 +381,14 @@ module webGLEngine {
 
 			// TODO : Async and fill mesh
 
-			console.log('> Start parsing mesh');
+			console.log('> Start parsing mesh => "' + Utils.getFileNameFromPath(path) + '"');
 
 			materials[currentMaterial] = new Types.Material();
 			faces[currentMaterial] = [];
 
 			objList = objFile.split(/\r\n|\n|\r/g);
 			for (i = 0; i < objList.length; i++) {
-				nodes = objList[i].split(' ');
+				nodes = objList[i].split(/\s+/g);
 				switch (nodes[0].toLowerCase()) {
 					case 'v':
 						vertexCounter = 0;
@@ -393,12 +397,16 @@ module webGLEngine {
 							vertexCounter++;
 							vertexes.push(Number(nodes[j]));
 						}
+						if (vertexCounter !== 3) {
+							console.log('>>> Error : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
+						}
 						break;
 
 					case 'vt':
-						/** @class VertexTexture */
 						textures.push(Number(nodes[1]));
 						textures.push(Number(nodes[2]));
+						//textures.push(Number(Math.random());
+						//textures.push(Number(Math.random());
 						break;
 
 					case 'vn':
@@ -419,11 +427,18 @@ module webGLEngine {
 
 							if (isNaN(faceArray[0])) break;
 
+							//console.log(Number(faceArray[1]));
+
 							face = new Types.Face(
 								Number(faceArray[0]) - 1,
 								faceArray.length > 1 ? Number(faceArray[1]) - 1 : 0,
 								faceArray.length > 2 ? Number(faceArray[2]) - 1 : 0
 							);
+
+							if (faceArray.length < 2) {
+								console.log('>>> Warning : There is no texture coordinate');
+							}
+
 
 							if (j >= 4) {
 								faces[currentMaterial].push(firstFace);
@@ -436,6 +451,9 @@ module webGLEngine {
 							lastFace = face;
 
 							faces[currentMaterial].push(face);
+						}
+						if (j > 4) {
+							console.log('>>> Warning : ' + (j - 1) + ' vertexes in face');
 						}
 						break;
 
@@ -455,8 +473,10 @@ module webGLEngine {
 				}
 			}
 
-			console.log('> Mesh parsed');
 
+			console.log('    done => V: ' + vertexes.length / 3 +
+			' | VT: ' + textures.length +
+			' | N: ' + normals.length / 3);
 			mesh.fillBuffers(vertexes, textures, normals, faces, materials);
 			if (!hasMaterial) {
 				mesh.initBuffers();
@@ -468,11 +488,11 @@ module webGLEngine {
 			/** @type {Material} */
 			var currentMaterial = null;
 
-			console.log('> Start parsing material');
+			console.log('> Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
 
 			mtlList = mtlFile.split(/\r\n|\n|\r/g);
 			for (i = 0; i < mtlList.length; i++) {
-				nodes = mtlList[i].split(' ');
+				nodes = mtlList[i].split(/\s+/g);
 				switch (nodes[0].toLowerCase()) {
 					case 'newmtl':
 						/** @type {Material} */
@@ -510,7 +530,7 @@ module webGLEngine {
 				}
 			}
 
-			console.log('> Material parsed');
+			console.log('    done');
 
 			mesh.initBuffers(allMaterials);
 		}

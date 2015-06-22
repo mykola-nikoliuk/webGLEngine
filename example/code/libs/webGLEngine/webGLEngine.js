@@ -901,8 +901,13 @@ var Utils;
         }
     }
     Utils.requestResult = requestResult;
+    function getFileNameFromPath(path) {
+        var nodes = path.split(/\\|\//g);
+        return nodes[nodes.length - 1];
+    }
+    Utils.getFileNameFromPath = getFileNameFromPath;
 })(Utils || (Utils = {}));
-///<reference path="./utils/Utils.ts"/>
+///<reference path="./../utils/Utils.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -975,6 +980,11 @@ var webGLEngine;
             Vector3.prototype.getArray = function () {
                 return [this._x, this._y, this._z];
             };
+            Vector3.prototype.getDistanceTo = function (point) {
+                return Math.sqrt(Math.abs(Math.pow(this._x - point._x, 2) +
+                    Math.pow(this._y - point._y, 2) +
+                    Math.pow(this._z - point._z, 2)));
+            };
             Object.defineProperty(Vector3.prototype, "x", {
                 get: function () {
                     return this._x;
@@ -1046,7 +1056,7 @@ var webGLEngine;
         Types.Vector3 = Vector3;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="Vector3.ts"/>
+///<reference path="../common/Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1219,7 +1229,7 @@ var webGLEngine;
         Types.Face = Face;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="Vector3.ts"/>
+///<reference path="common/Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1398,6 +1408,76 @@ var webGLEngine;
 })(webGLEngine || (webGLEngine = {}));
 var webGLEngine;
 (function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Frame = (function () {
+            function Frame() {
+                this._position = null;
+            }
+            Frame.prototype.setPosition = function (position) {
+                if (position instanceof Types.Vector3) {
+                    this._position = position;
+                    console.log('>>> Error: Frame:setPosition() position is not instance of Vector3');
+                }
+                return this;
+            };
+            Frame.prototype.getPosition = function () {
+                return this._position;
+            };
+            Frame.prototype.setTime = function (time) {
+                if (typeof time === 'number') {
+                    this._time = time;
+                }
+                return this;
+            };
+            Frame.prototype.getTime = function () {
+                return this._time;
+            };
+            return Frame;
+        })();
+        Types.Frame = Frame;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Animation = (function () {
+            function Animation(frames) {
+                this._frames = [];
+                if (frames instanceof Array) {
+                    for (var i = 0; i < frames.length; i++) {
+                        if (frames[i] instanceof Types.Frame) {
+                            this._frames.push(frames[i]);
+                        }
+                    }
+                }
+            }
+            Animation.prototype.setTimeByDistance = function (time) {
+                var length, totalLength = 0, sectorsLength = [], i;
+                if (typeof time === 'number' && time > 0) {
+                    sectorsLength.push(0);
+                    // get distance between frames
+                    for (i = 0; i < this._frames.length - 1; i++) {
+                        length = this._frames[i].getPosition().getDistanceTo(this._frames[i + 1].getPosition());
+                        totalLength += length;
+                        sectorsLength.push(length);
+                    }
+                    for (i = 0; i < this._frames.length; i++) {
+                        this._frames[i].setTime(time * (sectorsLength[i] / totalLength));
+                    }
+                }
+                else {
+                    console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
+                }
+            };
+            return Animation;
+        })();
+        Types.Animation = Animation;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+var webGLEngine;
+(function (webGLEngine) {
     var config = (function () {
         function config() {
         }
@@ -1410,13 +1490,15 @@ var webGLEngine;
     webGLEngine.config = config;
 })(webGLEngine || (webGLEngine = {}));
 ///<reference path="./classes/utils/Utils.ts"/>
-///<reference path="./classes/Mesh.ts"/>
-///<reference path="./classes/Face.ts"/>
+///<reference path="./classes/mesh/Mesh.ts"/>
+///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
-///<reference path="./classes/Vector3.ts"/>
-///<reference path="./classes/Material.ts"/>
-///<reference path="./classes/Transformations.ts"/>
+///<reference path="./classes/common/Vector3.ts"/>
+///<reference path="./classes/mesh/Material.ts"/>
+///<reference path="./classes/mesh/Transformations.ts"/>
+///<reference path="./classes/animation/Frame.ts"/>
+///<reference path="./classes/animation/Animation.ts"/>
 ///<reference path="webGLConfig.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
@@ -1664,7 +1746,7 @@ var webGLEngine;
             var mesh = new webGLEngine.Types.Mesh(this._gl), parameters = {
                 textureRepeat: true
             };
-            console.log('> Start loading mesh');
+            console.log('> Start loading mesh => "' + Utils.getFileNameFromPath(path) + '"');
             this._meshes.push(mesh);
             if (typeof params === 'object') {
                 if (typeof params.textureRepeat === 'boolean') {
@@ -1677,12 +1759,12 @@ var webGLEngine;
         Engine.prototype._parseObjFile = function (objFile, mesh, path, parameters) {
             var i, j, nodes, vertexes = [], textures = [], normals = [], faces = [], materials = [], currentMaterial = webGLEngine.Types.Mesh.defaultMaterialName, vertexCounter, hasMaterial = false, objList, materialPath;
             // TODO : Async and fill mesh
-            console.log('> Start parsing mesh');
+            console.log('> Start parsing mesh => "' + Utils.getFileNameFromPath(path) + '"');
             materials[currentMaterial] = new webGLEngine.Types.Material();
             faces[currentMaterial] = [];
             objList = objFile.split(/\r\n|\n|\r/g);
             for (i = 0; i < objList.length; i++) {
-                nodes = objList[i].split(' ');
+                nodes = objList[i].split(/\s+/g);
                 switch (nodes[0].toLowerCase()) {
                     case 'v':
                         vertexCounter = 0;
@@ -1692,11 +1774,15 @@ var webGLEngine;
                             vertexCounter++;
                             vertexes.push(Number(nodes[j]));
                         }
+                        if (vertexCounter !== 3) {
+                            console.log('>>> Error : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
+                        }
                         break;
                     case 'vt':
-                        /** @class VertexTexture */
                         textures.push(Number(nodes[1]));
                         textures.push(Number(nodes[2]));
+                        //textures.push(Number(Math.random());
+                        //textures.push(Number(Math.random());
                         break;
                     case 'vn':
                         for (j = 1; j < nodes.length; j++) {
@@ -1714,7 +1800,11 @@ var webGLEngine;
                             var faceArray = nodes[j].split('/'), face;
                             if (isNaN(faceArray[0]))
                                 break;
+                            //console.log(Number(faceArray[1]));
                             face = new webGLEngine.Types.Face(Number(faceArray[0]) - 1, faceArray.length > 1 ? Number(faceArray[1]) - 1 : 0, faceArray.length > 2 ? Number(faceArray[2]) - 1 : 0);
+                            if (faceArray.length < 2) {
+                                console.log('>>> Warning : There is no texture coordinate');
+                            }
                             if (j >= 4) {
                                 faces[currentMaterial].push(firstFace);
                                 faces[currentMaterial].push(lastFace);
@@ -1724,6 +1814,9 @@ var webGLEngine;
                             }
                             lastFace = face;
                             faces[currentMaterial].push(face);
+                        }
+                        if (j > 4) {
+                            console.log('>>> Warning : ' + (j - 1) + ' vertexes in face');
                         }
                         break;
                     case 'mtllib':
@@ -1740,7 +1833,9 @@ var webGLEngine;
                         break;
                 }
             }
-            console.log('> Mesh parsed');
+            console.log('    done => V: ' + vertexes.length / 3 +
+                ' | VT: ' + textures.length +
+                ' | N: ' + normals.length / 3);
             mesh.fillBuffers(vertexes, textures, normals, faces, materials);
             if (!hasMaterial) {
                 mesh.initBuffers();
@@ -1750,10 +1845,10 @@ var webGLEngine;
             var mtlList, i, j, nodes, material, allMaterials = {};
             /** @type {Material} */
             var currentMaterial = null;
-            console.log('> Start parsing material');
+            console.log('> Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
             mtlList = mtlFile.split(/\r\n|\n|\r/g);
             for (i = 0; i < mtlList.length; i++) {
-                nodes = mtlList[i].split(' ');
+                nodes = mtlList[i].split(/\s+/g);
                 switch (nodes[0].toLowerCase()) {
                     case 'newmtl':
                         /** @type {Material} */
@@ -1784,7 +1879,7 @@ var webGLEngine;
                         break;
                 }
             }
-            console.log('> Material parsed');
+            console.log('    done');
             mesh.initBuffers(allMaterials);
         };
         Engine.prototype.getGLInstance = function () {
