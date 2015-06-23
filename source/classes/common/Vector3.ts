@@ -24,6 +24,34 @@ module webGLEngine {
 				this._z += typeof z === 'number' ? z : 0;
 			}
 
+			public minus(vector : Vector3) : void {
+				this._x -= vector._x;
+				this._y -= vector._y;
+				this._z -= vector._z;
+			}
+
+			public plus(vector : Vector3) : void {
+				this._x += vector._x;
+				this._y += vector._y;
+				this._z += vector._z;
+			}
+
+			public multiply(multiplier : number) {
+				this._x *= multiplier;
+				this._y *= multiplier;
+				this._z *= multiplier;
+			}
+
+			public clone() : Vector3 {
+				return new Vector3(this._x, this._y, this._z);
+			}
+
+			public copyFrom(vector : Vector3) : void {
+				this._x = vector._x;
+				this._y = vector._y;
+				this._z = vector._z;
+			}
+
 			public getArray() : any[] {
 				return [this._x, this._y, this._z];
 			}

@@ -4,6 +4,7 @@ module webGLEngine {
 
 		export class Frame {
 			private _position : Types.Vector3;
+			private _rotation : Types.Vector3;
 			private _time : number;
 
 			constructor() {
@@ -20,6 +21,18 @@ module webGLEngine {
 
 			public getPosition() : Types.Vector3 {
 				return this._position;
+			}
+
+			public setRotation(rotation : Types.Vector3) : Frame {
+				if (rotation instanceof Types.Vector3) {
+					this._rotation = rotation;
+					console.log('>>> Error: Frame:setRotation() rotation is not instance of Vector3');
+				}
+				return this;
+			}
+
+			public getRotation() : Types.Vector3 {
+				return this._rotation;
 			}
 
 			public setTime(time : number) : Frame {

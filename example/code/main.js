@@ -106,9 +106,27 @@ var ns = {
 			key_right : false
 		};
 
+		// test animation
+		this._animation = new webGLEngine.Types.Animation(
+			new webGLEngine.Types.Frame()
+				.setPosition(new webGLEngine.Types.Vector3(0, 0, 0))
+				.setRotation(new webGLEngine.Types.Vector3(0, 0, 0)),
+			[
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(0, 0, -100))
+					.setRotation(new webGLEngine.Types.Vector3(0, Math.PI / 2, 0))
+					/*.setTime(2000)*/,
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(-20, 0, -20))
+					.setRotation(new webGLEngine.Types.Vector3(0, Math.PI, 0))
+					//.setTime(2000)
+			]
+		);
+		this._animation.setTimeByDistance(2000);
+
 		this._meshes = {
 			sky     : this._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
-			//car     : this._engine._createMeshFromFile('./resources/mazda3/model/mazda3.obj', {textureRepeat : false}),
+			car     : this._engine._createMeshFromFile('./resources/mazda3/model/mazda3.obj', {textureRepeat : false}),
 			street  : this._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false}),
 			players : {}
 		};
@@ -179,8 +197,8 @@ var ns = {
 			-this._camera.position.y, -this._camera.position.z);
 
 		this._meshes.street.getTransformations().scale.set(5, 5, 5);
-		//this._meshes.car.getTransformations().scale.set(0.01, 0.01, 0.01);
-		//this._meshes.car.getTransformations().position.set(70, -10, 0);
+		this._meshes.car.getTransformations().scale.set(0.01, 0.01, 0.01);
+		this._meshes.car.getTransformations().position.set(70, -10, 0);
 	},
 
 	/** Add global listeners to document
@@ -305,9 +323,10 @@ var ns = {
 
 			engine.beginDraw();
 			engine.turnOffLight();
+			this._animation.update();
 			engine.draw(this._meshes.sky);
 			engine.draw(this._meshes.street);
-			//engine.draw(this._meshes.car);
+			engine.draw(this._meshes.car);
 			engine.turnOnLight();
 			//engine.draw(this._meshes.planet);
 			//			engine.draw(this._meshes.runner);
@@ -425,6 +444,10 @@ var ns = {
 		//					-this._camera.position.y, -this._camera.position.z);
 	},
 
+	_startAnimation : function () {
+		this._animation.start(this._meshes.car);
+	},
+
 	/** Global key down handler
 	 * @public */
 	keyDown : function (e) {
@@ -495,9 +518,13 @@ var ns = {
 				this._timers.key_s = false;
 				break;
 
+			case 13:
+				this._startAnimation();
+				break;
+
 			case 38:
 			case 29460:
-				this._timers.key_up = false;
+				this._startAnimation();
 				break;
 
 			case 40:
