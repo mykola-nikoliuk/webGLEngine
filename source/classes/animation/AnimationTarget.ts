@@ -3,17 +3,18 @@ module webGLEngine {
 	export module Types {
 
 		export class AnimationTarget {
-			private _mesh : Mesh;
+			private _mesh : Transformations;
 			private _startTime : number;
 			private _frameIndex : number;
+			private _callback : Utils.Callback;
 
-			constructor(mesh : Mesh) {
-				if (mesh instanceof Mesh) {
+			constructor(mesh : Transformations) {
+				if (mesh instanceof Transformations) {
 					this._mesh = mesh;
 					this._frameIndex = 0;
 				}
 				else {
-					console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Mesh()');
+					console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Transformations()');
 				}
 			}
 
@@ -29,8 +30,14 @@ module webGLEngine {
 				return this._startTime;
 			}
 
-			public start() : void {
+			public start(callback? : Utils.Callback) : void {
 				this._startTime = Date.now();
+				if (callback instanceof Utils.Callback) {
+					this._callback = callback;
+				}
+				else {
+					this._callback = new Utils.Callback(function () {}, {});
+				}
 			}
 
 			public nextFrame() : number {
@@ -39,6 +46,10 @@ module webGLEngine {
 
 			public shiftStartTime(time : number) : void {
 				this._startTime += time;
+			}
+
+			public callback() : void {
+				this._callback.apply();
 			}
 		}
 	}

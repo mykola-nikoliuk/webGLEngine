@@ -21,9 +21,17 @@ module webGLEngine {
 				}
 			}
 
-			public start(mesh : Mesh) : void {
-				var target = new AnimationTarget(mesh);
-				target.start();
+			public start(mesh : Transformations, callback? : Utils.Callback) : void {
+				var target = new AnimationTarget(mesh),
+					i : number;
+
+				target.start(callback);
+				for (i = 0; i < this._targets.length; i++) {
+					if (this._targets[i].getMesh() === mesh) {
+						this._targets.splice(i, 1);
+						i--;
+					}
+				}
 				this._targets.push(target);
 			}
 
@@ -48,6 +56,7 @@ module webGLEngine {
 								// last update
 								this._updateTarget(target, frameIndex - 1, 1);
 								this._targets.shift();
+								target.callback();
 								i--;
 								break;
 							}
@@ -89,18 +98,18 @@ module webGLEngine {
 			private _updateTarget(target : AnimationTarget, frameIndex : number, percents : number) : void {
 				var frame : Frame,
 					previousFrame : Frame = frameIndex > 0 ? this._frames[frameIndex - 1] : this._initialFrame,
-					transformations : Transformations,
+					mesh : Transformations,
 					vector : Vector3;
 
 				frame = this._frames[frameIndex];
-				transformations = target.getMesh().getTransformations();
+				mesh = target.getMesh();
 				if (frame.getPosition()) {
 					vector = frame.getPosition().clone();
 					vector.minus(previousFrame.getPosition());
 					//- previousFrame.getPosition()
 					vector.multiply(percents);
 					vector.plus(previousFrame.getPosition());
-					transformations.position = vector;
+					mesh.position = vector;
 				}
 				if (frame.getRotation()) {
 					vector = frame.getRotation().clone();
@@ -108,7 +117,7 @@ module webGLEngine {
 					//- previousFrame.getPosition()
 					vector.multiply(percents);
 					vector.plus(previousFrame.getRotation());
-					transformations.rotation = vector;
+					mesh.rotation = vector;
 				}
 			}
 		}
