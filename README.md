@@ -35,6 +35,7 @@
 ------------
 #### Releases
 ##### v0.3
+	- mesh structure changed;
 	- frame animation added;
 	- example instruction added.
 ##### v0.2
