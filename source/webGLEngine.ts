@@ -3,6 +3,7 @@
 ///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
+///<reference path="./classes/Camera.ts"/>
 ///<reference path="./classes/common/Vector3.ts"/>
 ///<reference path="./classes/mesh/Material.ts"/>
 ///<reference path="./classes/mesh/Transformations.ts"/>
@@ -25,7 +26,7 @@ module webGLEngine {
 		private _pMatrix : Float32Array;
 		private _mvMatrixStack;
 
-		private _camera : Types.Transformations;
+		private _camera : Types.Camera;
 		private _meshes : Types.Mesh[];
 		private _lights : Types.Light[];
 
@@ -48,7 +49,7 @@ module webGLEngine {
 			this._pMatrix = Utils.GLMatrix.mat4.create(undefined);
 			this._mvMatrixStack = [];
 
-			this._camera = new Types.Transformations();
+			this._camera = new Types.Camera();
 
 			this._meshes = [];
 			this._lights = [];
@@ -213,7 +214,6 @@ module webGLEngine {
 				vertexNormalBuffer,
 				vertexColorBuffer,
 				vertexTextureBuffer,
-				transformations,
 				i, material;
 
 			this._mvPushMatrix();
@@ -223,14 +223,13 @@ module webGLEngine {
 			vertexNormalBuffer = mesh.getVertexNormalBuffer();
 			vertexColorBuffer = mesh.getVertexColorBuffer();
 			vertexTextureBuffer = mesh.getVertexTextureBuffer();
-			transformations = mesh.getTransformations();
 
-			// apply matrix transformations
-			Utils.GLMatrix.mat4.translate(this._mvMatrix, transformations.position.getArray());
-			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, transformations.rotation.z);
-			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, transformations.rotation.y);
-			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, transformations.rotation.x);
-			Utils.GLMatrix.mat4.scale(this._mvMatrix, transformations.scale.getArray());
+			// apply matrix mesh
+			Utils.GLMatrix.mat4.translate(this._mvMatrix, mesh.position.getArray());
+			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, mesh.rotation.z);
+			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, mesh.rotation.y);
+			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, mesh.rotation.x);
+			Utils.GLMatrix.mat4.scale(this._mvMatrix, mesh.scale.getArray());
 
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
 			this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);

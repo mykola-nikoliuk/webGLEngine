@@ -5,7 +5,7 @@ module webGLEngine {
 
 	export module Types {
 
-		export class Mesh {
+		export class Mesh extends Transformations {
 
 			private _webGL : any;
 			private _vertexes : number[] = null;
@@ -14,7 +14,6 @@ module webGLEngine {
 			private _faces : Face[][] = null;
 			private _materials : Material[] = null;
 			private _isReady : boolean;
-			private _transformations : Transformations;
 			private _vertexIndexBuffers;
 			private _vertexPositionBuffer : any;
 			private _vertexNormalBuffer : any;
@@ -25,6 +24,8 @@ module webGLEngine {
 			public static defaultMaterialName = 'noMaterial';
 
 			constructor(webGL : any) {
+				super();
+
 				this._webGL = webGL;
 
 				this._isReady = false;
@@ -42,14 +43,9 @@ module webGLEngine {
 				this._vertexTextureBuffer = this._webGL.createBuffer();
 			}
 
-			/** @public
-			 * @param {Array.<number>} vertexes
-			 * @param {Array.<number>} vertexTexture
-			 * @param {Array.<number>} vertexNormals
-			 * @param {Array.<number>} faces
-			 * @param {Array.<number>} materials */
 			public fillBuffers(vertexes : number[], vertexTexture : number[],
-												 vertexNormals : number[], faces : Face[][], materials : Material[]) {
+												 vertexNormals : number[], faces : Face[][],
+												 materials : Material[]) : void {
 
 				this._vertexes = vertexes;
 				this._vertextTextures = vertexTexture;
@@ -64,9 +60,7 @@ module webGLEngine {
 				this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 			}
 
-			/** @public
-			 * @param {Array.<number>} [materials] */
-			public initBuffers(materials?) {
+			public initBuffers(materials? : number[]) : void {
 				var colors = [], indexes = [], textures = [], normals = [],
 					i, j, material, vertexIndexBuffer,
 					colorIndex;
@@ -145,40 +139,28 @@ module webGLEngine {
 				this._isReady = true;
 			}
 
-			/** @public */
-			public isReady() {
+			public isReady() : void {
 				return this._isReady;
 			}
 
-			/** @public */
-			public getVertexIndexBuffers() {
+			public getVertexIndexBuffers() : void {
 				return this._vertexIndexBuffers;
 			}
 
-			/** @public */
-			public getVertexPositionBuffer() {
+			public getVertexPositionBuffer() : void {
 				return this._vertexPositionBuffer
 			}
 
-			/** @public */
-			public getVertexColorBuffer() {
+			public getVertexColorBuffer() : void {
 				return this._vertexColorBuffer;
 			}
 
-			/** @public */
-			public getVertexNormalBuffer() {
+			public getVertexNormalBuffer() : void {
 				return this._vertexNormalBuffer;
 			}
 
-			/** @public */
-			public getVertexTextureBuffer() {
+			public getVertexTextureBuffer() : void {
 				return this._vertexTextureBuffer;
-			}
-
-			/** @public
-			 * @returns {Transformations} */
-			public getTransformations() {
-				return this._transformations;
 			}
 		}
 	}

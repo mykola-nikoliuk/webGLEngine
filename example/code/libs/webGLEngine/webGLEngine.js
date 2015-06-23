@@ -1097,12 +1097,20 @@ var webGLEngine;
 })(webGLEngine || (webGLEngine = {}));
 ///<reference path="Material.ts"/>
 ///<reference path="Transformations.ts"/>
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
     (function (Types) {
-        var Mesh = (function () {
+        var Mesh = (function (_super) {
+            __extends(Mesh, _super);
             function Mesh(webGL) {
+                _super.call(this);
                 this._vertexes = null;
                 this._vertextTextures = null;
                 this._vertexNormals = null;
@@ -1117,12 +1125,6 @@ var webGLEngine;
                 this._vertexColorBuffer = this._webGL.createBuffer();
                 this._vertexTextureBuffer = this._webGL.createBuffer();
             }
-            /** @public
-             * @param {Array.<number>} vertexes
-             * @param {Array.<number>} vertexTexture
-             * @param {Array.<number>} vertexNormals
-             * @param {Array.<number>} faces
-             * @param {Array.<number>} materials */
             Mesh.prototype.fillBuffers = function (vertexes, vertexTexture, vertexNormals, faces, materials) {
                 this._vertexes = vertexes;
                 this._vertextTextures = vertexTexture;
@@ -1135,8 +1137,6 @@ var webGLEngine;
                 this._vertexPositionBuffer.itemSize = 3;
                 this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
             };
-            /** @public
-             * @param {Array.<number>} [materials] */
             Mesh.prototype.initBuffers = function (materials) {
                 var colors = [], indexes = [], textures = [], normals = [], i, j, material, vertexIndexBuffer, colorIndex;
                 // create empty color and texture buffer
@@ -1202,38 +1202,27 @@ var webGLEngine;
                 this._vertexTextureBuffer.numItems = this._vertextTextures.length / this._vertexTextureBuffer.itemSize;
                 this._isReady = true;
             };
-            /** @public */
             Mesh.prototype.isReady = function () {
                 return this._isReady;
             };
-            /** @public */
             Mesh.prototype.getVertexIndexBuffers = function () {
                 return this._vertexIndexBuffers;
             };
-            /** @public */
             Mesh.prototype.getVertexPositionBuffer = function () {
                 return this._vertexPositionBuffer;
             };
-            /** @public */
             Mesh.prototype.getVertexColorBuffer = function () {
                 return this._vertexColorBuffer;
             };
-            /** @public */
             Mesh.prototype.getVertexNormalBuffer = function () {
                 return this._vertexNormalBuffer;
             };
-            /** @public */
             Mesh.prototype.getVertexTextureBuffer = function () {
                 return this._vertexTextureBuffer;
             };
-            /** @public
-             * @returns {Transformations} */
-            Mesh.prototype.getTransformations = function () {
-                return this._transformations;
-            };
             Mesh.defaultMaterialName = 'noMaterial';
             return Mesh;
-        })();
+        })(Types.Transformations);
         Types.Mesh = Mesh;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
@@ -1429,6 +1418,21 @@ var webGLEngine;
         Types.Shader = Shader;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
+///<reference path="common/Vector3.ts"/>
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Camera = (function (_super) {
+            __extends(Camera, _super);
+            function Camera() {
+                _super.call(this);
+            }
+            return Camera;
+        })(Types.Transformations);
+        Types.Camera = Camera;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1477,12 +1481,12 @@ var webGLEngine;
     (function (Types) {
         var AnimationTarget = (function () {
             function AnimationTarget(mesh) {
-                if (mesh instanceof Types.Mesh) {
+                if (mesh instanceof Types.Transformations) {
                     this._mesh = mesh;
                     this._frameIndex = 0;
                 }
                 else {
-                    console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Mesh()');
+                    console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Transformations()');
                 }
             }
             AnimationTarget.prototype.getFrameIndex = function () {
@@ -1494,14 +1498,23 @@ var webGLEngine;
             AnimationTarget.prototype.getStartTime = function () {
                 return this._startTime;
             };
-            AnimationTarget.prototype.start = function () {
+            AnimationTarget.prototype.start = function (callback) {
                 this._startTime = Date.now();
+                if (callback instanceof Utils.Callback) {
+                    this._callback = callback;
+                }
+                else {
+                    this._callback = new Utils.Callback(function () { }, {});
+                }
             };
             AnimationTarget.prototype.nextFrame = function () {
                 return ++this._frameIndex;
             };
             AnimationTarget.prototype.shiftStartTime = function (time) {
                 this._startTime += time;
+            };
+            AnimationTarget.prototype.callback = function () {
+                this._callback.apply();
             };
             return AnimationTarget;
         })();
@@ -1525,9 +1538,15 @@ var webGLEngine;
                     }
                 }
             }
-            Animation.prototype.start = function (mesh) {
-                var target = new Types.AnimationTarget(mesh);
-                target.start();
+            Animation.prototype.start = function (mesh, callback) {
+                var target = new Types.AnimationTarget(mesh), i;
+                target.start(callback);
+                for (i = 0; i < this._targets.length; i++) {
+                    if (this._targets[i].getMesh() === mesh) {
+                        this._targets.splice(i, 1);
+                        i--;
+                    }
+                }
                 this._targets.push(target);
             };
             Animation.prototype.update = function () {
@@ -1545,6 +1564,7 @@ var webGLEngine;
                                 // last update
                                 this._updateTarget(target, frameIndex - 1, 1);
                                 this._targets.shift();
+                                target.callback();
                                 i--;
                                 break;
                             }
@@ -1575,16 +1595,16 @@ var webGLEngine;
                 }
             };
             Animation.prototype._updateTarget = function (target, frameIndex, percents) {
-                var frame, previousFrame = frameIndex > 0 ? this._frames[frameIndex - 1] : this._initialFrame, transformations, vector;
+                var frame, previousFrame = frameIndex > 0 ? this._frames[frameIndex - 1] : this._initialFrame, mesh, vector;
                 frame = this._frames[frameIndex];
-                transformations = target.getMesh().getTransformations();
+                mesh = target.getMesh();
                 if (frame.getPosition()) {
                     vector = frame.getPosition().clone();
                     vector.minus(previousFrame.getPosition());
                     //- previousFrame.getPosition()
                     vector.multiply(percents);
                     vector.plus(previousFrame.getPosition());
-                    transformations.position = vector;
+                    mesh.position = vector;
                 }
                 if (frame.getRotation()) {
                     vector = frame.getRotation().clone();
@@ -1592,7 +1612,7 @@ var webGLEngine;
                     //- previousFrame.getPosition()
                     vector.multiply(percents);
                     vector.plus(previousFrame.getRotation());
-                    transformations.rotation = vector;
+                    mesh.rotation = vector;
                 }
             };
             return Animation;
@@ -1618,6 +1638,7 @@ var webGLEngine;
 ///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
+///<reference path="./classes/Camera.ts"/>
 ///<reference path="./classes/common/Vector3.ts"/>
 ///<reference path="./classes/mesh/Material.ts"/>
 ///<reference path="./classes/mesh/Transformations.ts"/>
@@ -1638,7 +1659,7 @@ var webGLEngine;
             this._mvMatrix = Utils.GLMatrix.mat4.create(undefined);
             this._pMatrix = Utils.GLMatrix.mat4.create(undefined);
             this._mvMatrixStack = [];
-            this._camera = new webGLEngine.Types.Transformations();
+            this._camera = new webGLEngine.Types.Camera();
             this._meshes = [];
             this._lights = [];
             this._shaderProgram = null;
@@ -1762,20 +1783,19 @@ var webGLEngine;
             if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
                 return;
             }
-            var vertexIndexBuffers, vertexPositionBuffer, vertexNormalBuffer, vertexColorBuffer, vertexTextureBuffer, transformations, i, material;
+            var vertexIndexBuffers, vertexPositionBuffer, vertexNormalBuffer, vertexColorBuffer, vertexTextureBuffer, i, material;
             this._mvPushMatrix();
             vertexIndexBuffers = mesh.getVertexIndexBuffers();
             vertexPositionBuffer = mesh.getVertexPositionBuffer();
             vertexNormalBuffer = mesh.getVertexNormalBuffer();
             vertexColorBuffer = mesh.getVertexColorBuffer();
             vertexTextureBuffer = mesh.getVertexTextureBuffer();
-            transformations = mesh.getTransformations();
-            // apply matrix transformations
-            Utils.GLMatrix.mat4.translate(this._mvMatrix, transformations.position.getArray());
-            Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, transformations.rotation.z);
-            Utils.GLMatrix.mat4.rotateY(this._mvMatrix, transformations.rotation.y);
-            Utils.GLMatrix.mat4.rotateX(this._mvMatrix, transformations.rotation.x);
-            Utils.GLMatrix.mat4.scale(this._mvMatrix, transformations.scale.getArray());
+            // apply matrix mesh
+            Utils.GLMatrix.mat4.translate(this._mvMatrix, mesh.position.getArray());
+            Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, mesh.rotation.z);
+            Utils.GLMatrix.mat4.rotateY(this._mvMatrix, mesh.rotation.y);
+            Utils.GLMatrix.mat4.rotateX(this._mvMatrix, mesh.rotation.x);
+            Utils.GLMatrix.mat4.scale(this._mvMatrix, mesh.scale.getArray());
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
             this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
