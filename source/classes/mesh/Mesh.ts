@@ -30,8 +30,6 @@ module webGLEngine {
 
 				this._isReady = false;
 
-				this._transformations = new Transformations();
-
 				this._vertexIndexBuffers = {};
 
 				this._vertexPositionBuffer = this._webGL.createBuffer();
@@ -60,7 +58,7 @@ module webGLEngine {
 				this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 			}
 
-			public initBuffers(materials? : number[]) : void {
+			public initBuffers(materials? : {}) : void {
 				var colors = [], indexes = [], textures = [], normals = [],
 					i, j, material, vertexIndexBuffer,
 					colorIndex;
@@ -139,7 +137,7 @@ module webGLEngine {
 				this._isReady = true;
 			}
 
-			public isReady() : void {
+			public isReady() : boolean {
 				return this._isReady;
 			}
 

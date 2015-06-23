@@ -22,7 +22,7 @@ module webGLEngine {
 				return this._frameIndex;
 			}
 
-			public getMesh() : Mesh {
+			public getMesh() : Transformations {
 				return this._mesh;
 			}
 

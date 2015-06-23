@@ -1118,7 +1118,6 @@ var webGLEngine;
                 this._materials = null;
                 this._webGL = webGL;
                 this._isReady = false;
-                this._transformations = new Types.Transformations();
                 this._vertexIndexBuffers = {};
                 this._vertexPositionBuffer = this._webGL.createBuffer();
                 this._vertexNormalBuffer = this._webGL.createBuffer();
