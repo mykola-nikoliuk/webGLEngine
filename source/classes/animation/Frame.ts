@@ -14,6 +14,8 @@ module webGLEngine {
 			public setPosition(position : Types.Vector3) : Frame {
 				if (position instanceof Types.Vector3) {
 					this._position = position;
+				}
+				else {
 					console.log('>>> Error: Frame:setPosition() position is not instance of Vector3');
 				}
 				return this;
@@ -26,6 +28,8 @@ module webGLEngine {
 			public setRotation(rotation : Types.Vector3) : Frame {
 				if (rotation instanceof Types.Vector3) {
 					this._rotation = rotation;
+				}
+				else {
 					console.log('>>> Error: Frame:setRotation() rotation is not instance of Vector3');
 				}
 				return this;
