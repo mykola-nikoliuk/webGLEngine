@@ -1444,6 +1444,8 @@ var webGLEngine;
             Frame.prototype.setPosition = function (position) {
                 if (position instanceof Types.Vector3) {
                     this._position = position;
+                }
+                else {
                     console.log('>>> Error: Frame:setPosition() position is not instance of Vector3');
                 }
                 return this;
@@ -1454,6 +1456,8 @@ var webGLEngine;
             Frame.prototype.setRotation = function (rotation) {
                 if (rotation instanceof Types.Vector3) {
                     this._rotation = rotation;
+                }
+                else {
                     console.log('>>> Error: Frame:setRotation() rotation is not instance of Vector3');
                 }
                 return this;
