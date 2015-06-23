@@ -106,101 +106,9 @@ var ns = {
 			key_right : false
 		};
 
-		// test animation
-		this._animation = new webGLEngine.Types.Animation(
-			new webGLEngine.Types.Frame()
-				//.setPosition(new webGLEngine.Types.Vector3(16.85797848025723, -12.674998062742992, -135.3757210551033))
-				//.setRotation(new webGLEngine.Types.Vector3(0.08250000000000035, 1.610796326794911, 0)),
-			.setPosition(new webGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
-			.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, -1.610796326794911, 0)),
-			[
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(50, -12, 0))
-				//	.setRotation(new webGLEngine.Types.Vector3(0, -Math.PI / 2, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(0, -10, -50))
-				//	.setRotation(new webGLEngine.Types.Vector3(0, -Math.PI, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-50, -9, 0))
-				//	.setRotation(new webGLEngine.Types.Vector3(0, -Math.PI * 1.5, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(0, -10, 50))
-				//	.setRotation(new webGLEngine.Types.Vector3(0, -Math.PI * 2, 0)),
-
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-136.40451406685602, -5.415755109754397, -133.30897309960255))
-				//	.setRotation(new webGLEngine.Types.Vector3(-0.04249999999999963, 1.5382963267949123, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-166.92537377876405, -13.87551154649805, -135.66199169524546))
-				//	.setRotation(new webGLEngine.Types.Vector3(-0.059999999999999554, 1.158296326794911, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-176.56004296081076, -22.734961602354524, -125.54120391044728))
-				//	.setRotation(new webGLEngine.Types.Vector3(-0.07249999999999955, 0.7057963267949127, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-179.28899592498212, -24.84508806214609, -107.87830239480094))
-				//	.setRotation(new webGLEngine.Types.Vector3(-0.039999999999999515, 0.07079632679491238, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-182.96241814113472, -26.42981155369769, -54.02852808470881))
-				//	.setRotation(new webGLEngine.Types.Vector3(-0.01999999999999952, 0.06329632679491237, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-135.45437959461776, -16.6388461574058, 4.666124544685863))
-				//	.setRotation(new webGLEngine.Types.Vector3(0.1850000000000006, -1.3692036732050852, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-79.6288098713936, -14.491545215427712, 7.243745352305449))
-				//	.setRotation(new webGLEngine.Types.Vector3(0.012500000000000497, -1.551703673205082, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(-18.47103498247786, -11.988485530725889, -4.17309100277266))
-				//	.setRotation(new webGLEngine.Types.Vector3(0.08250000000000052, -2.1142036732050804, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(11.839525845439713, -9.859977467817682, -37.74541925333037))
-				//	.setRotation(new webGLEngine.Types.Vector3(0.0200000000000005, -2.6217036732050745, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(19.272998573951327, -9.71999955068464, -97.612877613702))
-				//	.setRotation(new webGLEngine.Types.Vector3(-0.004999999999999498, -3.3042036732050626, 0)),
-				//new webGLEngine.Types.Frame()
-				//	.setPosition(new webGLEngine.Types.Vector3(16.85797848025723, -12.674998062742992, -135.3757210551033))
-				//	.setRotation(new webGLEngine.Types.Vector3(0.08250000000000035, -Math.PI * 2 + 1.610796326794911, 0))
-
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(136.40451406685602, 5.415755109754397, 133.30897309960255))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.04249999999999963, -1.5382963267949123, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(166.92537377876405, 13.87551154649805, 135.66199169524546))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.059999999999999554, -1.158296326794911, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(176.56004296081076, 22.734961602354524, 125.54120391044728))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.07249999999999955, -0.7057963267949127, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(179.28899592498212, 24.84508806214609, 107.87830239480094))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.039999999999999515, -0.07079632679491238, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(182.96241814113472, 26.42981155369769, 54.02852808470881))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.01999999999999952, -0.06329632679491237, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(135.45437959461776, 16.6388461574058, -4.666124544685863))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.1850000000000006, 1.3692036732050852, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(79.6288098713936, 14.491545215427712, -7.243745352305449))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.012500000000000497, 1.551703673205082, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(18.47103498247786, 11.988485530725889, 4.17309100277266))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000052, 2.1142036732050804, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(-11.839525845439713, 9.859977467817682, 37.74541925333037))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.0200000000000005, 2.6217036732050745, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(-19.272998573951327, 9.71999955068464, 97.612877613702))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.004999999999999498, 3.3042036732050626, 0)),
-				new webGLEngine.Types.Frame()
-					.setPosition(new webGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
-					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, Math.PI + 1.610796326794911, 0))
-			]
-		);
-		this._animation.setTimeByDistance(50000);
-
 		this._meshes = {
 			sky     : this._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
-			plane     : this._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false}),
+			plane   : this._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false}),
 			street  : this._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false}),
 			players : {}
 		};
@@ -220,6 +128,7 @@ var ns = {
 		this.addListeners();
 		this.createLights();
 
+		this._createAnimation();
 		this._startAnimation();
 
 		if (this._engine) {
@@ -488,6 +397,51 @@ var ns = {
 
 		//				this._meshes.sky.getTransformations().position.set(-this._camera.position.x,
 		//					-this._camera.position.y, -this._camera.position.z);
+	},
+
+	_createAnimation : function () {
+		// test animation
+		this._animation = new webGLEngine.Types.Animation(
+			new webGLEngine.Types.Frame()
+				.setPosition(new webGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
+				.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, -1.610796326794911, 0)),
+			[
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(136.40451406685602, 5.415755109754397, 133.30897309960255))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.04249999999999963, -1.5382963267949123, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(166.92537377876405, 13.87551154649805, 135.66199169524546))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.059999999999999554, -1.158296326794911, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(176.56004296081076, 22.734961602354524, 125.54120391044728))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.07249999999999955, -0.7057963267949127, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(179.28899592498212, 24.84508806214609, 107.87830239480094))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.039999999999999515, -0.07079632679491238, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(182.96241814113472, 26.42981155369769, 54.02852808470881))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.01999999999999952, -0.06329632679491237, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(135.45437959461776, 16.6388461574058, -4.666124544685863))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.1850000000000006, 1.3692036732050852, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(79.6288098713936, 14.491545215427712, -7.243745352305449))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.012500000000000497, 1.551703673205082, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(18.47103498247786, 11.988485530725889, 4.17309100277266))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000052, 2.1142036732050804, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(-11.839525845439713, 9.859977467817682, 37.74541925333037))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.0200000000000005, 2.6217036732050745, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(-19.272998573951327, 9.71999955068464, 97.612877613702))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + 0.004999999999999498, 3.3042036732050626, 0)),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
+					.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, Math.PI + 1.610796326794911, 0))
+			]
+		);
+		this._animation.setTimeByDistance(10000);
 	},
 
 	_startAnimation : function () {

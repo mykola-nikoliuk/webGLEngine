@@ -33,8 +33,6 @@ module webGLEngine {
 		private _shaderProgram;
 		private _isLightingEnable : boolean;
 
-		public Classes;
-
 		constructor(fragmentShaderPath : string, vertexShaderPath : string) {
 
 			console.log('> Start webGL initialization.');
@@ -484,7 +482,8 @@ module webGLEngine {
 		}
 
 		private _parseMaterial(mtlFile : string, path : string, mesh : Types.Mesh, parameters : any) : void {
-			var mtlList, i, j, nodes, material, allMaterials = {};
+			var mtlList, i, j, nodes, material,
+				allMaterials : Types.Material[] = [];
 			/** @type {Material} */
 			var currentMaterial = null;
 

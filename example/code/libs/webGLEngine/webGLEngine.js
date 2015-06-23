@@ -1118,7 +1118,6 @@ var webGLEngine;
                 this._materials = null;
                 this._webGL = webGL;
                 this._isReady = false;
-                this._transformations = new Types.Transformations();
                 this._vertexIndexBuffers = {};
                 this._vertexPositionBuffer = this._webGL.createBuffer();
                 this._vertexNormalBuffer = this._webGL.createBuffer();
@@ -1991,7 +1990,7 @@ var webGLEngine;
             }
         };
         Engine.prototype._parseMaterial = function (mtlFile, path, mesh, parameters) {
-            var mtlList, i, j, nodes, material, allMaterials = {};
+            var mtlList, i, j, nodes, material, allMaterials = [];
             /** @type {Material} */
             var currentMaterial = null;
             console.log('> Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
