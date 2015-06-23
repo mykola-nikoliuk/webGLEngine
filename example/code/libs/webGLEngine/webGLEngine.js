@@ -977,6 +977,29 @@ var webGLEngine;
                 this._y += typeof y === 'number' ? y : 0;
                 this._z += typeof z === 'number' ? z : 0;
             };
+            Vector3.prototype.minus = function (vector) {
+                this._x -= vector._x;
+                this._y -= vector._y;
+                this._z -= vector._z;
+            };
+            Vector3.prototype.plus = function (vector) {
+                this._x += vector._x;
+                this._y += vector._y;
+                this._z += vector._z;
+            };
+            Vector3.prototype.multiply = function (multiplier) {
+                this._x *= multiplier;
+                this._y *= multiplier;
+                this._z *= multiplier;
+            };
+            Vector3.prototype.clone = function () {
+                return new Vector3(this._x, this._y, this._z);
+            };
+            Vector3.prototype.copyFrom = function (vector) {
+                this._x = vector._x;
+                this._y = vector._y;
+                this._z = vector._z;
+            };
             Vector3.prototype.getArray = function () {
                 return [this._x, this._y, this._z];
             };
@@ -1424,6 +1447,16 @@ var webGLEngine;
             Frame.prototype.getPosition = function () {
                 return this._position;
             };
+            Frame.prototype.setRotation = function (rotation) {
+                if (rotation instanceof Types.Vector3) {
+                    this._rotation = rotation;
+                    console.log('>>> Error: Frame:setRotation() rotation is not instance of Vector3');
+                }
+                return this;
+            };
+            Frame.prototype.getRotation = function () {
+                return this._rotation;
+            };
             Frame.prototype.setTime = function (time) {
                 if (typeof time === 'number') {
                     this._time = time;
@@ -1442,9 +1475,48 @@ var webGLEngine;
 (function (webGLEngine) {
     var Types;
     (function (Types) {
+        var AnimationTarget = (function () {
+            function AnimationTarget(mesh) {
+                if (mesh instanceof Types.Mesh) {
+                    this._mesh = mesh;
+                    this._frameIndex = 0;
+                }
+                else {
+                    console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Mesh()');
+                }
+            }
+            AnimationTarget.prototype.getFrameIndex = function () {
+                return this._frameIndex;
+            };
+            AnimationTarget.prototype.getMesh = function () {
+                return this._mesh;
+            };
+            AnimationTarget.prototype.getStartTime = function () {
+                return this._startTime;
+            };
+            AnimationTarget.prototype.start = function () {
+                this._startTime = Date.now();
+            };
+            AnimationTarget.prototype.nextFrame = function () {
+                return ++this._frameIndex;
+            };
+            AnimationTarget.prototype.shiftStartTime = function (time) {
+                this._startTime += time;
+            };
+            return AnimationTarget;
+        })();
+        Types.AnimationTarget = AnimationTarget;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
         var Animation = (function () {
-            function Animation(frames) {
+            function Animation(initialFrame, frames) {
+                this._initialFrame = initialFrame;
                 this._frames = [];
+                this._targets = [];
                 if (frames instanceof Array) {
                     for (var i = 0; i < frames.length; i++) {
                         if (frames[i] instanceof Types.Frame) {
@@ -1453,13 +1525,44 @@ var webGLEngine;
                     }
                 }
             }
+            Animation.prototype.start = function (mesh) {
+                var target = new Types.AnimationTarget(mesh);
+                target.start();
+                this._targets.push(target);
+            };
+            Animation.prototype.update = function () {
+                var elapsedTime, frameIndex, targetRemoved, target, i;
+                for (i = 0; i < this._targets.length; i++) {
+                    target = this._targets[i];
+                    frameIndex = target.getFrameIndex();
+                    // search for current frame
+                    do {
+                        elapsedTime = Date.now() - target.getStartTime();
+                        if (elapsedTime >= this._frames[frameIndex].getTime()) {
+                            target.shiftStartTime(this._frames[frameIndex].getTime());
+                            frameIndex = target.nextFrame();
+                            if (frameIndex >= this._frames.length) {
+                                // last update
+                                this._updateTarget(target, frameIndex - 1, 1);
+                                this._targets.shift();
+                                i--;
+                                break;
+                            }
+                        }
+                        else {
+                            this._updateTarget(target, frameIndex, elapsedTime / this._frames[frameIndex].getTime());
+                        }
+                    } while (elapsedTime >= this._frames[frameIndex].getTime());
+                }
+            };
             Animation.prototype.setTimeByDistance = function (time) {
-                var length, totalLength = 0, sectorsLength = [], i;
+                var length, totalLength = 0, frame, nextFrame, sectorsLength = [], i;
                 if (typeof time === 'number' && time > 0) {
-                    sectorsLength.push(0);
                     // get distance between frames
-                    for (i = 0; i < this._frames.length - 1; i++) {
-                        length = this._frames[i].getPosition().getDistanceTo(this._frames[i + 1].getPosition());
+                    for (i = 0; i < this._frames.length; i++) {
+                        frame = i === 0 ? this._initialFrame : this._frames[i - 1];
+                        nextFrame = this._frames[i];
+                        length = frame.getPosition().getDistanceTo(nextFrame.getPosition());
                         totalLength += length;
                         sectorsLength.push(length);
                     }
@@ -1469,6 +1572,27 @@ var webGLEngine;
                 }
                 else {
                     console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
+                }
+            };
+            Animation.prototype._updateTarget = function (target, frameIndex, percents) {
+                var frame, previousFrame = frameIndex > 0 ? this._frames[frameIndex - 1] : this._initialFrame, transformations, vector;
+                frame = this._frames[frameIndex];
+                transformations = target.getMesh().getTransformations();
+                if (frame.getPosition()) {
+                    vector = frame.getPosition().clone();
+                    vector.minus(previousFrame.getPosition());
+                    //- previousFrame.getPosition()
+                    vector.multiply(percents);
+                    vector.plus(previousFrame.getPosition());
+                    transformations.position = vector;
+                }
+                if (frame.getRotation()) {
+                    vector = frame.getRotation().clone();
+                    vector.minus(previousFrame.getRotation());
+                    //- previousFrame.getPosition()
+                    vector.multiply(percents);
+                    vector.plus(previousFrame.getRotation());
+                    transformations.rotation = vector;
                 }
             };
             return Animation;
@@ -1498,6 +1622,7 @@ var webGLEngine;
 ///<reference path="./classes/mesh/Material.ts"/>
 ///<reference path="./classes/mesh/Transformations.ts"/>
 ///<reference path="./classes/animation/Frame.ts"/>
+///<reference path="./classes/animation/AnimationTarget.ts"/>
 ///<reference path="./classes/animation/Animation.ts"/>
 ///<reference path="webGLConfig.ts"/>
 var webGLEngine;

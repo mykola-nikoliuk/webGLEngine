@@ -7,6 +7,7 @@
 ///<reference path="./classes/mesh/Material.ts"/>
 ///<reference path="./classes/mesh/Transformations.ts"/>
 ///<reference path="./classes/animation/Frame.ts"/>
+///<reference path="./classes/animation/AnimationTarget.ts"/>
 ///<reference path="./classes/animation/Animation.ts"/>
 ///<reference path="webGLConfig.ts"/>
 
