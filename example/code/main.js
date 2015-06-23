@@ -341,9 +341,20 @@ var ns = {
 	 * @public */
 	updateCameraRotation : function (e) {
 		//noinspection JSUnresolvedVariable
-		var x = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
-				y = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
-		this._camera.rotation.add(y / 400, x / 400, 0);
+		var x         = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
+				y         = e.movementY || e.mozMovementY || e.webkitMovementY || 0,
+				sensitivity = ns.config.camera.mouse.sensitivity;
+
+		this._camera.rotation.add(y / sensitivity, x / sensitivity, 0);
+		// look limitation
+		if (this._camera.rotation.x > Math.PI / 2) {
+			this._camera.rotation.x = Math.PI / 2;
+		}
+		if (this._camera.rotation.x < -Math.PI / 2) {
+			this._camera.rotation.x = -Math.PI / 2;
+		}
+		// prevent overflow
+		this._camera.rotation.y %= Math.PI * 2;
 	},
 
 	/** Updates camera position
