@@ -129,6 +129,8 @@ declare module webGLEngine {
             rotation: Vector3;
             scale: Vector3;
             constructor();
+            copyFrom(transformation: Transformations): void;
+            cloneTransformations(): Transformations;
         }
     }
 }
@@ -162,6 +164,7 @@ declare module webGLEngine {
             fillBuffers(vertexes: number[], vertexTexture: number[], vertexNormals: number[], faces: Face[][], materials: Material[]): void;
             initBuffers(materials?: Material[]): void;
             isReady(): boolean;
+            clone(): void;
             getVertexIndexBuffers(): void;
             getVertexPositionBuffer(): void;
             getVertexColorBuffer(): void;
@@ -292,18 +295,21 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class AnimationTarget {
+            private _reservedTransformation;
             private _mesh;
             private _startTime;
             private _frameIndex;
             private _callback;
             constructor(mesh: Transformations);
-            getFrameIndex(): number;
-            getMesh(): Transformations;
-            getStartTime(): number;
             start(callback?: Utils.Callback): void;
             nextFrame(): number;
             shiftStartTime(time: number): void;
             callback(): void;
+            saveTransformation(): void;
+            revertTransformation(): void;
+            getFrameIndex(): number;
+            getMesh(): Transformations;
+            getStartTime(): number;
         }
     }
 }
@@ -327,8 +333,10 @@ declare module webGLEngine {
             updateAfterRender(): void;
             update(): void;
             setTimeByDistance(time: number): void;
+            /** Adds animation to general animations list */
+            turnOn(): void;
             /** Removes animation from general animations list */
-            destroy(): void;
+            turnOff(): void;
             private _updateTarget(target, frameIndex, percents);
         }
     }

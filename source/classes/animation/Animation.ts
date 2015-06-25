@@ -28,7 +28,7 @@ module webGLEngine {
 					}
 				}
 
-				Animation.animations.push(this);
+				this.turnOn();
 			}
 
 			public start(mesh : Transformations, callback? : Utils.Callback) : void {
@@ -52,7 +52,13 @@ module webGLEngine {
 
 			/** Do updated after render */
 			public updateAfterRender() {
+				var i : number;
 
+				if (this._type === Animation.Types.WITHOUT_CHANGES) {
+					for (i = 0; i < this._targets.length; i++) {
+						this._targets[i].revertTransformation();
+					}
+				}
 			}
 
 			public update() : void {
@@ -64,6 +70,11 @@ module webGLEngine {
 
 				for (i = 0; i < this._targets.length; i++) {
 					target = this._targets[i];
+
+					if (this._type === Animation.Types.WITHOUT_CHANGES) {
+						target.saveTransformation();
+					}
+
 					frameIndex = target.getFrameIndex();
 
 					// search for current frame
@@ -115,8 +126,17 @@ module webGLEngine {
 				}
 			}
 
+			/** Adds animation to general animations list */
+			public turnOn() {
+				var index : number;
+
+				if ((index = Animation.animations.indexOf(this)) < 0) {
+					Animation.animations.push(this);
+				}
+			}
+
 			/** Removes animation from general animations list */
-			public destroy() {
+			public turnOff() {
 				var index : number;
 
 				if ((index = Animation.animations.indexOf(this)) >= 0) {

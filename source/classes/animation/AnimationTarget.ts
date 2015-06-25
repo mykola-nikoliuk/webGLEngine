@@ -3,6 +3,7 @@ module webGLEngine {
 	export module Types {
 
 		export class AnimationTarget {
+			private _reservedTransformation : Transformations;
 			private _mesh : Transformations;
 			private _startTime : number;
 			private _frameIndex : number;
@@ -16,18 +17,6 @@ module webGLEngine {
 				else {
 					console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Transformations()');
 				}
-			}
-
-			public getFrameIndex() : number {
-				return this._frameIndex;
-			}
-
-			public getMesh() : Transformations {
-				return this._mesh;
-			}
-
-			public getStartTime() : number {
-				return this._startTime;
 			}
 
 			public start(callback? : Utils.Callback) : void {
@@ -50,6 +39,26 @@ module webGLEngine {
 
 			public callback() : void {
 				this._callback.apply();
+			}
+
+			public saveTransformation() : void {
+				this._reservedTransformation = this._mesh.cloneTransformations();
+			}
+
+			public revertTransformation() : void {
+				this._mesh.copyFrom(this._reservedTransformation);
+			}
+
+			public getFrameIndex() : number {
+				return this._frameIndex;
+			}
+
+			public getMesh() : Transformations {
+				return this._mesh;
+			}
+
+			public getStartTime() : number {
+				return this._startTime;
 			}
 		}
 	}

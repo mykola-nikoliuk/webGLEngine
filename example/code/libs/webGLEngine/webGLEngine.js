@@ -1053,6 +1053,21 @@ var webGLEngine;
                 this.rotation = new Types.Vector3(0, 0, 0);
                 this.scale = new Types.Vector3(1, 1, 1);
             }
+            //public set(position : Vector3, rotation : Vector3, scale : Vector3) : void {
+            //	this.position = position;
+            //	this.rotation = rotation;
+            //	this.scale = scale;
+            //}
+            Transformations.prototype.copyFrom = function (transformation) {
+                this.position.copyFrom(transformation.position);
+                this.rotation.copyFrom(transformation.rotation);
+                this.scale.copyFrom(transformation.scale);
+            };
+            Transformations.prototype.cloneTransformations = function () {
+                var transformation = new Transformations();
+                transformation.copyFrom(this);
+                return transformation;
+            };
             return Transformations;
         })();
         Types.Transformations = Transformations;
@@ -1179,6 +1194,9 @@ var webGLEngine;
             };
             Mesh.prototype.isReady = function () {
                 return this._isReady;
+            };
+            Mesh.prototype.clone = function () {
+                // TODO : finish clone
             };
             Mesh.prototype.getVertexIndexBuffers = function () {
                 return this._vertexIndexBuffers;
@@ -1577,15 +1595,6 @@ var webGLEngine;
                     console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Transformations()');
                 }
             }
-            AnimationTarget.prototype.getFrameIndex = function () {
-                return this._frameIndex;
-            };
-            AnimationTarget.prototype.getMesh = function () {
-                return this._mesh;
-            };
-            AnimationTarget.prototype.getStartTime = function () {
-                return this._startTime;
-            };
             AnimationTarget.prototype.start = function (callback) {
                 this._startTime = Date.now();
                 if (callback instanceof webGLEngine.Utils.Callback) {
@@ -1603,6 +1612,21 @@ var webGLEngine;
             };
             AnimationTarget.prototype.callback = function () {
                 this._callback.apply();
+            };
+            AnimationTarget.prototype.saveTransformation = function () {
+                this._reservedTransformation = this._mesh.cloneTransformations();
+            };
+            AnimationTarget.prototype.revertTransformation = function () {
+                this._mesh.copyFrom(this._reservedTransformation);
+            };
+            AnimationTarget.prototype.getFrameIndex = function () {
+                return this._frameIndex;
+            };
+            AnimationTarget.prototype.getMesh = function () {
+                return this._mesh;
+            };
+            AnimationTarget.prototype.getStartTime = function () {
+                return this._startTime;
             };
             return AnimationTarget;
         })();
@@ -1626,7 +1650,7 @@ var webGLEngine;
                         }
                     }
                 }
-                Animation.animations.push(this);
+                this.turnOn();
             }
             Animation.prototype.start = function (mesh, callback) {
                 var target = new Types.AnimationTarget(mesh), i;
@@ -1645,11 +1669,20 @@ var webGLEngine;
             };
             /** Do updated after render */
             Animation.prototype.updateAfterRender = function () {
+                var i;
+                if (this._type === Animation.Types.WITHOUT_CHANGES) {
+                    for (i = 0; i < this._targets.length; i++) {
+                        this._targets[i].revertTransformation();
+                    }
+                }
             };
             Animation.prototype.update = function () {
                 var elapsedTime, frameIndex, targetRemoved, target, i;
                 for (i = 0; i < this._targets.length; i++) {
                     target = this._targets[i];
+                    if (this._type === Animation.Types.WITHOUT_CHANGES) {
+                        target.saveTransformation();
+                    }
                     frameIndex = target.getFrameIndex();
                     // search for current frame
                     do {
@@ -1691,8 +1724,15 @@ var webGLEngine;
                     console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
                 }
             };
+            /** Adds animation to general animations list */
+            Animation.prototype.turnOn = function () {
+                var index;
+                if ((index = Animation.animations.indexOf(this)) < 0) {
+                    Animation.animations.push(this);
+                }
+            };
             /** Removes animation from general animations list */
-            Animation.prototype.destroy = function () {
+            Animation.prototype.turnOff = function () {
                 var index;
                 if ((index = Animation.animations.indexOf(this)) >= 0) {
                     Animation.animations.splice(index, 1);

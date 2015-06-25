@@ -139,6 +139,10 @@ module webGLEngine {
 				return this._isReady;
 			}
 
+			public clone() {
+				// TODO : finish clone
+			}
+
 			public getVertexIndexBuffers() : void {
 				return this._vertexIndexBuffers;
 			}
