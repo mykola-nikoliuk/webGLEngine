@@ -112,9 +112,10 @@ var ns = {
 
 		this._meshes = {
 			sky     : ns._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
-			plane   : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false}),
-			street  : ns._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false}),
-			players : {}
+			plane   : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false})
+				.callback(new webGLEngine.Utils.Callback(ns.createSecondPlane, ns)),
+			plane2  : null,
+			street  : ns._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false})
 		};
 
 		this._system = {
@@ -139,6 +140,10 @@ var ns = {
 			this._engine.Render.subscribe(new webGLEngine.Utils.Callback(this.mainProc, this));
 			this._engine.Render.setFPS(this.config.engine.FPS);
 		}
+	},
+
+	createSecondPlane : function () {
+		this._meshes.plane2 = this._meshes.plane.transformationClone();
 	},
 
 	/** @public */
@@ -297,6 +302,9 @@ var ns = {
 		engine.draw(this._meshes.sky);
 		engine.draw(this._meshes.street);
 		engine.draw(this._meshes.plane);
+		if (this._meshes.plane2) {
+			engine.draw(this._meshes.plane2);
+		}
 		engine.turnOnLight();
 	},
 

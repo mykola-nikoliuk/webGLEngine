@@ -2,15 +2,14 @@ module webGLEngine {
 
 	export module Types {
 
-		export class Render {
+		export class Render extends Subscribe {
 
 			private _engine : Engine;
-			private _subscribers : Utils.Callback[];
-			private _renderTimer : Utils.Timer;
+			private _renderTimer : Utils.Timer = new Utils.Timer();
 
 			constructor(engine : Engine) {
+				super();
 				this._engine = engine;
-				this._subscribers = [];
 				this._renderTimer = new Utils.Timer();
 			}
 
@@ -24,31 +23,6 @@ module webGLEngine {
 						this._renderTimer.stop();
 					}
 					this._renderTimer.start(new Utils.Callback(this._render, this), 1000 / framePerSecond);
-					return true;
-				}
-				return false;
-			}
-
-			/** Add render subscriber
-			 * @param renderCallback
-			 * @return is callback Was added
-			 */
-			public subscribe(renderCallback : Utils.Callback) : boolean {
-				if (this._subscribers.indexOf(renderCallback) < 0) {
-					this._subscribers.push(renderCallback);
-					return true;
-				}
-				return false;
-			}
-
-			/** Removes render subscriber
-			 * @param renderCallback
-			 * @return is callback Was deleted
-			 */
-			public unsubscribe(renderCallback : Utils.Callback) : boolean {
-				var index : number;
-				if ((index = this._subscribers.indexOf(renderCallback)) > 0) {
-					this._subscribers.splice(index, 1);
 					return true;
 				}
 				return false;

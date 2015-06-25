@@ -5,7 +5,9 @@
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
 ///<reference path="./classes/Camera.ts"/>
+///<reference path="./classes/Subscribe.ts"/>
 ///<reference path="./classes/Render.ts"/>
+///<reference path="./classes/Controller.ts"/>
 ///<reference path="./classes/common/Vector3.ts"/>
 ///<reference path="./classes/mesh/Material.ts"/>
 ///<reference path="./classes/animation/Frame.ts"/>
@@ -32,6 +34,7 @@ module webGLEngine {
 		private _lights : Types.Light[];
 
 		private _render : Types.Render;
+		private _controller : Types.Controller;
 
 		private _shaderProgram;
 		private _isLightingEnable : boolean;
@@ -51,8 +54,9 @@ module webGLEngine {
 			this._mvMatrixStack = [];
 
 			this._camera = new Types.Camera();
-
 			this._render = new Types.Render(this);
+			this._controller = new Types.Controller(this);
+
 			this._meshes = [];
 			this._lights = [];
 			this._shaderProgram = null;
@@ -70,115 +74,9 @@ module webGLEngine {
 			return this._render;
 		}
 
-		private _crateCanvas() : void {
-			this._canvasNode = <HTMLCanvasElement>document.getElementById(config.html.canvasID);
-			if (this._canvasNode === null) {
-				this._canvasNode = document.createElement('canvas');
-				this._canvasNode.id = config.html.canvasID;
-				this._canvasNode.style.position = 'fixed';
-				this._canvasNode.style.left = '0px';
-				this._canvasNode.style.top = '0px';
-				document.body.appendChild(this._canvasNode);
-			}
+		get Controller() {
+			return this._controller;
 		}
-
-		private _initGL() {
-			try {
-				this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
-				this._inited = true;
-				this.onResize();
-			}
-			catch (e) {
-			}
-			if (!this._gl) {
-				console.log("Could not initialise WebGL, sorry :-(");
-			}
-		}
-
-		private _loadShaders(fragmentShaderPath : string, vertexShaderPath : string) : void {
-			this._shader = new Types.Shader(this._gl);
-			console.log('> Start shaders loading.');
-			this._isReady = false;
-			this._shader.add(
-				new Utils.Callback(this._initShaders, this),
-				fragmentShaderPath,
-				vertexShaderPath
-			);
-		}
-
-		private _initShaders() : void {
-			var fragmentShader = this._shader.getFragmentShader();
-			var vertexShader = this._shader.getVertexShader();
-
-			this._shaderProgram = this._gl.createProgram();
-
-			//		console.log('test: ' + typeof this._shader);
-			this._gl.attachShader(this._shaderProgram, vertexShader);
-			this._gl.attachShader(this._shaderProgram, fragmentShader);
-			this._gl.linkProgram(this._shaderProgram);
-
-			if (!this._gl.getProgramParameter(this._shaderProgram, this._gl.LINK_STATUS)) {
-				console.log("Could not initialise shaders");
-			}
-
-			this._gl.useProgram(this._shaderProgram);
-
-			this._shaderProgram.vertexPositionAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexPosition");
-			this._gl.enableVertexAttribArray(this._shaderProgram.vertexPositionAttribute);
-
-			this._shaderProgram.vertexNormalAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexNormal");
-			this._gl.enableVertexAttribArray(this._shaderProgram.vertexNormalAttribute);
-
-			this._shaderProgram.vertexColorAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexColor");
-			this._gl.enableVertexAttribArray(this._shaderProgram.vertexColorAttribute);
-
-			this._shaderProgram.textureCoordAttribute = this._gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
-			this._gl.enableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
-
-			this._shaderProgram.pMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uPMatrix");
-			this._shaderProgram.mvMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uMVMatrix");
-			this._shaderProgram.nMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uNMatrix");
-			this._shaderProgram.samplerUniform = this._gl.getUniformLocation(this._shaderProgram, "uSampler");
-			this._shaderProgram.useLightingUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLighting");
-			this._shaderProgram.useLightUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLight");
-			this._shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uAmbientColor");
-			this._shaderProgram.lightingPositionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightPosition");
-			this._shaderProgram.lightColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightColor");
-			this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
-			this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
-			this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
-
-			this._gl.enable(this._gl.DEPTH_TEST);
-
-			this._isReady = true;
-		}
-
-		private _mvPushMatrix() : void {
-			var copy = Utils.GLMatrix.mat4.create(undefined);
-			Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
-			this._mvMatrixStack.push(copy);
-		}
-
-		private _mvPopMatrix() : void {
-			if (this._mvMatrixStack.length == 0) {
-				throw "Invalid popMatrix!";
-			}
-			this._mvMatrix = this._mvMatrixStack.pop();
-		}
-
-		private _setMatrixUniforms() : void {
-			this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
-			this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-
-			var normalMatrix = Utils.GLMatrix.mat3.create(undefined);
-			Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
-			Utils.GLMatrix.mat3.transpose(normalMatrix);
-			this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
-		}
-
-		//private _degToRad(degrees : number) : number {
-		//	return degrees * Math.PI / 180;
-		//}
 
 		public beginDraw() : void {
 			this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
@@ -355,6 +253,120 @@ module webGLEngine {
 			return mesh;
 		}
 
+		public getGLInstance() : any {
+			return this._gl;
+		}
+
+		private _crateCanvas() : void {
+			this._canvasNode = <HTMLCanvasElement>document.getElementById(config.html.canvasID);
+			if (this._canvasNode === null) {
+				this._canvasNode = document.createElement('canvas');
+				this._canvasNode.id = config.html.canvasID;
+				this._canvasNode.style.position = 'fixed';
+				this._canvasNode.style.left = '0px';
+				this._canvasNode.style.top = '0px';
+				document.body.appendChild(this._canvasNode);
+			}
+		}
+
+		private _initGL() {
+			try {
+				this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
+				this._inited = true;
+				this.onResize();
+			}
+			catch (e) {
+			}
+			if (!this._gl) {
+				console.log("Could not initialise WebGL, sorry :-(");
+			}
+		}
+
+		private _loadShaders(fragmentShaderPath : string, vertexShaderPath : string) : void {
+			this._shader = new Types.Shader(this._gl);
+			console.log('> Start shaders loading.');
+			this._isReady = false;
+			this._shader.add(
+				new Utils.Callback(this._initShaders, this),
+				fragmentShaderPath,
+				vertexShaderPath
+			);
+		}
+
+		private _initShaders() : void {
+			var fragmentShader = this._shader.getFragmentShader();
+			var vertexShader = this._shader.getVertexShader();
+
+			this._shaderProgram = this._gl.createProgram();
+
+			//		console.log('test: ' + typeof this._shader);
+			this._gl.attachShader(this._shaderProgram, vertexShader);
+			this._gl.attachShader(this._shaderProgram, fragmentShader);
+			this._gl.linkProgram(this._shaderProgram);
+
+			if (!this._gl.getProgramParameter(this._shaderProgram, this._gl.LINK_STATUS)) {
+				console.log("Could not initialise shaders");
+			}
+
+			this._gl.useProgram(this._shaderProgram);
+
+			this._shaderProgram.vertexPositionAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexPosition");
+			this._gl.enableVertexAttribArray(this._shaderProgram.vertexPositionAttribute);
+
+			this._shaderProgram.vertexNormalAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexNormal");
+			this._gl.enableVertexAttribArray(this._shaderProgram.vertexNormalAttribute);
+
+			this._shaderProgram.vertexColorAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexColor");
+			this._gl.enableVertexAttribArray(this._shaderProgram.vertexColorAttribute);
+
+			this._shaderProgram.textureCoordAttribute = this._gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
+			this._gl.enableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
+
+			this._shaderProgram.pMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uPMatrix");
+			this._shaderProgram.mvMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uMVMatrix");
+			this._shaderProgram.nMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uNMatrix");
+			this._shaderProgram.samplerUniform = this._gl.getUniformLocation(this._shaderProgram, "uSampler");
+			this._shaderProgram.useLightingUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLighting");
+			this._shaderProgram.useLightUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLight");
+			this._shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uAmbientColor");
+			this._shaderProgram.lightingPositionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightPosition");
+			this._shaderProgram.lightColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightColor");
+			this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
+			this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
+			this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
+
+			this._gl.enable(this._gl.DEPTH_TEST);
+
+			this._isReady = true;
+		}
+
+		private _mvPushMatrix() : void {
+			var copy = Utils.GLMatrix.mat4.create(undefined);
+			Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
+			this._mvMatrixStack.push(copy);
+		}
+
+		private _mvPopMatrix() : void {
+			if (this._mvMatrixStack.length == 0) {
+				throw "Invalid popMatrix!";
+			}
+			this._mvMatrix = this._mvMatrixStack.pop();
+		}
+
+		private _setMatrixUniforms() : void {
+			this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
+			this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
+
+			var normalMatrix = Utils.GLMatrix.mat3.create(undefined);
+			Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
+			Utils.GLMatrix.mat3.transpose(normalMatrix);
+			this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
+		}
+
+		//private _degToRad(degrees : number) : number {
+		//	return degrees * Math.PI / 180;
+		//}
+
 		private _createMeshFromFile(path : string, params : any) : Types.Mesh {
 			var mesh = new Types.Mesh(this._gl),
 				parameters = {
@@ -378,7 +390,7 @@ module webGLEngine {
 		private _parseObjFile(objFile : string, mesh : Types.Mesh, path : string, parameters : any) : void {
 			var i, j, nodes,
 				vertexes = [], textures = [], normals = [], faces = [],
-				materials = [],
+				materials : {[materialName:string] : Types.Material} = {},
 				currentMaterial = Types.Mesh.defaultMaterialName,
 				vertexCounter,
 				hasMaterial = false,
@@ -480,8 +492,8 @@ module webGLEngine {
 
 
 			console.log('    done => V: ' + vertexes.length / 3 +
-			' | VT: ' + textures.length +
-			' | N: ' + normals.length / 3);
+				' | VT: ' + textures.length +
+				' | N: ' + normals.length / 3);
 			mesh.fillBuffers(vertexes, textures, normals, faces, materials);
 			if (!hasMaterial) {
 				mesh.initBuffers();
@@ -490,9 +502,8 @@ module webGLEngine {
 
 		private _parseMaterial(mtlFile : string, path : string, mesh : Types.Mesh, parameters : any) : void {
 			var mtlList, i, j, nodes, material,
-				allMaterials : Types.Material[] = [];
-			/** @type {Material} */
-			var currentMaterial = null;
+				allMaterials : {[materialName:string] : Types.Material} = {},
+				currentMaterial : Types.Material = null;
 
 			console.log('> Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
 
@@ -539,10 +550,6 @@ module webGLEngine {
 			console.log('    done');
 
 			mesh.initBuffers(allMaterials);
-		}
-
-		public getGLInstance() : any {
-			return this._gl;
 		}
 	}
 }

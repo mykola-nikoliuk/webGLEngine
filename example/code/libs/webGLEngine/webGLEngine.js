@@ -1102,24 +1102,28 @@ var webGLEngine;
             __extends(Mesh, _super);
             function Mesh(webGL) {
                 _super.call(this);
+                this._webGL = webGL;
                 this._vertexes = null;
                 this._vertextTextures = null;
                 this._vertexNormals = null;
                 this._faces = null;
                 this._materials = null;
-                this._webGL = webGL;
+                this._materialsAmount = 0;
+                this._materialsLoaded = 0;
                 this._isReady = false;
                 this._vertexIndexBuffers = {};
                 this._vertexPositionBuffer = this._webGL.createBuffer();
                 this._vertexNormalBuffer = this._webGL.createBuffer();
                 this._vertexColorBuffer = this._webGL.createBuffer();
                 this._vertexTextureBuffer = this._webGL.createBuffer();
+                this._materialCallback = new webGLEngine.Utils.Callback(this._materialIsReady, this);
             }
             Mesh.prototype.fillBuffers = function (vertexes, vertexTexture, vertexNormals, faces, materials) {
                 this._vertexes = vertexes;
                 this._vertextTextures = vertexTexture;
                 this._vertexNormals = vertexNormals;
                 this._faces = faces;
+                // TODO : check for dublicate
                 this._materials = materials;
                 // create vertex index buffer
                 this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexPositionBuffer);
@@ -1129,18 +1133,13 @@ var webGLEngine;
             };
             Mesh.prototype.initBuffers = function (materials) {
                 var colors = [], indexes = [], textures = [], normals = [], i, j, material, vertexIndexBuffer, colorIndex;
-                // create empty color and texture buffer
-                //		for (i = 0; i < this._vertexes.length / 3; i++) {
-                //			colors.push(1);
-                //			colors.push(1);
-                //			colors.push(1);
-                //			colors.push(1);
-                //		}
                 if (typeof materials !== 'undefined') {
                     for (material in this._materials) {
                         if (this._materials.hasOwnProperty(material)) {
                             if (materials.hasOwnProperty(material)) {
+                                this._materialsAmount++;
                                 this._materials[material] = materials[material];
+                                this._materials[material].callback(this._materialCallback);
                             }
                         }
                     }
@@ -1190,13 +1189,40 @@ var webGLEngine;
                 this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(textures), this._webGL.STATIC_DRAW);
                 this._vertexTextureBuffer.itemSize = 2;
                 this._vertexTextureBuffer.numItems = this._vertextTextures.length / this._vertexTextureBuffer.itemSize;
-                this._isReady = true;
             };
             Mesh.prototype.isReady = function () {
                 return this._isReady;
             };
             Mesh.prototype.clone = function () {
                 // TODO : finish clone
+            };
+            /** Sets create callback, that will called when mesh will be ready */
+            Mesh.prototype.callback = function (callback) {
+                if (this._isReady) {
+                    callback.apply();
+                }
+                else {
+                    this._createCallback = callback;
+                }
+                return this;
+            };
+            /** Create the same mesh with unique transformation
+             * Other parameters just will be copied */
+            Mesh.prototype.transformationClone = function () {
+                var mesh = new Mesh(this._webGL);
+                mesh._vertexes = this._vertexes;
+                mesh._vertextTextures = this._vertextTextures;
+                mesh._vertexNormals = this._vertexNormals;
+                mesh._faces = this._faces;
+                mesh._materials = this._materials;
+                mesh._materialsLoaded = this._materialsLoaded;
+                mesh._isReady = this._isReady;
+                mesh._vertexIndexBuffers = this._vertexIndexBuffers;
+                mesh._vertexPositionBuffer = this._vertexPositionBuffer;
+                mesh._vertexNormalBuffer = this._vertexNormalBuffer;
+                mesh._vertexColorBuffer = this._vertexColorBuffer;
+                mesh._vertexTextureBuffer = this._vertexTextureBuffer;
+                return mesh;
             };
             Mesh.prototype.getVertexIndexBuffers = function () {
                 return this._vertexIndexBuffers;
@@ -1212,6 +1238,14 @@ var webGLEngine;
             };
             Mesh.prototype.getVertexTextureBuffer = function () {
                 return this._vertexTextureBuffer;
+            };
+            Mesh.prototype._materialIsReady = function () {
+                if (++this._materialsLoaded === this._materialsAmount) {
+                    this._isReady = true;
+                    if (this._createCallback) {
+                        this._createCallback.apply();
+                    }
+                }
             };
             Mesh.defaultMaterialName = 'noMaterial';
             return Mesh;
@@ -1411,14 +1445,53 @@ var webGLEngine;
         Types.Camera = Camera;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
+///<reference path="common/Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
     (function (Types) {
-        var Render = (function () {
-            function Render(engine) {
-                this._engine = engine;
+        var Subscribe = (function () {
+            function Subscribe() {
                 this._subscribers = [];
+            }
+            /** Add subscriber
+             * @param callback
+             * @return is callback Was added
+             */
+            Subscribe.prototype.subscribe = function (callback) {
+                if (this._subscribers.indexOf(callback) < 0) {
+                    this._subscribers.push(callback);
+                    return true;
+                }
+                return false;
+            };
+            /** Removes subscriber
+             * @param callback
+             * @return is callback Was deleted
+             */
+            Subscribe.prototype.unsubscribe = function (callback) {
+                var index;
+                if ((index = this._subscribers.indexOf(callback)) > 0) {
+                    this._subscribers.splice(index, 1);
+                    return true;
+                }
+                return false;
+            };
+            return Subscribe;
+        })();
+        Types.Subscribe = Subscribe;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Render = (function (_super) {
+            __extends(Render, _super);
+            function Render(engine) {
+                _super.call(this);
+                this._renderTimer = new webGLEngine.Utils.Timer();
+                this._engine = engine;
                 this._renderTimer = new webGLEngine.Utils.Timer();
             }
             /** set render frequency per second
@@ -1431,29 +1504,6 @@ var webGLEngine;
                         this._renderTimer.stop();
                     }
                     this._renderTimer.start(new webGLEngine.Utils.Callback(this._render, this), 1000 / framePerSecond);
-                    return true;
-                }
-                return false;
-            };
-            /** Add render subscriber
-             * @param renderCallback
-             * @return is callback Was added
-             */
-            Render.prototype.subscribe = function (renderCallback) {
-                if (this._subscribers.indexOf(renderCallback) < 0) {
-                    this._subscribers.push(renderCallback);
-                    return true;
-                }
-                return false;
-            };
-            /** Removes render subscriber
-             * @param renderCallback
-             * @return is callback Was deleted
-             */
-            Render.prototype.unsubscribe = function (renderCallback) {
-                var index;
-                if ((index = this._subscribers.indexOf(renderCallback)) > 0) {
-                    this._subscribers.splice(index, 1);
                     return true;
                 }
                 return false;
@@ -1482,8 +1532,44 @@ var webGLEngine;
                 }
             };
             return Render;
-        })();
+        })(Types.Subscribe);
         Types.Render = Render;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+///<reference path="common/Vector3.ts"/>
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Controller = (function (_super) {
+            __extends(Controller, _super);
+            function Controller(engine) {
+                _super.call(this);
+                this._engine = engine;
+                this._lastLoadedMesh = null;
+            }
+            Controller.prototype.sendEvent = function (event) {
+                this._handler.call(this, arguments);
+                for (var i = 0; i < this._subscribers.length; i++) {
+                    this._subscribers[i].apply(event);
+                }
+            };
+            Controller.prototype.getLastLoadedMesh = function () {
+                return this._lastLoadedMesh;
+            };
+            Controller.prototype._handler = function (event, parameter) {
+                switch (event) {
+                    case Controller.Events.MESH_LOADED:
+                        this._lastLoadedMesh = parameter;
+                        break;
+                }
+            };
+            Controller.Events = {
+                MESH_LOADED: 'mesh_loaded'
+            };
+            return Controller;
+        })(Types.Subscribe);
+        Types.Controller = Controller;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
 ///<reference path="./../utils/Utils.ts"/>
@@ -1500,7 +1586,16 @@ var webGLEngine;
                 this.ready = true;
                 this.texture = null;
                 this.textureRepeat = true;
+                this._callback = null;
             }
+            Material.prototype.callback = function (callback) {
+                if (this.ready) {
+                    callback.apply();
+                }
+                else {
+                    this._callback = callback;
+                }
+            };
             Material.prototype.loadTexture = function (gl, path, textureRepeat) {
                 if (typeof gl !== 'object') {
                     console.log('GL parameter is not a object');
@@ -1515,11 +1610,10 @@ var webGLEngine;
                 this.imageLink = path;
                 this.texture = gl.createTexture();
                 this.texture.image = new Image();
-                this.texture.image.onload = webGLEngine.Utils.bind(this.createTexture, this, gl);
+                this.texture.image.onload = webGLEngine.Utils.bind(this._createTexture, this, gl);
                 this.texture.image.src = this.imageLink;
             };
-            /** @private */
-            Material.prototype.createTexture = function () {
+            Material.prototype._createTexture = function () {
                 var gl = arguments[arguments.length - 1], repeatType = this.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
                 gl.bindTexture(gl.TEXTURE_2D, this.texture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -1529,6 +1623,9 @@ var webGLEngine;
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
                 gl.bindTexture(gl.TEXTURE_2D, null);
                 this.ready = true;
+                if (this._callback) {
+                    this._callback.apply();
+                }
             };
             return Material;
         })();
@@ -1833,7 +1930,9 @@ var webGLEngine;
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
 ///<reference path="./classes/Camera.ts"/>
+///<reference path="./classes/Subscribe.ts"/>
 ///<reference path="./classes/Render.ts"/>
+///<reference path="./classes/Controller.ts"/>
 ///<reference path="./classes/common/Vector3.ts"/>
 ///<reference path="./classes/mesh/Material.ts"/>
 ///<reference path="./classes/animation/Frame.ts"/>
@@ -1855,6 +1954,7 @@ var webGLEngine;
             this._mvMatrixStack = [];
             this._camera = new webGLEngine.Types.Camera();
             this._render = new webGLEngine.Types.Render(this);
+            this._controller = new webGLEngine.Types.Controller(this);
             this._meshes = [];
             this._lights = [];
             this._shaderProgram = null;
@@ -1871,92 +1971,13 @@ var webGLEngine;
             enumerable: true,
             configurable: true
         });
-        Engine.prototype._crateCanvas = function () {
-            this._canvasNode = document.getElementById(webGLEngine.config.html.canvasID);
-            if (this._canvasNode === null) {
-                this._canvasNode = document.createElement('canvas');
-                this._canvasNode.id = webGLEngine.config.html.canvasID;
-                this._canvasNode.style.position = 'fixed';
-                this._canvasNode.style.left = '0px';
-                this._canvasNode.style.top = '0px';
-                document.body.appendChild(this._canvasNode);
-            }
-        };
-        Engine.prototype._initGL = function () {
-            try {
-                this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
-                this._inited = true;
-                this.onResize();
-            }
-            catch (e) {
-            }
-            if (!this._gl) {
-                console.log("Could not initialise WebGL, sorry :-(");
-            }
-        };
-        Engine.prototype._loadShaders = function (fragmentShaderPath, vertexShaderPath) {
-            this._shader = new webGLEngine.Types.Shader(this._gl);
-            console.log('> Start shaders loading.');
-            this._isReady = false;
-            this._shader.add(new webGLEngine.Utils.Callback(this._initShaders, this), fragmentShaderPath, vertexShaderPath);
-        };
-        Engine.prototype._initShaders = function () {
-            var fragmentShader = this._shader.getFragmentShader();
-            var vertexShader = this._shader.getVertexShader();
-            this._shaderProgram = this._gl.createProgram();
-            //		console.log('test: ' + typeof this._shader);
-            this._gl.attachShader(this._shaderProgram, vertexShader);
-            this._gl.attachShader(this._shaderProgram, fragmentShader);
-            this._gl.linkProgram(this._shaderProgram);
-            if (!this._gl.getProgramParameter(this._shaderProgram, this._gl.LINK_STATUS)) {
-                console.log("Could not initialise shaders");
-            }
-            this._gl.useProgram(this._shaderProgram);
-            this._shaderProgram.vertexPositionAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexPosition");
-            this._gl.enableVertexAttribArray(this._shaderProgram.vertexPositionAttribute);
-            this._shaderProgram.vertexNormalAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexNormal");
-            this._gl.enableVertexAttribArray(this._shaderProgram.vertexNormalAttribute);
-            this._shaderProgram.vertexColorAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexColor");
-            this._gl.enableVertexAttribArray(this._shaderProgram.vertexColorAttribute);
-            this._shaderProgram.textureCoordAttribute = this._gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
-            this._gl.enableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
-            this._shaderProgram.pMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uPMatrix");
-            this._shaderProgram.mvMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uMVMatrix");
-            this._shaderProgram.nMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uNMatrix");
-            this._shaderProgram.samplerUniform = this._gl.getUniformLocation(this._shaderProgram, "uSampler");
-            this._shaderProgram.useLightingUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLighting");
-            this._shaderProgram.useLightUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLight");
-            this._shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uAmbientColor");
-            this._shaderProgram.lightingPositionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightPosition");
-            this._shaderProgram.lightColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightColor");
-            this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
-            this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
-            this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
-            this._gl.enable(this._gl.DEPTH_TEST);
-            this._isReady = true;
-        };
-        Engine.prototype._mvPushMatrix = function () {
-            var copy = webGLEngine.Utils.GLMatrix.mat4.create(undefined);
-            webGLEngine.Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
-            this._mvMatrixStack.push(copy);
-        };
-        Engine.prototype._mvPopMatrix = function () {
-            if (this._mvMatrixStack.length == 0) {
-                throw "Invalid popMatrix!";
-            }
-            this._mvMatrix = this._mvMatrixStack.pop();
-        };
-        Engine.prototype._setMatrixUniforms = function () {
-            this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
-            this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-            var normalMatrix = webGLEngine.Utils.GLMatrix.mat3.create(undefined);
-            webGLEngine.Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
-            webGLEngine.Utils.GLMatrix.mat3.transpose(normalMatrix);
-            this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
-        };
-        //private _degToRad(degrees : number) : number {
-        //	return degrees * Math.PI / 180;
-        //}
+        Object.defineProperty(Engine.prototype, "Controller", {
+            get: function () {
+                return this._controller;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Engine.prototype.beginDraw = function () {
             this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
             this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
@@ -2089,6 +2110,95 @@ var webGLEngine;
             this._meshes.push(mesh);
             return mesh;
         };
+        Engine.prototype.getGLInstance = function () {
+            return this._gl;
+        };
+        Engine.prototype._crateCanvas = function () {
+            this._canvasNode = document.getElementById(webGLEngine.config.html.canvasID);
+            if (this._canvasNode === null) {
+                this._canvasNode = document.createElement('canvas');
+                this._canvasNode.id = webGLEngine.config.html.canvasID;
+                this._canvasNode.style.position = 'fixed';
+                this._canvasNode.style.left = '0px';
+                this._canvasNode.style.top = '0px';
+                document.body.appendChild(this._canvasNode);
+            }
+        };
+        Engine.prototype._initGL = function () {
+            try {
+                this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
+                this._inited = true;
+                this.onResize();
+            }
+            catch (e) {
+            }
+            if (!this._gl) {
+                console.log("Could not initialise WebGL, sorry :-(");
+            }
+        };
+        Engine.prototype._loadShaders = function (fragmentShaderPath, vertexShaderPath) {
+            this._shader = new webGLEngine.Types.Shader(this._gl);
+            console.log('> Start shaders loading.');
+            this._isReady = false;
+            this._shader.add(new webGLEngine.Utils.Callback(this._initShaders, this), fragmentShaderPath, vertexShaderPath);
+        };
+        Engine.prototype._initShaders = function () {
+            var fragmentShader = this._shader.getFragmentShader();
+            var vertexShader = this._shader.getVertexShader();
+            this._shaderProgram = this._gl.createProgram();
+            //		console.log('test: ' + typeof this._shader);
+            this._gl.attachShader(this._shaderProgram, vertexShader);
+            this._gl.attachShader(this._shaderProgram, fragmentShader);
+            this._gl.linkProgram(this._shaderProgram);
+            if (!this._gl.getProgramParameter(this._shaderProgram, this._gl.LINK_STATUS)) {
+                console.log("Could not initialise shaders");
+            }
+            this._gl.useProgram(this._shaderProgram);
+            this._shaderProgram.vertexPositionAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexPosition");
+            this._gl.enableVertexAttribArray(this._shaderProgram.vertexPositionAttribute);
+            this._shaderProgram.vertexNormalAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexNormal");
+            this._gl.enableVertexAttribArray(this._shaderProgram.vertexNormalAttribute);
+            this._shaderProgram.vertexColorAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexColor");
+            this._gl.enableVertexAttribArray(this._shaderProgram.vertexColorAttribute);
+            this._shaderProgram.textureCoordAttribute = this._gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
+            this._gl.enableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
+            this._shaderProgram.pMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uPMatrix");
+            this._shaderProgram.mvMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uMVMatrix");
+            this._shaderProgram.nMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uNMatrix");
+            this._shaderProgram.samplerUniform = this._gl.getUniformLocation(this._shaderProgram, "uSampler");
+            this._shaderProgram.useLightingUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLighting");
+            this._shaderProgram.useLightUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLight");
+            this._shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uAmbientColor");
+            this._shaderProgram.lightingPositionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightPosition");
+            this._shaderProgram.lightColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightColor");
+            this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
+            this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
+            this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
+            this._gl.enable(this._gl.DEPTH_TEST);
+            this._isReady = true;
+        };
+        Engine.prototype._mvPushMatrix = function () {
+            var copy = webGLEngine.Utils.GLMatrix.mat4.create(undefined);
+            webGLEngine.Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
+            this._mvMatrixStack.push(copy);
+        };
+        Engine.prototype._mvPopMatrix = function () {
+            if (this._mvMatrixStack.length == 0) {
+                throw "Invalid popMatrix!";
+            }
+            this._mvMatrix = this._mvMatrixStack.pop();
+        };
+        Engine.prototype._setMatrixUniforms = function () {
+            this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
+            this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
+            var normalMatrix = webGLEngine.Utils.GLMatrix.mat3.create(undefined);
+            webGLEngine.Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
+            webGLEngine.Utils.GLMatrix.mat3.transpose(normalMatrix);
+            this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
+        };
+        //private _degToRad(degrees : number) : number {
+        //	return degrees * Math.PI / 180;
+        //}
         Engine.prototype._createMeshFromFile = function (path, params) {
             var mesh = new webGLEngine.Types.Mesh(this._gl), parameters = {
                 textureRepeat: true
@@ -2104,7 +2214,7 @@ var webGLEngine;
             return mesh;
         };
         Engine.prototype._parseObjFile = function (objFile, mesh, path, parameters) {
-            var i, j, nodes, vertexes = [], textures = [], normals = [], faces = [], materials = [], currentMaterial = webGLEngine.Types.Mesh.defaultMaterialName, vertexCounter, hasMaterial = false, objList, materialPath;
+            var i, j, nodes, vertexes = [], textures = [], normals = [], faces = [], materials = {}, currentMaterial = webGLEngine.Types.Mesh.defaultMaterialName, vertexCounter, hasMaterial = false, objList, materialPath;
             // TODO : Async and fill mesh
             console.log('> Start parsing mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             materials[currentMaterial] = new webGLEngine.Types.Material();
@@ -2189,9 +2299,7 @@ var webGLEngine;
             }
         };
         Engine.prototype._parseMaterial = function (mtlFile, path, mesh, parameters) {
-            var mtlList, i, j, nodes, material, allMaterials = [];
-            /** @type {Material} */
-            var currentMaterial = null;
+            var mtlList, i, j, nodes, material, allMaterials = {}, currentMaterial = null;
             console.log('> Start parsing material => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             mtlList = mtlFile.split(/\r\n|\n|\r/g);
             for (i = 0; i < mtlList.length; i++) {
@@ -2228,9 +2336,6 @@ var webGLEngine;
             }
             console.log('    done');
             mesh.initBuffers(allMaterials);
-        };
-        Engine.prototype.getGLInstance = function () {
-            return this._gl;
         };
         return Engine;
     })();

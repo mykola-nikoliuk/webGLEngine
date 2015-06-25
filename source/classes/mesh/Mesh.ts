@@ -1,4 +1,3 @@
-
 module webGLEngine {
 
 	export module Types {
@@ -6,18 +5,24 @@ module webGLEngine {
 		export class Mesh extends Transformations {
 
 			private _webGL : any;
-			private _vertexes : number[] = null;
-			private _vertextTextures : number[] = null;
-			private _vertexNormals : number[] = null;
-			private _faces : Face[][] = null;
-			private _materials : Material[] = null;
+			private _vertexes : number[];
+			private _vertextTextures : number[];
+			private _vertexNormals : number[];
+			private _faces : Face[][];
+
+			private _materials : {[materialName:string] : Material};
+			private _materialsAmount : number;
+			private _materialsLoaded : number;
+
 			private _isReady : boolean;
 			private _vertexIndexBuffers;
 			private _vertexPositionBuffer : any;
 			private _vertexNormalBuffer : any;
 			private _vertexColorBuffer : any;
 			private _vertexTextureBuffer : any;
+			private _materialCallback : Utils.Callback;
 
+			private _createCallback : Utils.Callback;
 
 			public static defaultMaterialName = 'noMaterial';
 
@@ -26,27 +31,33 @@ module webGLEngine {
 
 				this._webGL = webGL;
 
+				this._vertexes = null;
+				this._vertextTextures = null;
+				this._vertexNormals = null;
+				this._faces = null;
+				this._materials = null;
+				this._materialsAmount = 0;
+				this._materialsLoaded = 0;
 				this._isReady = false;
 
 				this._vertexIndexBuffers = {};
-
 				this._vertexPositionBuffer = this._webGL.createBuffer();
-
 				this._vertexNormalBuffer = this._webGL.createBuffer();
-
 				this._vertexColorBuffer = this._webGL.createBuffer();
-
 				this._vertexTextureBuffer = this._webGL.createBuffer();
+
+				this._materialCallback = new Utils.Callback(this._materialIsReady, this);
 			}
 
 			public fillBuffers(vertexes : number[], vertexTexture : number[],
 												 vertexNormals : number[], faces : Face[][],
-												 materials : Material[]) : void {
+												 materials : {[materialName:string] : Material}) : void {
 
 				this._vertexes = vertexes;
 				this._vertextTextures = vertexTexture;
 				this._vertexNormals = vertexNormals;
 				this._faces = faces;
+				// TODO : check for dublicate
 				this._materials = materials;
 
 				// create vertex index buffer
@@ -56,24 +67,18 @@ module webGLEngine {
 				this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 			}
 
-			public initBuffers(materials? : Material[]) : void {
+			public initBuffers(materials? : {[materialName:string] : Material}) : void {
 				var colors = [], indexes = [], textures = [], normals = [],
 					i, j, material, vertexIndexBuffer,
 					colorIndex;
-
-				// create empty color and texture buffer
-//		for (i = 0; i < this._vertexes.length / 3; i++) {
-//			colors.push(1);
-//			colors.push(1);
-//			colors.push(1);
-//			colors.push(1);
-//		}
 
 				if (typeof materials !== 'undefined') {
 					for (material in this._materials) {
 						if (this._materials.hasOwnProperty(material)) {
 							if (materials.hasOwnProperty(material)) {
+								this._materialsAmount++;
 								this._materials[material] = materials[material];
+								this._materials[material].callback(this._materialCallback);
 							}
 						}
 					}
@@ -131,8 +136,6 @@ module webGLEngine {
 				this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(textures), this._webGL.STATIC_DRAW);
 				this._vertexTextureBuffer.itemSize = 2;
 				this._vertexTextureBuffer.numItems = this._vertextTextures.length / this._vertexTextureBuffer.itemSize;
-
-				this._isReady = true;
 			}
 
 			public isReady() : boolean {
@@ -141,6 +144,36 @@ module webGLEngine {
 
 			public clone() {
 				// TODO : finish clone
+			}
+
+			/** Sets create callback, that will called when mesh will be ready */
+			public callback(callback : Utils.Callback) : Mesh {
+				if (this._isReady) {
+					callback.apply();
+				}
+				else {
+					this._createCallback = callback;
+				}
+				return this;
+			}
+
+			/** Create the same mesh with unique transformation
+			 * Other parameters just will be copied */
+			public transformationClone() : Mesh {
+				var mesh = new Mesh(this._webGL);
+				mesh._vertexes = this._vertexes;
+				mesh._vertextTextures = this._vertextTextures;
+				mesh._vertexNormals = this._vertexNormals;
+				mesh._faces = this._faces;
+				mesh._materials = this._materials;
+				mesh._materialsLoaded = this._materialsLoaded;
+				mesh._isReady = this._isReady;
+				mesh._vertexIndexBuffers = this._vertexIndexBuffers;
+				mesh._vertexPositionBuffer = this._vertexPositionBuffer;
+				mesh._vertexNormalBuffer = this._vertexNormalBuffer;
+				mesh._vertexColorBuffer = this._vertexColorBuffer;
+				mesh._vertexTextureBuffer = this._vertexTextureBuffer;
+				return mesh;
 			}
 
 			public getVertexIndexBuffers() : void {
@@ -161,6 +194,15 @@ module webGLEngine {
 
 			public getVertexTextureBuffer() : void {
 				return this._vertexTextureBuffer;
+			}
+
+			private _materialIsReady() {
+				if (++this._materialsLoaded === this._materialsAmount) {
+					this._isReady = true;
+					if (this._createCallback) {
+						this._createCallback.apply();
+					}
+				}
 			}
 		}
 	}

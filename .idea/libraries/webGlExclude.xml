@@ -3,10 +3,12 @@
     <properties>
       <sourceFilesUrls>
         <item url="file://$PROJECT_DIR$/source/webGLEngine.d.ts" />
+        <item url="file://$PROJECT_DIR$/example/code/libs/webGLEngine/webGLEngine.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
       <root url="file://$PROJECT_DIR$/source/webGLEngine.d.ts" />
+      <root url="file://$PROJECT_DIR$/example/code/libs/webGLEngine/webGLEngine.js" />
     </CLASSES>
     <SOURCES />
   </library>

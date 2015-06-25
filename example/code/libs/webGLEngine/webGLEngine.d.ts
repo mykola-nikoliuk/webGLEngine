@@ -153,23 +153,37 @@ declare module webGLEngine {
             private _vertexNormals;
             private _faces;
             private _materials;
+            private _materialsAmount;
+            private _materialsLoaded;
             private _isReady;
             private _vertexIndexBuffers;
             private _vertexPositionBuffer;
             private _vertexNormalBuffer;
             private _vertexColorBuffer;
             private _vertexTextureBuffer;
+            private _materialCallback;
+            private _createCallback;
             static defaultMaterialName: string;
             constructor(webGL: any);
-            fillBuffers(vertexes: number[], vertexTexture: number[], vertexNormals: number[], faces: Face[][], materials: Material[]): void;
-            initBuffers(materials?: Material[]): void;
+            fillBuffers(vertexes: number[], vertexTexture: number[], vertexNormals: number[], faces: Face[][], materials: {
+                [materialName: string]: Material;
+            }): void;
+            initBuffers(materials?: {
+                [materialName: string]: Material;
+            }): void;
             isReady(): boolean;
             clone(): void;
+            /** Sets create callback, that will called when mesh will be ready */
+            callback(callback: Utils.Callback): Mesh;
+            /** Create the same mesh with unique transformation
+             * Other parameters just will be copied */
+            transformationClone(): Mesh;
             getVertexIndexBuffers(): void;
             getVertexPositionBuffer(): void;
             getVertexColorBuffer(): void;
             getVertexNormalBuffer(): void;
             getVertexTextureBuffer(): void;
+            private _materialIsReady();
         }
     }
 }
@@ -233,9 +247,26 @@ declare module webGLEngine {
 }
 declare module webGLEngine {
     module Types {
-        class Render {
+        class Subscribe {
+            protected _subscribers: Utils.Callback[];
+            constructor();
+            /** Add subscriber
+             * @param callback
+             * @return is callback Was added
+             */
+            subscribe(callback: Utils.Callback): boolean;
+            /** Removes subscriber
+             * @param callback
+             * @return is callback Was deleted
+             */
+            unsubscribe(callback: Utils.Callback): boolean;
+        }
+    }
+}
+declare module webGLEngine {
+    module Types {
+        class Render extends Subscribe {
             private _engine;
-            private _subscribers;
             private _renderTimer;
             constructor(engine: Engine);
             /** set render frequency per second
@@ -243,20 +274,25 @@ declare module webGLEngine {
              * @returns is set successful
              */
             setFPS(framePerSecond: number): boolean;
-            /** Add render subscriber
-             * @param renderCallback
-             * @return is callback Was added
-             */
-            subscribe(renderCallback: Utils.Callback): boolean;
-            /** Removes render subscriber
-             * @param renderCallback
-             * @return is callback Was deleted
-             */
-            unsubscribe(renderCallback: Utils.Callback): boolean;
             /** render the scene
              * if you want to use your own uneven render */
             render(): void;
             private _render();
+        }
+    }
+}
+declare module webGLEngine {
+    module Types {
+        class Controller extends Subscribe {
+            static Events: {
+                MESH_LOADED: string;
+            };
+            private _engine;
+            private _lastLoadedMesh;
+            constructor(engine: Engine);
+            sendEvent(event: string): void;
+            getLastLoadedMesh(): Mesh;
+            private _handler(event, parameter);
         }
     }
 }
@@ -269,10 +305,11 @@ declare module webGLEngine {
             ready: boolean;
             texture: any;
             textureRepeat: boolean;
+            private _callback;
             constructor();
+            callback(callback: Utils.Callback): void;
             loadTexture(gl: any, path: any, textureRepeat: any): void;
-            /** @private */
-            createTexture(): void;
+            private _createTexture();
         }
     }
 }
@@ -370,17 +407,12 @@ declare module webGLEngine {
         private _meshes;
         private _lights;
         private _render;
+        private _controller;
         private _shaderProgram;
         private _isLightingEnable;
         constructor(fragmentShaderPath: string, vertexShaderPath: string);
         Render: Types.Render;
-        private _crateCanvas();
-        private _initGL();
-        private _loadShaders(fragmentShaderPath, vertexShaderPath);
-        private _initShaders();
-        private _mvPushMatrix();
-        private _mvPopMatrix();
-        private _setMatrixUniforms();
+        Controller: Types.Controller;
         beginDraw(): void;
         isReady(): boolean;
         draw(mesh: Types.Mesh): void;
@@ -390,9 +422,16 @@ declare module webGLEngine {
         onResize(): void;
         getCamera(): Types.Transformations;
         createMesh(vertexes: any, textures: any, normals: any, faces: any, materials: any): Types.Mesh;
+        getGLInstance(): any;
+        private _crateCanvas();
+        private _initGL();
+        private _loadShaders(fragmentShaderPath, vertexShaderPath);
+        private _initShaders();
+        private _mvPushMatrix();
+        private _mvPopMatrix();
+        private _setMatrixUniforms();
         private _createMeshFromFile(path, params);
         private _parseObjFile(objFile, mesh, path, parameters);
         private _parseMaterial(mtlFile, path, mesh, parameters);
-        getGLInstance(): any;
     }
 }
