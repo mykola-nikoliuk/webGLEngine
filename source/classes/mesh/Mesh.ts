@@ -1,5 +1,3 @@
-///<reference path="Material.ts"/>
-///<reference path="Transformations.ts"/>
 
 module webGLEngine {
 

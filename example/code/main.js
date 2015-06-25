@@ -78,6 +78,9 @@ var ns = {
 
 	classes : {},
 
+	/** @type webGLEngine.Engine */
+	_engine : null,
+
 	///** @type {WebClient} */
 	//client : new WebClient(),
 
@@ -132,7 +135,8 @@ var ns = {
 		this._startAnimation();
 
 		if (this._engine) {
-			setInterval(this.utils.bind(this.mainProc, this), 1000 / this.config.engine.FPS);
+			this._engine.Render.subscribe(new webGLEngine.Utils.Callback(this.mainProc, this));
+			this._engine.Render.setRenderFPS(this.config.engine.FPS);
 		}
 	},
 
@@ -456,7 +460,7 @@ var ns = {
 	},
 
 	_startAnimation : function () {
-		this._animation.start(this._meshes.plane, new Utils.Callback(this._startAnimation, this));
+		this._animation.start(this._meshes.plane, new webGLEngine.Utils.Callback(this._startAnimation, this));
 	},
 
 	_showTransfrmations : function () {

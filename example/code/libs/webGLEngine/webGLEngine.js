@@ -1,148 +1,193 @@
+var webGLEngine;
+(function (webGLEngine) {
+    var Utils;
+    (function (Utils) {
+        var Callback = (function () {
+            function Callback(func, thisArg) {
+                if (func === void 0) { func = function () {
+                }; }
+                if (thisArg === void 0) { thisArg = {}; }
+                var args = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    args[_i - 2] = arguments[_i];
+                }
+                this._func = func;
+                this._thisArg = thisArg;
+                this._args = args;
+            }
+            Callback.prototype.apply = function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i - 0] = arguments[_i];
+                }
+                return this._func.apply(this._thisArg, args.concat(this._args));
+            };
+            return Callback;
+        })();
+        Utils.Callback = Callback;
+    })(Utils = webGLEngine.Utils || (webGLEngine.Utils = {}));
+})(webGLEngine || (webGLEngine = {}));
 glMatrixArrayType = typeof Float32Array != "undefined" ?
     Float32Array : typeof WebGLFloatArray != "undefined" ? WebGLFloatArray : Array;
-var Utils;
-(function (Utils) {
-    var GLMatrix;
-    (function (GLMatrix) {
-        var vec3 = (function () {
-            function vec3() {
-            }
-            vec3.create = function (a) {
-                var b = new glMatrixArrayType(3);
-                if (a) {
+var webGLEngine;
+(function (webGLEngine) {
+    var Utils;
+    (function (Utils) {
+        var GLMatrix;
+        (function (GLMatrix) {
+            var vec3 = (function () {
+                function vec3() {
+                }
+                vec3.create = function (a) {
+                    var b = new glMatrixArrayType(3);
+                    if (a) {
+                        b[0] = a[0];
+                        b[1] = a[1];
+                        b[2] = a[2];
+                    }
+                    return b;
+                };
+                vec3.set = function (a, b) {
                     b[0] = a[0];
                     b[1] = a[1];
                     b[2] = a[2];
-                }
-                return b;
-            };
-            vec3.set = function (a, b) {
-                b[0] = a[0];
-                b[1] = a[1];
-                b[2] = a[2];
-                return b;
-            };
-            vec3.add = function (a, b, c) {
-                if (!c || a == c) {
-                    a[0] += b[0];
-                    a[1] += b[1];
-                    a[2] += b[2];
-                    return a;
-                }
-                c[0] = a[0] + b[0];
-                c[1] = a[1] + b[1];
-                c[2] = a[2] + b[2];
-                return c;
-            };
-            vec3.subtract = function (a, b, c) {
-                if (!c || a == c) {
-                    a[0] -= b[0];
-                    a[1] -= b[1];
-                    a[2] -= b[2];
-                    return a;
-                }
-                c[0] = a[0] - b[0];
-                c[1] = a[1] - b[1];
-                c[2] = a[2] - b[2];
-                return c;
-            };
-            vec3.negate = function (a, b) {
-                b || (b = a);
-                b[0] = -a[0];
-                b[1] = -a[1];
-                b[2] = -a[2];
-                return b;
-            };
-            vec3.scale = function (a, b, c) {
-                if (!c || a == c) {
-                    a[0] *= b;
-                    a[1] *= b;
-                    a[2] *= b;
-                    return a;
-                }
-                c[0] = a[0] * b;
-                c[1] = a[1] * b;
-                c[2] = a[2] * b;
-                return c;
-            };
-            vec3.normalize = function (a, b) {
-                b || (b = a);
-                var c = a[0], d = a[1], e = a[2], g = Math.sqrt(c * c + d * d + e * e);
-                if (g) {
-                    if (g == 1) {
-                        b[0] = c;
-                        b[1] = d;
-                        b[2] = e;
+                    return b;
+                };
+                vec3.add = function (a, b, c) {
+                    if (!c || a == c) {
+                        a[0] += b[0];
+                        a[1] += b[1];
+                        a[2] += b[2];
+                        return a;
+                    }
+                    c[0] = a[0] + b[0];
+                    c[1] = a[1] + b[1];
+                    c[2] = a[2] + b[2];
+                    return c;
+                };
+                vec3.subtract = function (a, b, c) {
+                    if (!c || a == c) {
+                        a[0] -= b[0];
+                        a[1] -= b[1];
+                        a[2] -= b[2];
+                        return a;
+                    }
+                    c[0] = a[0] - b[0];
+                    c[1] = a[1] - b[1];
+                    c[2] = a[2] - b[2];
+                    return c;
+                };
+                vec3.negate = function (a, b) {
+                    b || (b = a);
+                    b[0] = -a[0];
+                    b[1] = -a[1];
+                    b[2] = -a[2];
+                    return b;
+                };
+                vec3.scale = function (a, b, c) {
+                    if (!c || a == c) {
+                        a[0] *= b;
+                        a[1] *= b;
+                        a[2] *= b;
+                        return a;
+                    }
+                    c[0] = a[0] * b;
+                    c[1] = a[1] * b;
+                    c[2] = a[2] * b;
+                    return c;
+                };
+                vec3.normalize = function (a, b) {
+                    b || (b = a);
+                    var c = a[0], d = a[1], e = a[2], g = Math.sqrt(c * c + d * d + e * e);
+                    if (g) {
+                        if (g == 1) {
+                            b[0] = c;
+                            b[1] = d;
+                            b[2] = e;
+                            return b;
+                        }
+                    }
+                    else {
+                        b[0] = 0;
+                        b[1] = 0;
+                        b[2] = 0;
                         return b;
                     }
-                }
-                else {
-                    b[0] = 0;
-                    b[1] = 0;
-                    b[2] = 0;
+                    g = 1 / g;
+                    b[0] = c * g;
+                    b[1] = d * g;
+                    b[2] = e * g;
                     return b;
-                }
-                g = 1 / g;
-                b[0] = c * g;
-                b[1] = d * g;
-                b[2] = e * g;
-                return b;
-            };
-            vec3.cross = function (a, b, c) {
-                c || (c = a);
-                var d = a[0], e = a[1];
-                a = a[2];
-                var g = b[0], f = b[1];
-                b = b[2];
-                c[0] = e * b - a * f;
-                c[1] = a * g - d * b;
-                c[2] = d * f - e * g;
-                return c;
-            };
-            vec3.length = function (a) {
-                var b = a[0], c = a[1];
-                a = a[2];
-                return Math.sqrt(b * b + c * c + a * a);
-            };
-            vec3.dot = function (a, b) {
-                return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-            };
-            vec3.direction = function (a, b, c) {
-                c || (c = a);
-                var d = a[0] - b[0], e = a[1] - b[1];
-                a = a[2] - b[2];
-                b = Math.sqrt(d * d + e * e + a * a);
-                if (!b) {
-                    c[0] = 0;
-                    c[1] = 0;
-                    c[2] = 0;
+                };
+                vec3.cross = function (a, b, c) {
+                    c || (c = a);
+                    var d = a[0], e = a[1];
+                    a = a[2];
+                    var g = b[0], f = b[1];
+                    b = b[2];
+                    c[0] = e * b - a * f;
+                    c[1] = a * g - d * b;
+                    c[2] = d * f - e * g;
                     return c;
+                };
+                vec3.length = function (a) {
+                    var b = a[0], c = a[1];
+                    a = a[2];
+                    return Math.sqrt(b * b + c * c + a * a);
+                };
+                vec3.dot = function (a, b) {
+                    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+                };
+                vec3.direction = function (a, b, c) {
+                    c || (c = a);
+                    var d = a[0] - b[0], e = a[1] - b[1];
+                    a = a[2] - b[2];
+                    b = Math.sqrt(d * d + e * e + a * a);
+                    if (!b) {
+                        c[0] = 0;
+                        c[1] = 0;
+                        c[2] = 0;
+                        return c;
+                    }
+                    b = 1 / b;
+                    c[0] = d * b;
+                    c[1] = e * b;
+                    c[2] = a * b;
+                    return c;
+                };
+                vec3.lerp = function (a, b, c, d) {
+                    d || (d = a);
+                    d[0] = a[0] + c * (b[0] - a[0]);
+                    d[1] = a[1] + c * (b[1] - a[1]);
+                    d[2] = a[2] + c * (b[2] - a[2]);
+                    return d;
+                };
+                vec3.str = function (a) {
+                    return "[" + a[0] + ", " + a[1] + ", " + a[2] + "]";
+                };
+                return vec3;
+            })();
+            GLMatrix.vec3 = vec3;
+            var mat3 = (function () {
+                function mat3() {
                 }
-                b = 1 / b;
-                c[0] = d * b;
-                c[1] = e * b;
-                c[2] = a * b;
-                return c;
-            };
-            vec3.lerp = function (a, b, c, d) {
-                d || (d = a);
-                d[0] = a[0] + c * (b[0] - a[0]);
-                d[1] = a[1] + c * (b[1] - a[1]);
-                d[2] = a[2] + c * (b[2] - a[2]);
-                return d;
-            };
-            vec3.str = function (a) {
-                return "[" + a[0] + ", " + a[1] + ", " + a[2] + "]";
-            };
-            return vec3;
-        })();
-        GLMatrix.vec3 = vec3;
-        var mat3 = (function () {
-            function mat3() {
-            }
-            mat3.create = function (a) {
-                var b = new glMatrixArrayType(9);
-                if (a) {
+                mat3.create = function (a) {
+                    var b = new glMatrixArrayType(9);
+                    if (a) {
+                        b[0] = a[0];
+                        b[1] = a[1];
+                        b[2] = a[2];
+                        b[3] = a[3];
+                        b[4] = a[4];
+                        b[5] = a[5];
+                        b[6] = a[6];
+                        b[7] = a[7];
+                        b[8] = a[8];
+                        b[9] = a[9];
+                    }
+                    return b;
+                };
+                mat3.set = function (a, b) {
                     b[0] = a[0];
                     b[1] = a[1];
                     b[2] = a[2];
@@ -152,88 +197,94 @@ var Utils;
                     b[6] = a[6];
                     b[7] = a[7];
                     b[8] = a[8];
-                    b[9] = a[9];
-                }
-                return b;
-            };
-            mat3.set = function (a, b) {
-                b[0] = a[0];
-                b[1] = a[1];
-                b[2] = a[2];
-                b[3] = a[3];
-                b[4] = a[4];
-                b[5] = a[5];
-                b[6] = a[6];
-                b[7] = a[7];
-                b[8] = a[8];
-                return b;
-            };
-            mat3.identity = function (a) {
-                a[0] = 1;
-                a[1] = 0;
-                a[2] = 0;
-                a[3] = 0;
-                a[4] = 1;
-                a[5] = 0;
-                a[6] = 0;
-                a[7] = 0;
-                a[8] = 1;
-                return a;
-            };
-            mat3.transpose = function (a, b) {
-                if (!b || a == b) {
-                    var c = a[1], d = a[2], e = a[5];
-                    a[1] = a[3];
-                    a[2] = a[6];
-                    a[3] = c;
-                    a[5] = a[7];
-                    a[6] = d;
-                    a[7] = e;
+                    return b;
+                };
+                mat3.identity = function (a) {
+                    a[0] = 1;
+                    a[1] = 0;
+                    a[2] = 0;
+                    a[3] = 0;
+                    a[4] = 1;
+                    a[5] = 0;
+                    a[6] = 0;
+                    a[7] = 0;
+                    a[8] = 1;
                     return a;
+                };
+                mat3.transpose = function (a, b) {
+                    if (!b || a == b) {
+                        var c = a[1], d = a[2], e = a[5];
+                        a[1] = a[3];
+                        a[2] = a[6];
+                        a[3] = c;
+                        a[5] = a[7];
+                        a[6] = d;
+                        a[7] = e;
+                        return a;
+                    }
+                    b[0] = a[0];
+                    b[1] = a[3];
+                    b[2] = a[6];
+                    b[3] = a[1];
+                    b[4] = a[4];
+                    b[5] = a[7];
+                    b[6] = a[2];
+                    b[7] = a[5];
+                    b[8] = a[8];
+                    return b;
+                };
+                mat3.toMat4 = function (a, b) {
+                    b || (b = mat4.create());
+                    b[0] = a[0];
+                    b[1] = a[1];
+                    b[2] = a[2];
+                    b[3] = 0;
+                    b[4] = a[3];
+                    b[5] = a[4];
+                    b[6] = a[5];
+                    b[7] = 0;
+                    b[8] = a[6];
+                    b[9] = a[7];
+                    b[10] = a[8];
+                    b[11] = 0;
+                    b[12] = 0;
+                    b[13] = 0;
+                    b[14] = 0;
+                    b[15] = 1;
+                    return b;
+                };
+                mat3.str = function (a) {
+                    return "[" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ", " + a[4] + ", " + a[5] + ", " + a[6] + ", " + a[7] + ", " + a[8] + "]";
+                };
+                return mat3;
+            })();
+            GLMatrix.mat3 = mat3;
+            var mat4 = (function () {
+                function mat4() {
                 }
-                b[0] = a[0];
-                b[1] = a[3];
-                b[2] = a[6];
-                b[3] = a[1];
-                b[4] = a[4];
-                b[5] = a[7];
-                b[6] = a[2];
-                b[7] = a[5];
-                b[8] = a[8];
-                return b;
-            };
-            mat3.toMat4 = function (a, b) {
-                b || (b = mat4.create());
-                b[0] = a[0];
-                b[1] = a[1];
-                b[2] = a[2];
-                b[3] = 0;
-                b[4] = a[3];
-                b[5] = a[4];
-                b[6] = a[5];
-                b[7] = 0;
-                b[8] = a[6];
-                b[9] = a[7];
-                b[10] = a[8];
-                b[11] = 0;
-                b[12] = 0;
-                b[13] = 0;
-                b[14] = 0;
-                b[15] = 1;
-                return b;
-            };
-            mat3.str = function (a) {
-                return "[" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ", " + a[4] + ", " + a[5] + ", " + a[6] + ", " + a[7] + ", " + a[8] + "]";
-            };
-            return mat3;
-        })();
-        GLMatrix.mat3 = mat3;
-        var mat4 = (function () {
-            function mat4() {
-            }
-            mat4.create = function (a) {
-                var b = new glMatrixArrayType(16);
-                if (a) {
+                mat4.create = function (a) {
+                    var b = new glMatrixArrayType(16);
+                    if (a) {
+                        b[0] = a[0];
+                        b[1] = a[1];
+                        b[2] = a[2];
+                        b[3] = a[3];
+                        b[4] = a[4];
+                        b[5] = a[5];
+                        b[6] = a[6];
+                        b[7] = a[7];
+                        b[8] = a[8];
+                        b[9] = a[9];
+                        b[10] = a[10];
+                        b[11] = a[11];
+                        b[12] = a[12];
+                        b[13] = a[13];
+                        b[14] = a[14];
+                        b[15] = a[15];
+                    }
+                    return b;
+                };
+                mat4.set = function (a, b) {
                     b[0] = a[0];
                     b[1] = a[1];
                     b[2] = a[2];
@@ -250,711 +301,623 @@ var Utils;
                     b[13] = a[13];
                     b[14] = a[14];
                     b[15] = a[15];
-                }
-                return b;
-            };
-            mat4.set = function (a, b) {
-                b[0] = a[0];
-                b[1] = a[1];
-                b[2] = a[2];
-                b[3] = a[3];
-                b[4] = a[4];
-                b[5] = a[5];
-                b[6] = a[6];
-                b[7] = a[7];
-                b[8] = a[8];
-                b[9] = a[9];
-                b[10] = a[10];
-                b[11] = a[11];
-                b[12] = a[12];
-                b[13] = a[13];
-                b[14] = a[14];
-                b[15] = a[15];
-                return b;
-            };
-            mat4.identity = function (a) {
-                a[0] = 1;
-                a[1] = 0;
-                a[2] = 0;
-                a[3] = 0;
-                a[4] = 0;
-                a[5] = 1;
-                a[6] = 0;
-                a[7] = 0;
-                a[8] = 0;
-                a[9] = 0;
-                a[10] = 1;
-                a[11] = 0;
-                a[12] = 0;
-                a[13] = 0;
-                a[14] = 0;
-                a[15] = 1;
-                return a;
-            };
-            mat4.transpose = function (a, b) {
-                if (!b || a == b) {
-                    var c = a[1], d = a[2], e = a[3], g = a[6], f = a[7], h = a[11];
-                    a[1] = a[4];
-                    a[2] = a[8];
-                    a[3] = a[12];
-                    a[4] = c;
-                    a[6] = a[9];
-                    a[7] = a[13];
-                    a[8] = d;
-                    a[9] = g;
-                    a[11] = a[14];
-                    a[12] = e;
-                    a[13] = f;
-                    a[14] = h;
+                    return b;
+                };
+                mat4.identity = function (a) {
+                    a[0] = 1;
+                    a[1] = 0;
+                    a[2] = 0;
+                    a[3] = 0;
+                    a[4] = 0;
+                    a[5] = 1;
+                    a[6] = 0;
+                    a[7] = 0;
+                    a[8] = 0;
+                    a[9] = 0;
+                    a[10] = 1;
+                    a[11] = 0;
+                    a[12] = 0;
+                    a[13] = 0;
+                    a[14] = 0;
+                    a[15] = 1;
                     return a;
-                }
-                b[0] = a[0];
-                b[1] = a[4];
-                b[2] = a[8];
-                b[3] = a[12];
-                b[4] = a[1];
-                b[5] = a[5];
-                b[6] = a[9];
-                b[7] = a[13];
-                b[8] = a[2];
-                b[9] = a[6];
-                b[10] = a[10];
-                b[11] = a[14];
-                b[12] = a[3];
-                b[13] = a[7];
-                b[14] = a[11];
-                b[15] = a[15];
-                return b;
-            };
-            mat4.determinant = function (a) {
-                var b = a[0], c = a[1], d = a[2], e = a[3], g = a[4], f = a[5], h = a[6], i = a[7], j = a[8], k = a[9], l = a[10], o = a[11], m = a[12], n = a[13], p = a[14];
-                a = a[15];
-                return m * k * h * e - j * n * h * e - m * f * l * e + g * n * l * e + j * f * p * e - g * k * p * e - m * k * d * i + j * n * d * i + m * c * l * i - b * n * l * i - j * c * p * i + b * k * p * i + m * f * d * o - g * n * d * o - m * c * h * o + b * n * h * o + g * c * p * o - b * f * p * o - j * f * d * a + g * k * d * a + j * c * h * a - b * k * h * a - g * c * l * a + b * f * l * a;
-            };
-            mat4.inverse = function (a, b) {
-                b || (b = a);
-                var c = a[0], d = a[1], e = a[2], g = a[3], f = a[4], h = a[5], i = a[6], j = a[7], k = a[8], l = a[9], o = a[10], m = a[11], n = a[12], p = a[13], r = a[14], s = a[15], A = c * h - d * f, B = c * i - e * f, t = c * j - g * f, u = d * i - e * h, v = d * j - g * h, w = e * j - g * i, x = k * p - l * n, y = k * r - o * n, z = k * s - m * n, C = l * r - o * p, D = l * s - m * p, E = o * s - m * r, q = 1 / (A * E - B * D + t * C + u * z - v * y + w * x);
-                b[0] = (h * E - i * D + j * C) * q;
-                b[1] = (-d * E + e * D - g * C) * q;
-                b[2] = (p * w - r * v + s * u) * q;
-                b[3] = (-l * w + o * v - m * u) * q;
-                b[4] = (-f * E + i * z - j * y) * q;
-                b[5] = (c * E - e * z + g * y) * q;
-                b[6] = (-n * w + r * t - s * B) * q;
-                b[7] = (k * w - o * t + m * B) * q;
-                b[8] = (f * D - h * z + j * x) * q;
-                b[9] = (-c * D + d * z - g * x) * q;
-                b[10] = (n * v - p * t + s * A) * q;
-                b[11] = (-k * v + l * t - m * A) * q;
-                b[12] = (-f * C + h * y - i * x) * q;
-                b[13] = (c * C - d * y + e * x) * q;
-                b[14] = (-n * u + p * B - r * A) * q;
-                b[15] = (k * u - l * B + o * A) * q;
-                return b;
-            };
-            mat4.toRotationMat = function (a, b) {
-                b || (b = mat4.create());
-                b[0] = a[0];
-                b[1] = a[1];
-                b[2] = a[2];
-                b[3] = a[3];
-                b[4] = a[4];
-                b[5] = a[5];
-                b[6] = a[6];
-                b[7] = a[7];
-                b[8] = a[8];
-                b[9] = a[9];
-                b[10] = a[10];
-                b[11] = a[11];
-                b[12] = 0;
-                b[13] = 0;
-                b[14] = 0;
-                b[15] = 1;
-                return b;
-            };
-            mat4.toMat3 = function (a, b) {
-                b || (b = mat3.create());
-                b[0] = a[0];
-                b[1] = a[1];
-                b[2] = a[2];
-                b[3] = a[4];
-                b[4] = a[5];
-                b[5] = a[6];
-                b[6] = a[8];
-                b[7] = a[9];
-                b[8] = a[10];
-                return b;
-            };
-            mat4.toInverseMat3 = function (a, b) {
-                var c = a[0], d = a[1], e = a[2], g = a[4], f = a[5], h = a[6], i = a[8], j = a[9], k = a[10], l = k * f - h * j, o = -k * g + h * i, m = j * g - f * i, n = c * l + d * o + e * m;
-                if (!n)
-                    return null;
-                n = 1 / n;
-                b || (b = mat3.create());
-                b[0] = l * n;
-                b[1] = (-k * d + e * j) * n;
-                b[2] = (h * d - e * f) * n;
-                b[3] = o * n;
-                b[4] = (k * c - e * i) * n;
-                b[5] = (-h * c + e * g) * n;
-                b[6] = m * n;
-                b[7] = (-j * c + d * i) * n;
-                b[8] = (f * c - d * g) * n;
-                return b;
-            };
-            mat4.multiply = function (a, b, c) {
-                c || (c = a);
-                var d = a[0], e = a[1], g = a[2], f = a[3], h = a[4], i = a[5], j = a[6], k = a[7], l = a[8], o = a[9], m = a[10], n = a[11], p = a[12], r = a[13], s = a[14];
-                a = a[15];
-                var A = b[0], B = b[1], t = b[2], u = b[3], v = b[4], w = b[5], x = b[6], y = b[7], z = b[8], C = b[9], D = b[10], E = b[11], q = b[12], F = b[13], G = b[14];
-                b = b[15];
-                c[0] = A * d + B * h + t * l + u * p;
-                c[1] = A * e + B * i + t * o + u * r;
-                c[2] = A * g + B * j + t * m + u * s;
-                c[3] = A * f + B * k + t * n + u * a;
-                c[4] = v * d + w * h + x * l + y * p;
-                c[5] = v * e + w * i + x * o + y * r;
-                c[6] = v * g + w * j + x * m + y * s;
-                c[7] = v * f + w * k + x * n + y * a;
-                c[8] = z * d + C * h + D * l + E * p;
-                c[9] = z * e + C * i + D * o + E * r;
-                c[10] = z *
-                    g + C * j + D * m + E * s;
-                c[11] = z * f + C * k + D * n + E * a;
-                c[12] = q * d + F * h + G * l + b * p;
-                c[13] = q * e + F * i + G * o + b * r;
-                c[14] = q * g + F * j + G * m + b * s;
-                c[15] = q * f + F * k + G * n + b * a;
-                return c;
-            };
-            mat4.multiplyVec3 = function (a, b, c) {
-                c || (c = b);
-                var d = b[0], e = b[1];
-                b = b[2];
-                c[0] = a[0] * d + a[4] * e + a[8] * b + a[12];
-                c[1] = a[1] * d + a[5] * e + a[9] * b + a[13];
-                c[2] = a[2] * d + a[6] * e + a[10] * b + a[14];
-                return c;
-            };
-            mat4.multiplyVec4 = function (a, b, c) {
-                c || (c = b);
-                var d = b[0], e = b[1], g = b[2];
-                b = b[3];
-                c[0] = a[0] * d + a[4] * e + a[8] * g + a[12] * b;
-                c[1] = a[1] * d + a[5] * e + a[9] * g + a[13] * b;
-                c[2] = a[2] * d + a[6] * e + a[10] * g + a[14] * b;
-                c[3] = a[3] * d + a[7] * e + a[11] * g + a[15] * b;
-                return c;
-            };
-            mat4.translate = function (a, b, c) {
-                var d = b[0], e = b[1];
-                b = b[2];
-                if (!c || a == c) {
-                    a[12] = a[0] * d + a[4] * e + a[8] * b + a[12];
-                    a[13] = a[1] * d + a[5] * e + a[9] * b + a[13];
-                    a[14] = a[2] * d + a[6] * e + a[10] * b + a[14];
-                    a[15] = a[3] * d + a[7] * e + a[11] * b + a[15];
-                    return a;
-                }
-                var g = a[0], f = a[1], h = a[2], i = a[3], j = a[4], k = a[5], l = a[6], o = a[7], m = a[8], n = a[9], p = a[10], r = a[11];
-                c[0] = g;
-                c[1] = f;
-                c[2] = h;
-                c[3] = i;
-                c[4] = j;
-                c[5] = k;
-                c[6] = l;
-                c[7] = o;
-                c[8] = m;
-                c[9] = n;
-                c[10] = p;
-                c[11] = r;
-                c[12] = g * d + j * e + m * b + a[12];
-                c[13] = f * d + k * e + n * b + a[13];
-                c[14] = h * d + l * e + p * b + a[14];
-                c[15] = i * d + o * e + r * b + a[15];
-                return c;
-            };
-            mat4.scale = function (a, b, c) {
-                var d = b[0], e = b[1];
-                b = b[2];
-                if (!c || a == c) {
-                    a[0] *= d;
-                    a[1] *= d;
-                    a[2] *= d;
-                    a[3] *= d;
-                    a[4] *= e;
-                    a[5] *= e;
-                    a[6] *= e;
-                    a[7] *= e;
-                    a[8] *= b;
-                    a[9] *= b;
-                    a[10] *= b;
-                    a[11] *= b;
-                    return a;
-                }
-                c[0] = a[0] * d;
-                c[1] = a[1] * d;
-                c[2] = a[2] * d;
-                c[3] = a[3] * d;
-                c[4] = a[4] * e;
-                c[5] = a[5] * e;
-                c[6] = a[6] * e;
-                c[7] = a[7] * e;
-                c[8] = a[8] * b;
-                c[9] = a[9] * b;
-                c[10] = a[10] * b;
-                c[11] = a[11] * b;
-                c[12] = a[12];
-                c[13] = a[13];
-                c[14] = a[14];
-                c[15] = a[15];
-                return c;
-            };
-            mat4.rotate = function (a, b, c, d) {
-                var e = c[0], g = c[1];
-                c = c[2];
-                var f = Math.sqrt(e * e + g * g + c * c);
-                if (!f)
-                    return null;
-                if (f != 1) {
-                    f = 1 / f;
-                    e *= f;
-                    g *= f;
-                    c *= f;
-                }
-                var h = Math.sin(b), i = Math.cos(b), j = 1 - i;
-                b = a[0];
-                f = a[1];
-                var k = a[2], l = a[3], o = a[4], m = a[5], n = a[6], p = a[7], r = a[8], s = a[9], A = a[10], B = a[11], t = e * e * j + i, u = g * e * j + c * h, v = c * e * j - g * h, w = e * g * j - c * h, x = g * g * j + i, y = c * g * j + e * h, z = e * c * j + g * h;
-                e = g * c * j - e * h;
-                g = c * c * j + i;
-                if (d) {
-                    if (a != d) {
-                        d[12] = a[12];
-                        d[13] = a[13];
-                        d[14] = a[14];
-                        d[15] = a[15];
+                };
+                mat4.transpose = function (a, b) {
+                    if (!b || a == b) {
+                        var c = a[1], d = a[2], e = a[3], g = a[6], f = a[7], h = a[11];
+                        a[1] = a[4];
+                        a[2] = a[8];
+                        a[3] = a[12];
+                        a[4] = c;
+                        a[6] = a[9];
+                        a[7] = a[13];
+                        a[8] = d;
+                        a[9] = g;
+                        a[11] = a[14];
+                        a[12] = e;
+                        a[13] = f;
+                        a[14] = h;
+                        return a;
                     }
-                }
-                else
-                    d = a;
-                d[0] = b * t + o * u + r * v;
-                d[1] = f * t + m * u + s * v;
-                d[2] = k * t + n * u + A * v;
-                d[3] = l * t + p * u + B *
-                    v;
-                d[4] = b * w + o * x + r * y;
-                d[5] = f * w + m * x + s * y;
-                d[6] = k * w + n * x + A * y;
-                d[7] = l * w + p * x + B * y;
-                d[8] = b * z + o * e + r * g;
-                d[9] = f * z + m * e + s * g;
-                d[10] = k * z + n * e + A * g;
-                d[11] = l * z + p * e + B * g;
-                return d;
-            };
-            mat4.rotateX = function (a, b, c) {
-                var d = Math.sin(b);
-                b = Math.cos(b);
-                var e = a[4], g = a[5], f = a[6], h = a[7], i = a[8], j = a[9], k = a[10], l = a[11];
-                if (c) {
-                    if (a != c) {
-                        c[0] = a[0];
-                        c[1] = a[1];
-                        c[2] = a[2];
-                        c[3] = a[3];
-                        c[12] = a[12];
-                        c[13] = a[13];
-                        c[14] = a[14];
-                        c[15] = a[15];
+                    b[0] = a[0];
+                    b[1] = a[4];
+                    b[2] = a[8];
+                    b[3] = a[12];
+                    b[4] = a[1];
+                    b[5] = a[5];
+                    b[6] = a[9];
+                    b[7] = a[13];
+                    b[8] = a[2];
+                    b[9] = a[6];
+                    b[10] = a[10];
+                    b[11] = a[14];
+                    b[12] = a[3];
+                    b[13] = a[7];
+                    b[14] = a[11];
+                    b[15] = a[15];
+                    return b;
+                };
+                mat4.determinant = function (a) {
+                    var b = a[0], c = a[1], d = a[2], e = a[3], g = a[4], f = a[5], h = a[6], i = a[7], j = a[8], k = a[9], l = a[10], o = a[11], m = a[12], n = a[13], p = a[14];
+                    a = a[15];
+                    return m * k * h * e - j * n * h * e - m * f * l * e + g * n * l * e + j * f * p * e - g * k * p * e - m * k * d * i + j * n * d * i + m * c * l * i - b * n * l * i - j * c * p * i + b * k * p * i + m * f * d * o - g * n * d * o - m * c * h * o + b * n * h * o + g * c * p * o - b * f * p * o - j * f * d * a + g * k * d * a + j * c * h * a - b * k * h * a - g * c * l * a + b * f * l * a;
+                };
+                mat4.inverse = function (a, b) {
+                    b || (b = a);
+                    var c = a[0], d = a[1], e = a[2], g = a[3], f = a[4], h = a[5], i = a[6], j = a[7], k = a[8], l = a[9], o = a[10], m = a[11], n = a[12], p = a[13], r = a[14], s = a[15], A = c * h - d * f, B = c * i - e * f, t = c * j - g * f, u = d * i - e * h, v = d * j - g * h, w = e * j - g * i, x = k * p - l * n, y = k * r - o * n, z = k * s - m * n, C = l * r - o * p, D = l * s - m * p, E = o * s - m * r, q = 1 / (A * E - B * D + t * C + u * z - v * y + w * x);
+                    b[0] = (h * E - i * D + j * C) * q;
+                    b[1] = (-d * E + e * D - g * C) * q;
+                    b[2] = (p * w - r * v + s * u) * q;
+                    b[3] = (-l * w + o * v - m * u) * q;
+                    b[4] = (-f * E + i * z - j * y) * q;
+                    b[5] = (c * E - e * z + g * y) * q;
+                    b[6] = (-n * w + r * t - s * B) * q;
+                    b[7] = (k * w - o * t + m * B) * q;
+                    b[8] = (f * D - h * z + j * x) * q;
+                    b[9] = (-c * D + d * z - g * x) * q;
+                    b[10] = (n * v - p * t + s * A) * q;
+                    b[11] = (-k * v + l * t - m * A) * q;
+                    b[12] = (-f * C + h * y - i * x) * q;
+                    b[13] = (c * C - d * y + e * x) * q;
+                    b[14] = (-n * u + p * B - r * A) * q;
+                    b[15] = (k * u - l * B + o * A) * q;
+                    return b;
+                };
+                mat4.toRotationMat = function (a, b) {
+                    b || (b = mat4.create());
+                    b[0] = a[0];
+                    b[1] = a[1];
+                    b[2] = a[2];
+                    b[3] = a[3];
+                    b[4] = a[4];
+                    b[5] = a[5];
+                    b[6] = a[6];
+                    b[7] = a[7];
+                    b[8] = a[8];
+                    b[9] = a[9];
+                    b[10] = a[10];
+                    b[11] = a[11];
+                    b[12] = 0;
+                    b[13] = 0;
+                    b[14] = 0;
+                    b[15] = 1;
+                    return b;
+                };
+                mat4.toMat3 = function (a, b) {
+                    b || (b = mat3.create());
+                    b[0] = a[0];
+                    b[1] = a[1];
+                    b[2] = a[2];
+                    b[3] = a[4];
+                    b[4] = a[5];
+                    b[5] = a[6];
+                    b[6] = a[8];
+                    b[7] = a[9];
+                    b[8] = a[10];
+                    return b;
+                };
+                mat4.toInverseMat3 = function (a, b) {
+                    var c = a[0], d = a[1], e = a[2], g = a[4], f = a[5], h = a[6], i = a[8], j = a[9], k = a[10], l = k * f - h * j, o = -k * g + h * i, m = j * g - f * i, n = c * l + d * o + e * m;
+                    if (!n)
+                        return null;
+                    n = 1 / n;
+                    b || (b = mat3.create());
+                    b[0] = l * n;
+                    b[1] = (-k * d + e * j) * n;
+                    b[2] = (h * d - e * f) * n;
+                    b[3] = o * n;
+                    b[4] = (k * c - e * i) * n;
+                    b[5] = (-h * c + e * g) * n;
+                    b[6] = m * n;
+                    b[7] = (-j * c + d * i) * n;
+                    b[8] = (f * c - d * g) * n;
+                    return b;
+                };
+                mat4.multiply = function (a, b, c) {
+                    c || (c = a);
+                    var d = a[0], e = a[1], g = a[2], f = a[3], h = a[4], i = a[5], j = a[6], k = a[7], l = a[8], o = a[9], m = a[10], n = a[11], p = a[12], r = a[13], s = a[14];
+                    a = a[15];
+                    var A = b[0], B = b[1], t = b[2], u = b[3], v = b[4], w = b[5], x = b[6], y = b[7], z = b[8], C = b[9], D = b[10], E = b[11], q = b[12], F = b[13], G = b[14];
+                    b = b[15];
+                    c[0] = A * d + B * h + t * l + u * p;
+                    c[1] = A * e + B * i + t * o + u * r;
+                    c[2] = A * g + B * j + t * m + u * s;
+                    c[3] = A * f + B * k + t * n + u * a;
+                    c[4] = v * d + w * h + x * l + y * p;
+                    c[5] = v * e + w * i + x * o + y * r;
+                    c[6] = v * g + w * j + x * m + y * s;
+                    c[7] = v * f + w * k + x * n + y * a;
+                    c[8] = z * d + C * h + D * l + E * p;
+                    c[9] = z * e + C * i + D * o + E * r;
+                    c[10] = z *
+                        g + C * j + D * m + E * s;
+                    c[11] = z * f + C * k + D * n + E * a;
+                    c[12] = q * d + F * h + G * l + b * p;
+                    c[13] = q * e + F * i + G * o + b * r;
+                    c[14] = q * g + F * j + G * m + b * s;
+                    c[15] = q * f + F * k + G * n + b * a;
+                    return c;
+                };
+                mat4.multiplyVec3 = function (a, b, c) {
+                    c || (c = b);
+                    var d = b[0], e = b[1];
+                    b = b[2];
+                    c[0] = a[0] * d + a[4] * e + a[8] * b + a[12];
+                    c[1] = a[1] * d + a[5] * e + a[9] * b + a[13];
+                    c[2] = a[2] * d + a[6] * e + a[10] * b + a[14];
+                    return c;
+                };
+                mat4.multiplyVec4 = function (a, b, c) {
+                    c || (c = b);
+                    var d = b[0], e = b[1], g = b[2];
+                    b = b[3];
+                    c[0] = a[0] * d + a[4] * e + a[8] * g + a[12] * b;
+                    c[1] = a[1] * d + a[5] * e + a[9] * g + a[13] * b;
+                    c[2] = a[2] * d + a[6] * e + a[10] * g + a[14] * b;
+                    c[3] = a[3] * d + a[7] * e + a[11] * g + a[15] * b;
+                    return c;
+                };
+                mat4.translate = function (a, b, c) {
+                    var d = b[0], e = b[1];
+                    b = b[2];
+                    if (!c || a == c) {
+                        a[12] = a[0] * d + a[4] * e + a[8] * b + a[12];
+                        a[13] = a[1] * d + a[5] * e + a[9] * b + a[13];
+                        a[14] = a[2] * d + a[6] * e + a[10] * b + a[14];
+                        a[15] = a[3] * d + a[7] * e + a[11] * b + a[15];
+                        return a;
                     }
-                }
-                else
-                    c = a;
-                c[4] = e * b + i * d;
-                c[5] = g * b + j * d;
-                c[6] = f * b + k * d;
-                c[7] = h * b + l * d;
-                c[8] = e * -d + i * b;
-                c[9] = g * -d + j * b;
-                c[10] = f * -d + k * b;
-                c[11] = h * -d + l * b;
-                return c;
-            };
-            mat4.rotateY = function (a, b, c) {
-                var d = Math.sin(b);
-                b = Math.cos(b);
-                var e = a[0], g = a[1], f = a[2], h = a[3], i = a[8], j = a[9], k = a[10], l = a[11];
-                if (c) {
-                    if (a != c) {
-                        c[4] = a[4];
-                        c[5] = a[5];
-                        c[6] = a[6];
-                        c[7] = a[7];
-                        c[12] = a[12];
-                        c[13] = a[13];
-                        c[14] = a[14];
-                        c[15] = a[15];
+                    var g = a[0], f = a[1], h = a[2], i = a[3], j = a[4], k = a[5], l = a[6], o = a[7], m = a[8], n = a[9], p = a[10], r = a[11];
+                    c[0] = g;
+                    c[1] = f;
+                    c[2] = h;
+                    c[3] = i;
+                    c[4] = j;
+                    c[5] = k;
+                    c[6] = l;
+                    c[7] = o;
+                    c[8] = m;
+                    c[9] = n;
+                    c[10] = p;
+                    c[11] = r;
+                    c[12] = g * d + j * e + m * b + a[12];
+                    c[13] = f * d + k * e + n * b + a[13];
+                    c[14] = h * d + l * e + p * b + a[14];
+                    c[15] = i * d + o * e + r * b + a[15];
+                    return c;
+                };
+                mat4.scale = function (a, b, c) {
+                    var d = b[0], e = b[1];
+                    b = b[2];
+                    if (!c || a == c) {
+                        a[0] *= d;
+                        a[1] *= d;
+                        a[2] *= d;
+                        a[3] *= d;
+                        a[4] *= e;
+                        a[5] *= e;
+                        a[6] *= e;
+                        a[7] *= e;
+                        a[8] *= b;
+                        a[9] *= b;
+                        a[10] *= b;
+                        a[11] *= b;
+                        return a;
                     }
-                }
-                else
-                    c = a;
-                c[0] = e * b + i * -d;
-                c[1] = g * b + j * -d;
-                c[2] = f * b + k * -d;
-                c[3] = h * b + l * -d;
-                c[8] = e * d + i * b;
-                c[9] = g * d + j * b;
-                c[10] = f * d + k * b;
-                c[11] = h * d + l * b;
-                return c;
-            };
-            mat4.rotateZ = function (a, b, c) {
-                var d = Math.sin(b);
-                b = Math.cos(b);
-                var e = a[0], g = a[1], f = a[2], h = a[3], i = a[4], j = a[5], k = a[6], l = a[7];
-                if (c) {
-                    if (a != c) {
-                        c[8] = a[8];
-                        c[9] = a[9];
-                        c[10] = a[10];
-                        c[11] = a[11];
-                        c[12] = a[12];
-                        c[13] = a[13];
-                        c[14] = a[14];
-                        c[15] = a[15];
+                    c[0] = a[0] * d;
+                    c[1] = a[1] * d;
+                    c[2] = a[2] * d;
+                    c[3] = a[3] * d;
+                    c[4] = a[4] * e;
+                    c[5] = a[5] * e;
+                    c[6] = a[6] * e;
+                    c[7] = a[7] * e;
+                    c[8] = a[8] * b;
+                    c[9] = a[9] * b;
+                    c[10] = a[10] * b;
+                    c[11] = a[11] * b;
+                    c[12] = a[12];
+                    c[13] = a[13];
+                    c[14] = a[14];
+                    c[15] = a[15];
+                    return c;
+                };
+                mat4.rotate = function (a, b, c, d) {
+                    var e = c[0], g = c[1];
+                    c = c[2];
+                    var f = Math.sqrt(e * e + g * g + c * c);
+                    if (!f)
+                        return null;
+                    if (f != 1) {
+                        f = 1 / f;
+                        e *= f;
+                        g *= f;
+                        c *= f;
                     }
-                }
-                else
-                    c = a;
-                c[0] = e * b + i * d;
-                c[1] = g * b + j * d;
-                c[2] = f * b + k * d;
-                c[3] = h * b + l * d;
-                c[4] = e * -d + i * b;
-                c[5] = g * -d + j * b;
-                c[6] = f * -d + k * b;
-                c[7] = h * -d + l * b;
-                return c;
-            };
-            mat4.frustum = function (a, b, c, d, e, g, f) {
-                f || (f = mat4.create());
-                var h = b - a, i = d - c, j = g - e;
-                f[0] = e * 2 / h;
-                f[1] = 0;
-                f[2] = 0;
-                f[3] = 0;
-                f[4] = 0;
-                f[5] = e * 2 / i;
-                f[6] = 0;
-                f[7] = 0;
-                f[8] = (b + a) / h;
-                f[9] = (d + c) / i;
-                f[10] = -(g + e) / j;
-                f[11] = -1;
-                f[12] = 0;
-                f[13] = 0;
-                f[14] = -(g * e * 2) / j;
-                f[15] = 0;
-                return f;
-            };
-            mat4.perspective = function (a, b, c, d, e) {
-                a = c * Math.tan(a * Math.PI / 360);
-                b = a * b;
-                return mat4.frustum(-b, b, -a, a, c, d, e);
-            };
-            mat4.ortho = function (a, b, c, d, e, g, f) {
-                f || (f = mat4.create());
-                var h = b - a, i = d - c, j = g - e;
-                f[0] = 2 / h;
-                f[1] = 0;
-                f[2] = 0;
-                f[3] = 0;
-                f[4] = 0;
-                f[5] = 2 / i;
-                f[6] = 0;
-                f[7] = 0;
-                f[8] = 0;
-                f[9] = 0;
-                f[10] = -2 / j;
-                f[11] = 0;
-                f[12] = -(a + b) / h;
-                f[13] = -(d + c) / i;
-                f[14] = -(g + e) / j;
-                f[15] = 1;
-                return f;
-            };
-            mat4.lookAt = function (a, b, c, d) {
-                d || (d = mat4.create());
-                var e = a[0], g = a[1];
-                a = a[2];
-                var f = c[0], h = c[1], i = c[2];
-                c = b[1];
-                var j = b[2];
-                if (e == b[0] && g == c && a == j)
-                    return mat4.identity(d);
-                var k, l, o, m;
-                c = e - b[0];
-                j = g - b[1];
-                b = a - b[2];
-                m = 1 / Math.sqrt(c * c + j * j + b * b);
-                c *= m;
-                j *= m;
-                b *= m;
-                k = h * b - i * j;
-                i = i * c - f * b;
-                f = f * j - h * c;
-                if (m = Math.sqrt(k * k + i * i + f * f)) {
-                    m = 1 / m;
-                    k *= m;
-                    i *= m;
-                    f *= m;
-                }
-                else
-                    f = i = k = 0;
-                h = j * f - b * i;
-                l = b * k - c * f;
-                o = c * i - j * k;
-                if (m = Math.sqrt(h * h + l * l + o * o)) {
-                    m = 1 / m;
-                    h *= m;
-                    l *= m;
-                    o *= m;
-                }
-                else
-                    o = l = h = 0;
-                d[0] = k;
-                d[1] = h;
-                d[2] = c;
-                d[3] = 0;
-                d[4] = i;
-                d[5] = l;
-                d[6] = j;
-                d[7] = 0;
-                d[8] = f;
-                d[9] =
-                    o;
-                d[10] = b;
-                d[11] = 0;
-                d[12] = -(k * e + i * g + f * a);
-                d[13] = -(h * e + l * g + o * a);
-                d[14] = -(c * e + j * g + b * a);
-                d[15] = 1;
-                return d;
-            };
-            mat4.str = function (a) {
-                return "[" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ", " + a[4] + ", " + a[5] + ", " + a[6] + ", " + a[7] + ", " + a[8] + ", " + a[9] + ", " + a[10] + ", " + a[11] + ", " + a[12] + ", " + a[13] + ", " + a[14] + ", " + a[15] + "]";
-            };
-            return mat4;
-        })();
-        GLMatrix.mat4 = mat4;
-    })(GLMatrix = Utils.GLMatrix || (Utils.GLMatrix = {}));
-})(Utils || (Utils = {}));
-var Utils;
-(function (Utils) {
-    var Callback = (function () {
-        function Callback(func, thisArg) {
-            if (func === void 0) { func = function () { }; }
-            if (thisArg === void 0) { thisArg = {}; }
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            this._func = func;
-            this._thisArg = thisArg;
-            this._args = args;
-        }
-        Callback.prototype.apply = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i - 0] = arguments[_i];
-            }
-            return this._func.apply(this._thisArg, args.concat(this._args));
-        };
-        return Callback;
-    })();
-    Utils.Callback = Callback;
-})(Utils || (Utils = {}));
-///<reference path="Callback.ts"/>
-var Utils;
-(function (Utils) {
-    var Timer = (function () {
-        function Timer() {
-            this._timerInterval = null;
-            this._timerTimeout = null;
-            this._timerEnabled = false;
-            this._timeout = 0;
-            this._pauseTimeout = 0;
-            this._startTime = 0;
-            this._isItTimeout = false;
-            this._isTimeoutMode = false;
-        }
-        Timer.prototype.start = function (callback, timeout, callOnce) {
-            if (!this._timerInterval) {
-                this._callback = callback;
-                if (typeof timeout === 'number') {
-                    this._timeout = timeout;
-                }
-                else {
-                    this._timeout = 0;
-                }
-                this._isItTimeout = typeof callOnce === 'boolean' ? callOnce : false;
-                this._createTimer();
-                this._timerEnabled = true;
+                    var h = Math.sin(b), i = Math.cos(b), j = 1 - i;
+                    b = a[0];
+                    f = a[1];
+                    var k = a[2], l = a[3], o = a[4], m = a[5], n = a[6], p = a[7], r = a[8], s = a[9], A = a[10], B = a[11], t = e * e * j + i, u = g * e * j + c * h, v = c * e * j - g * h, w = e * g * j - c * h, x = g * g * j + i, y = c * g * j + e * h, z = e * c * j + g * h;
+                    e = g * c * j - e * h;
+                    g = c * c * j + i;
+                    if (d) {
+                        if (a != d) {
+                            d[12] = a[12];
+                            d[13] = a[13];
+                            d[14] = a[14];
+                            d[15] = a[15];
+                        }
+                    }
+                    else
+                        d = a;
+                    d[0] = b * t + o * u + r * v;
+                    d[1] = f * t + m * u + s * v;
+                    d[2] = k * t + n * u + A * v;
+                    d[3] = l * t + p * u + B *
+                        v;
+                    d[4] = b * w + o * x + r * y;
+                    d[5] = f * w + m * x + s * y;
+                    d[6] = k * w + n * x + A * y;
+                    d[7] = l * w + p * x + B * y;
+                    d[8] = b * z + o * e + r * g;
+                    d[9] = f * z + m * e + s * g;
+                    d[10] = k * z + n * e + A * g;
+                    d[11] = l * z + p * e + B * g;
+                    return d;
+                };
+                mat4.rotateX = function (a, b, c) {
+                    var d = Math.sin(b);
+                    b = Math.cos(b);
+                    var e = a[4], g = a[5], f = a[6], h = a[7], i = a[8], j = a[9], k = a[10], l = a[11];
+                    if (c) {
+                        if (a != c) {
+                            c[0] = a[0];
+                            c[1] = a[1];
+                            c[2] = a[2];
+                            c[3] = a[3];
+                            c[12] = a[12];
+                            c[13] = a[13];
+                            c[14] = a[14];
+                            c[15] = a[15];
+                        }
+                    }
+                    else
+                        c = a;
+                    c[4] = e * b + i * d;
+                    c[5] = g * b + j * d;
+                    c[6] = f * b + k * d;
+                    c[7] = h * b + l * d;
+                    c[8] = e * -d + i * b;
+                    c[9] = g * -d + j * b;
+                    c[10] = f * -d + k * b;
+                    c[11] = h * -d + l * b;
+                    return c;
+                };
+                mat4.rotateY = function (a, b, c) {
+                    var d = Math.sin(b);
+                    b = Math.cos(b);
+                    var e = a[0], g = a[1], f = a[2], h = a[3], i = a[8], j = a[9], k = a[10], l = a[11];
+                    if (c) {
+                        if (a != c) {
+                            c[4] = a[4];
+                            c[5] = a[5];
+                            c[6] = a[6];
+                            c[7] = a[7];
+                            c[12] = a[12];
+                            c[13] = a[13];
+                            c[14] = a[14];
+                            c[15] = a[15];
+                        }
+                    }
+                    else
+                        c = a;
+                    c[0] = e * b + i * -d;
+                    c[1] = g * b + j * -d;
+                    c[2] = f * b + k * -d;
+                    c[3] = h * b + l * -d;
+                    c[8] = e * d + i * b;
+                    c[9] = g * d + j * b;
+                    c[10] = f * d + k * b;
+                    c[11] = h * d + l * b;
+                    return c;
+                };
+                mat4.rotateZ = function (a, b, c) {
+                    var d = Math.sin(b);
+                    b = Math.cos(b);
+                    var e = a[0], g = a[1], f = a[2], h = a[3], i = a[4], j = a[5], k = a[6], l = a[7];
+                    if (c) {
+                        if (a != c) {
+                            c[8] = a[8];
+                            c[9] = a[9];
+                            c[10] = a[10];
+                            c[11] = a[11];
+                            c[12] = a[12];
+                            c[13] = a[13];
+                            c[14] = a[14];
+                            c[15] = a[15];
+                        }
+                    }
+                    else
+                        c = a;
+                    c[0] = e * b + i * d;
+                    c[1] = g * b + j * d;
+                    c[2] = f * b + k * d;
+                    c[3] = h * b + l * d;
+                    c[4] = e * -d + i * b;
+                    c[5] = g * -d + j * b;
+                    c[6] = f * -d + k * b;
+                    c[7] = h * -d + l * b;
+                    return c;
+                };
+                mat4.frustum = function (a, b, c, d, e, g, f) {
+                    f || (f = mat4.create());
+                    var h = b - a, i = d - c, j = g - e;
+                    f[0] = e * 2 / h;
+                    f[1] = 0;
+                    f[2] = 0;
+                    f[3] = 0;
+                    f[4] = 0;
+                    f[5] = e * 2 / i;
+                    f[6] = 0;
+                    f[7] = 0;
+                    f[8] = (b + a) / h;
+                    f[9] = (d + c) / i;
+                    f[10] = -(g + e) / j;
+                    f[11] = -1;
+                    f[12] = 0;
+                    f[13] = 0;
+                    f[14] = -(g * e * 2) / j;
+                    f[15] = 0;
+                    return f;
+                };
+                mat4.perspective = function (a, b, c, d, e) {
+                    a = c * Math.tan(a * Math.PI / 360);
+                    b = a * b;
+                    return mat4.frustum(-b, b, -a, a, c, d, e);
+                };
+                mat4.ortho = function (a, b, c, d, e, g, f) {
+                    f || (f = mat4.create());
+                    var h = b - a, i = d - c, j = g - e;
+                    f[0] = 2 / h;
+                    f[1] = 0;
+                    f[2] = 0;
+                    f[3] = 0;
+                    f[4] = 0;
+                    f[5] = 2 / i;
+                    f[6] = 0;
+                    f[7] = 0;
+                    f[8] = 0;
+                    f[9] = 0;
+                    f[10] = -2 / j;
+                    f[11] = 0;
+                    f[12] = -(a + b) / h;
+                    f[13] = -(d + c) / i;
+                    f[14] = -(g + e) / j;
+                    f[15] = 1;
+                    return f;
+                };
+                mat4.lookAt = function (a, b, c, d) {
+                    d || (d = mat4.create());
+                    var e = a[0], g = a[1];
+                    a = a[2];
+                    var f = c[0], h = c[1], i = c[2];
+                    c = b[1];
+                    var j = b[2];
+                    if (e == b[0] && g == c && a == j)
+                        return mat4.identity(d);
+                    var k, l, o, m;
+                    c = e - b[0];
+                    j = g - b[1];
+                    b = a - b[2];
+                    m = 1 / Math.sqrt(c * c + j * j + b * b);
+                    c *= m;
+                    j *= m;
+                    b *= m;
+                    k = h * b - i * j;
+                    i = i * c - f * b;
+                    f = f * j - h * c;
+                    if (m = Math.sqrt(k * k + i * i + f * f)) {
+                        m = 1 / m;
+                        k *= m;
+                        i *= m;
+                        f *= m;
+                    }
+                    else
+                        f = i = k = 0;
+                    h = j * f - b * i;
+                    l = b * k - c * f;
+                    o = c * i - j * k;
+                    if (m = Math.sqrt(h * h + l * l + o * o)) {
+                        m = 1 / m;
+                        h *= m;
+                        l *= m;
+                        o *= m;
+                    }
+                    else
+                        o = l = h = 0;
+                    d[0] = k;
+                    d[1] = h;
+                    d[2] = c;
+                    d[3] = 0;
+                    d[4] = i;
+                    d[5] = l;
+                    d[6] = j;
+                    d[7] = 0;
+                    d[8] = f;
+                    d[9] =
+                        o;
+                    d[10] = b;
+                    d[11] = 0;
+                    d[12] = -(k * e + i * g + f * a);
+                    d[13] = -(h * e + l * g + o * a);
+                    d[14] = -(c * e + j * g + b * a);
+                    d[15] = 1;
+                    return d;
+                };
+                mat4.str = function (a) {
+                    return "[" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ", " + a[4] + ", " + a[5] + ", " + a[6] + ", " + a[7] + ", " + a[8] + ", " + a[9] + ", " + a[10] + ", " + a[11] + ", " + a[12] + ", " + a[13] + ", " + a[14] + ", " + a[15] + "]";
+                };
+                return mat4;
+            })();
+            GLMatrix.mat4 = mat4;
+        })(GLMatrix = Utils.GLMatrix || (Utils.GLMatrix = {}));
+    })(Utils = webGLEngine.Utils || (webGLEngine.Utils = {}));
+})(webGLEngine || (webGLEngine = {}));
+var webGLEngine;
+(function (webGLEngine) {
+    var Utils;
+    (function (Utils) {
+        var Timer = (function () {
+            function Timer() {
+                this._timerInterval = null;
+                this._timerTimeout = null;
+                this._timerEnabled = false;
+                this._timeout = 0;
+                this._pauseTimeout = 0;
+                this._startTime = 0;
+                this._isItTimeout = false;
                 this._isTimeoutMode = false;
             }
-        };
-        Timer.prototype.pause = function () {
-            if (this._timerEnabled && this._timerInterval) {
-                if (this._isTimeoutMode)
-                    clearTimeout(this._timerTimeout);
-                else
-                    clearInterval(this._timerInterval);
-                this._isTimeoutMode = true;
-                this._timerInterval = null;
-                this._pauseTimeout -= Date.now() - this._startTime;
-                if (this._pauseTimeout < 0)
-                    this._pauseTimeout = 0;
-            }
-        };
-        Timer.prototype.resume = function () {
-            if (this._timerEnabled && !this._timerInterval) {
+            Timer.prototype.start = function (callback, timeout, callOnce) {
+                if (!this._timerInterval) {
+                    this._callback = callback;
+                    if (typeof timeout === 'number') {
+                        this._timeout = timeout;
+                    }
+                    else {
+                        this._timeout = 0;
+                    }
+                    this._isItTimeout = typeof callOnce === 'boolean' ? callOnce : false;
+                    this._createTimer();
+                    this._timerEnabled = true;
+                    this._isTimeoutMode = false;
+                }
+            };
+            Timer.prototype.pause = function () {
+                if (this._timerEnabled && this._timerInterval) {
+                    if (this._isTimeoutMode)
+                        clearTimeout(this._timerTimeout);
+                    else
+                        clearInterval(this._timerInterval);
+                    this._isTimeoutMode = true;
+                    this._timerInterval = null;
+                    this._pauseTimeout -= Date.now() - this._startTime;
+                    if (this._pauseTimeout < 0)
+                        this._pauseTimeout = 0;
+                }
+            };
+            Timer.prototype.resume = function () {
+                if (this._timerEnabled && !this._timerInterval) {
+                    var func = function (func, thisArg) {
+                        return function () {
+                            return func.apply(thisArg, arguments);
+                        };
+                    }.call(this, this.resumeInterval, this);
+                    this._startTime = Date.now();
+                    this._timerInterval = setTimeout(func, this._pauseTimeout);
+                }
+            };
+            Timer.prototype.stop = function () {
+                if (this._timerEnabled) {
+                    if (this._timerInterval)
+                        clearInterval(this._timerInterval);
+                    this._timerInterval = null;
+                    this._timerEnabled = false;
+                }
+            };
+            Timer.prototype.isTimerEnabled = function () {
+                return this._timerEnabled;
+            };
+            Timer.prototype.resumeInterval = function () {
+                this._isTimeoutMode = false;
+                this._createTimer();
+            };
+            Timer.prototype._createTimer = function () {
                 var func = function (func, thisArg) {
                     return function () {
                         return func.apply(thisArg, arguments);
                     };
-                }.call(this, this.resumeInterval, this);
+                }.call(this, this._nativeFunction, this);
                 this._startTime = Date.now();
-                this._timerInterval = setTimeout(func, this._pauseTimeout);
-            }
-        };
-        Timer.prototype.stop = function () {
-            if (this._timerEnabled) {
-                if (this._timerInterval)
-                    clearInterval(this._timerInterval);
-                this._timerInterval = null;
-                this._timerEnabled = false;
-            }
-        };
-        Timer.prototype.isTimerEnabled = function () {
-            return this._timerEnabled;
-        };
-        Timer.prototype.resumeInterval = function () {
-            this._isTimeoutMode = false;
-            this._createTimer();
-        };
-        Timer.prototype._createTimer = function () {
-            var func = function (func, thisArg) {
-                return function () {
-                    return func.apply(thisArg, arguments);
-                };
-            }.call(this, this._nativeFunction, this);
-            this._startTime = Date.now();
-            this._timerInterval = setInterval(func, this._timeout);
-        };
-        Timer.prototype._nativeFunction = function () {
-            this._callback.apply();
-            this._startTime = Date.now();
-            if (this._isItTimeout)
-                this.stop();
-        };
-        return Timer;
-    })();
-    Utils.Timer = Timer;
-})(Utils || (Utils = {}));
-///<reference path="glMatrix.ts"/>
+                this._timerInterval = setInterval(func, this._timeout);
+            };
+            Timer.prototype._nativeFunction = function () {
+                this._callback.apply();
+                this._startTime = Date.now();
+                if (this._isItTimeout)
+                    this.stop();
+            };
+            return Timer;
+        })();
+        Utils.Timer = Timer;
+    })(Utils = webGLEngine.Utils || (webGLEngine.Utils = {}));
+})(webGLEngine || (webGLEngine = {}));
 ///<reference path="Callback.ts"/>
+///<reference path="glMatrix.ts"/>
 ///<reference path="Timer.ts"/>
-var Utils;
-(function (Utils) {
-    function bind(callBackFunc, thisArg) {
-        var arg = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            arg[_i - 2] = arguments[_i];
-        }
-        var args = Array.prototype.slice.call(arguments, 2);
-        return function () {
-            var argv = Array.prototype.slice.call(arguments, 0);
-            return callBackFunc.apply(thisArg, argv.concat(args));
-        };
-    }
-    Utils.bind = bind;
-    function requestFile(url, callback) {
-        var request = new XMLHttpRequest();
-        request.open('get', url, true);
-        request.onreadystatechange = this.bind(this.requestResult, this, request, url, callback);
-        request.send(null);
-    }
-    Utils.requestFile = requestFile;
-    function requestResult(event, request, url, callback) {
-        // If the request is "DONE" (completed or failed)
-        if (request.readyState === 4) {
-            // If we got HTTP status 200 (OK)
-            if (request.status !== 200) {
-                console.log('Can\'t download file: ' + url);
-                callback.apply('');
-            }
-            else {
-                callback.apply(request.responseText);
-            }
-        }
-    }
-    Utils.requestResult = requestResult;
-    function getFileNameFromPath(path) {
-        var nodes = path.split(/\\|\//g);
-        return nodes[nodes.length - 1];
-    }
-    Utils.getFileNameFromPath = getFileNameFromPath;
-})(Utils || (Utils = {}));
-///<reference path="./../utils/Utils.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
-    var Types;
-    (function (Types) {
-        var Material = (function () {
-            function Material() {
-                this.texture = null;
-                this.diffuseColor = [Math.random(), Math.random(), Math.random()];
-                this.specular = 0;
-                this.imageLink = '';
-                this.ready = true;
-                this.texture = null;
-                this.textureRepeat = true;
+    var Utils;
+    (function (Utils) {
+        function bind(callBackFunc, thisArg) {
+            var arg = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                arg[_i - 2] = arguments[_i];
             }
-            Material.prototype.loadTexture = function (gl, path, textureRepeat) {
-                if (typeof gl !== 'object') {
-                    console.log('GL parameter is not a object');
-                    return;
-                }
-                if (typeof path !== 'string') {
-                    console.log('Texture path parameter is not a string');
-                    return;
-                }
-                this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
-                this.ready = false;
-                this.imageLink = path;
-                this.texture = gl.createTexture();
-                this.texture.image = new Image();
-                this.texture.image.onload = Utils.bind(this.createTexture, this, gl);
-                this.texture.image.src = this.imageLink;
+            var args = Array.prototype.slice.call(arguments, 2);
+            return function () {
+                var argv = Array.prototype.slice.call(arguments, 0);
+                return callBackFunc.apply(thisArg, argv.concat(args));
             };
-            /** @private */
-            Material.prototype.createTexture = function () {
-                var gl = arguments[arguments.length - 1], repeatType = this.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
-                gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
-                gl.bindTexture(gl.TEXTURE_2D, null);
-                this.ready = true;
-            };
-            return Material;
-        })();
-        Types.Material = Material;
-    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+        }
+        Utils.bind = bind;
+        function requestFile(url, callback) {
+            var request = new XMLHttpRequest();
+            request.open('get', url, true);
+            request.onreadystatechange = this.bind(this.requestResult, this, request, url, callback);
+            request.send(null);
+        }
+        Utils.requestFile = requestFile;
+        function requestResult(event, request, url, callback) {
+            // If the request is "DONE" (completed or failed)
+            if (request.readyState === 4) {
+                // If we got HTTP status 200 (OK)
+                if (request.status !== 200) {
+                    console.log('Can\'t download file: ' + url);
+                    callback.apply('');
+                }
+                else {
+                    callback.apply(request.responseText);
+                }
+            }
+        }
+        Utils.requestResult = requestResult;
+        function getFileNameFromPath(path) {
+            var nodes = path.split(/\\|\//g);
+            return nodes[nodes.length - 1];
+        }
+        Utils.getFileNameFromPath = getFileNameFromPath;
+    })(Utils = webGLEngine.Utils || (webGLEngine.Utils = {}));
 })(webGLEngine || (webGLEngine = {}));
 var webGLEngine;
 (function (webGLEngine) {
@@ -1095,8 +1058,21 @@ var webGLEngine;
         Types.Transformations = Transformations;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="Material.ts"/>
-///<reference path="Transformations.ts"/>
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Face = (function () {
+            function Face(vertexIndex, textureIndex, normalIndex) {
+                this.vertexIndex = typeof vertexIndex === 'number' ? vertexIndex : 0;
+                this.textureIndex = typeof textureIndex === 'number' ? textureIndex : 0;
+                this.normalIndex = typeof normalIndex === 'number' ? normalIndex : 0;
+            }
+            return Face;
+        })();
+        Types.Face = Face;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -1223,21 +1199,6 @@ var webGLEngine;
             return Mesh;
         })(Types.Transformations);
         Types.Mesh = Mesh;
-    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
-})(webGLEngine || (webGLEngine = {}));
-var webGLEngine;
-(function (webGLEngine) {
-    var Types;
-    (function (Types) {
-        var Face = (function () {
-            function Face(vertexIndex, textureIndex, normalIndex) {
-                this.vertexIndex = typeof vertexIndex === 'number' ? vertexIndex : 0;
-                this.textureIndex = typeof textureIndex === 'number' ? textureIndex : 0;
-                this.normalIndex = typeof normalIndex === 'number' ? normalIndex : 0;
-            }
-            return Face;
-        })();
-        Types.Face = Face;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
 ///<reference path="common/Vector3.ts"/>
@@ -1436,6 +1397,119 @@ var webGLEngine;
 (function (webGLEngine) {
     var Types;
     (function (Types) {
+        var Render = (function () {
+            function Render() {
+                this._subscribers = [];
+                this._renderTimer = new webGLEngine.Utils.Timer();
+            }
+            /** set render frequency per second
+             * @param framePerSecond frames per second
+             * @returns is set successful
+             */
+            Render.prototype.setRenderFPS = function (framePerSecond) {
+                if (typeof framePerSecond === 'number') {
+                    if (this._renderTimer.isTimerEnabled()) {
+                        this._renderTimer.stop();
+                    }
+                    this._renderTimer.start(new webGLEngine.Utils.Callback(this._render, this), framePerSecond);
+                    return true;
+                }
+                return false;
+            };
+            /** Add render subscriber
+             * @param renderCallback
+             * @return is callback Was added
+             */
+            Render.prototype.subscribe = function (renderCallback) {
+                if (this._subscribers.indexOf(renderCallback) < 0) {
+                    this._subscribers.push(renderCallback);
+                    return true;
+                }
+                return false;
+            };
+            /** Removes render subscriber
+             * @param renderCallback
+             * @return is callback Was deleted
+             */
+            Render.prototype.unsubscribe = function (renderCallback) {
+                var index;
+                if ((index = this._subscribers.indexOf(renderCallback)) > 0) {
+                    this._subscribers.splice(index, 1);
+                    return true;
+                }
+                return false;
+            };
+            /** render the scene
+             * if you want to use your own uneven render */
+            Render.prototype.render = function () {
+                this._render();
+            };
+            Render.prototype._render = function () {
+                var i;
+                // TODO : finish render
+                // call subscribed function for render
+                for (i = 0; i < this._subscribers.length; i++) {
+                    this._subscribers[i].apply();
+                }
+            };
+            return Render;
+        })();
+        Types.Render = Render;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+///<reference path="./../utils/Utils.ts"/>
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Material = (function () {
+            function Material() {
+                this.texture = null;
+                this.diffuseColor = [Math.random(), Math.random(), Math.random()];
+                this.specular = 0;
+                this.imageLink = '';
+                this.ready = true;
+                this.texture = null;
+                this.textureRepeat = true;
+            }
+            Material.prototype.loadTexture = function (gl, path, textureRepeat) {
+                if (typeof gl !== 'object') {
+                    console.log('GL parameter is not a object');
+                    return;
+                }
+                if (typeof path !== 'string') {
+                    console.log('Texture path parameter is not a string');
+                    return;
+                }
+                this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
+                this.ready = false;
+                this.imageLink = path;
+                this.texture = gl.createTexture();
+                this.texture.image = new Image();
+                this.texture.image.onload = webGLEngine.Utils.bind(this.createTexture, this, gl);
+                this.texture.image.src = this.imageLink;
+            };
+            /** @private */
+            Material.prototype.createTexture = function () {
+                var gl = arguments[arguments.length - 1], repeatType = this.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
+                gl.bindTexture(gl.TEXTURE_2D, this.texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.image);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+                this.ready = true;
+            };
+            return Material;
+        })();
+        Types.Material = Material;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
         var Frame = (function () {
             function Frame() {
                 this._position = null;
@@ -1503,11 +1577,11 @@ var webGLEngine;
             };
             AnimationTarget.prototype.start = function (callback) {
                 this._startTime = Date.now();
-                if (callback instanceof Utils.Callback) {
+                if (callback instanceof webGLEngine.Utils.Callback) {
                     this._callback = callback;
                 }
                 else {
-                    this._callback = new Utils.Callback(function () { }, {});
+                    this._callback = new webGLEngine.Utils.Callback(function () { }, {});
                 }
             };
             AnimationTarget.prototype.nextFrame = function () {
@@ -1637,14 +1711,15 @@ var webGLEngine;
     webGLEngine.config = config;
 })(webGLEngine || (webGLEngine = {}));
 ///<reference path="./classes/utils/Utils.ts"/>
-///<reference path="./classes/mesh/Mesh.ts"/>
+///<reference path="./classes/mesh/Transformations.ts"/>
 ///<reference path="./classes/mesh/Face.ts"/>
+///<reference path="./classes/mesh/Mesh.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
 ///<reference path="./classes/Camera.ts"/>
+///<reference path="./classes/Render.ts"/>
 ///<reference path="./classes/common/Vector3.ts"/>
 ///<reference path="./classes/mesh/Material.ts"/>
-///<reference path="./classes/mesh/Transformations.ts"/>
 ///<reference path="./classes/animation/Frame.ts"/>
 ///<reference path="./classes/animation/AnimationTarget.ts"/>
 ///<reference path="./classes/animation/Animation.ts"/>
@@ -1659,19 +1734,27 @@ var webGLEngine;
             this._shader = null;
             this._inited = false;
             this._canvasNode = null;
-            this._mvMatrix = Utils.GLMatrix.mat4.create(undefined);
-            this._pMatrix = Utils.GLMatrix.mat4.create(undefined);
+            this._mvMatrix = webGLEngine.Utils.GLMatrix.mat4.create(undefined);
+            this._pMatrix = webGLEngine.Utils.GLMatrix.mat4.create(undefined);
             this._mvMatrixStack = [];
             this._camera = new webGLEngine.Types.Camera();
+            this._render = new webGLEngine.Types.Render();
             this._meshes = [];
             this._lights = [];
             this._shaderProgram = null;
             this._isLightingEnable = true;
-            window.addEventListener('resize', Utils.bind(this.onResize, this), false);
+            window.addEventListener('resize', webGLEngine.Utils.bind(this.onResize, this), false);
             this._crateCanvas();
             this._initGL();
             this._loadShaders(fragmentShaderPath, vertexShaderPath);
         }
+        Object.defineProperty(Engine.prototype, "Render", {
+            get: function () {
+                return this._render;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Engine.prototype._crateCanvas = function () {
             this._canvasNode = document.getElementById(webGLEngine.config.html.canvasID);
             if (this._canvasNode === null) {
@@ -1699,7 +1782,7 @@ var webGLEngine;
             this._shader = new webGLEngine.Types.Shader(this._gl);
             console.log('> Start shaders loading.');
             this._isReady = false;
-            this._shader.add(new Utils.Callback(this._initShaders, this), fragmentShaderPath, vertexShaderPath);
+            this._shader.add(new webGLEngine.Utils.Callback(this._initShaders, this), fragmentShaderPath, vertexShaderPath);
         };
         Engine.prototype._initShaders = function () {
             var fragmentShader = this._shader.getFragmentShader();
@@ -1737,8 +1820,8 @@ var webGLEngine;
             this._isReady = true;
         };
         Engine.prototype._mvPushMatrix = function () {
-            var copy = Utils.GLMatrix.mat4.create(undefined);
-            Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
+            var copy = webGLEngine.Utils.GLMatrix.mat4.create(undefined);
+            webGLEngine.Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
             this._mvMatrixStack.push(copy);
         };
         Engine.prototype._mvPopMatrix = function () {
@@ -1750,9 +1833,9 @@ var webGLEngine;
         Engine.prototype._setMatrixUniforms = function () {
             this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
             this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-            var normalMatrix = Utils.GLMatrix.mat3.create(undefined);
-            Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
-            Utils.GLMatrix.mat3.transpose(normalMatrix);
+            var normalMatrix = webGLEngine.Utils.GLMatrix.mat3.create(undefined);
+            webGLEngine.Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
+            webGLEngine.Utils.GLMatrix.mat3.transpose(normalMatrix);
             this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
         };
         //private _degToRad(degrees : number) : number {
@@ -1761,13 +1844,13 @@ var webGLEngine;
         Engine.prototype.beginDraw = function () {
             this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
             this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
-            Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix);
-            Utils.GLMatrix.mat4.identity(this._mvMatrix);
+            webGLEngine.Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix);
+            webGLEngine.Utils.GLMatrix.mat4.identity(this._mvMatrix);
             // set camera position
-            Utils.GLMatrix.mat4.rotateX(this._mvMatrix, this._camera.rotation.x);
-            Utils.GLMatrix.mat4.rotateY(this._mvMatrix, this._camera.rotation.y);
-            Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, this._camera.rotation.z);
-            Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.getArray());
+            webGLEngine.Utils.GLMatrix.mat4.rotateX(this._mvMatrix, this._camera.rotation.x);
+            webGLEngine.Utils.GLMatrix.mat4.rotateY(this._mvMatrix, this._camera.rotation.y);
+            webGLEngine.Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, this._camera.rotation.z);
+            webGLEngine.Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.getArray());
             //noinspection ConstantIfStatementJS
             if (false) {
                 this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
@@ -1794,11 +1877,11 @@ var webGLEngine;
             vertexColorBuffer = mesh.getVertexColorBuffer();
             vertexTextureBuffer = mesh.getVertexTextureBuffer();
             // apply matrix mesh
-            Utils.GLMatrix.mat4.translate(this._mvMatrix, mesh.position.getArray());
-            Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, mesh.rotation.z);
-            Utils.GLMatrix.mat4.rotateY(this._mvMatrix, mesh.rotation.y);
-            Utils.GLMatrix.mat4.rotateX(this._mvMatrix, mesh.rotation.x);
-            Utils.GLMatrix.mat4.scale(this._mvMatrix, mesh.scale.getArray());
+            webGLEngine.Utils.GLMatrix.mat4.translate(this._mvMatrix, mesh.position.getArray());
+            webGLEngine.Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, mesh.rotation.z);
+            webGLEngine.Utils.GLMatrix.mat4.rotateY(this._mvMatrix, mesh.rotation.y);
+            webGLEngine.Utils.GLMatrix.mat4.rotateX(this._mvMatrix, mesh.rotation.x);
+            webGLEngine.Utils.GLMatrix.mat4.scale(this._mvMatrix, mesh.scale.getArray());
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
             this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
@@ -1894,20 +1977,20 @@ var webGLEngine;
             var mesh = new webGLEngine.Types.Mesh(this._gl), parameters = {
                 textureRepeat: true
             };
-            console.log('> Start loading mesh => "' + Utils.getFileNameFromPath(path) + '"');
+            console.log('> Start loading mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             this._meshes.push(mesh);
             if (typeof params === 'object') {
                 if (typeof params.textureRepeat === 'boolean') {
                     parameters.textureRepeat = params.textureRepeat;
                 }
             }
-            Utils.requestFile(path, new Utils.Callback(this._parseObjFile, this, mesh, path, parameters));
+            webGLEngine.Utils.requestFile(path, new webGLEngine.Utils.Callback(this._parseObjFile, this, mesh, path, parameters));
             return mesh;
         };
         Engine.prototype._parseObjFile = function (objFile, mesh, path, parameters) {
             var i, j, nodes, vertexes = [], textures = [], normals = [], faces = [], materials = [], currentMaterial = webGLEngine.Types.Mesh.defaultMaterialName, vertexCounter, hasMaterial = false, objList, materialPath;
             // TODO : Async and fill mesh
-            console.log('> Start parsing mesh => "' + Utils.getFileNameFromPath(path) + '"');
+            console.log('> Start parsing mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             materials[currentMaterial] = new webGLEngine.Types.Material();
             faces[currentMaterial] = [];
             objList = objFile.split(/\r\n|\n|\r/g);
@@ -1970,7 +2053,7 @@ var webGLEngine;
                     case 'mtllib':
                         hasMaterial = true;
                         materialPath = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
-                        Utils.requestFile(materialPath, new Utils.Callback(this._parseMaterial, this, materialPath, mesh, parameters));
+                        webGLEngine.Utils.requestFile(materialPath, new webGLEngine.Utils.Callback(this._parseMaterial, this, materialPath, mesh, parameters));
                         break;
                     case 'usemtl':
                         if (!materials.hasOwnProperty(nodes[1])) {
@@ -1993,7 +2076,7 @@ var webGLEngine;
             var mtlList, i, j, nodes, material, allMaterials = [];
             /** @type {Material} */
             var currentMaterial = null;
-            console.log('> Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
+            console.log('> Start parsing material => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             mtlList = mtlFile.split(/\r\n|\n|\r/g);
             for (i = 0; i < mtlList.length; i++) {
                 nodes = mtlList[i].split(/\s+/g);

@@ -1,19 +1,23 @@
-module Utils {
+module webGLEngine {
 
-	export class Callback {
+	export module Utils {
 
-		private _func : Function;
-		private _thisArg : Object;
-		private _args : Object;
+		export class Callback {
 
-		constructor(func : Function = function() {}, thisArg : Object = {}, ...args) {
-			this._func = func;
-			this._thisArg = thisArg;
-			this._args = args;
-		}
+			private _func : Function;
+			private _thisArg : Object;
+			private _args : Object;
 
-		public apply(...args) : any {
-			return this._func.apply(this._thisArg, args.concat(this._args));
+			constructor(func : Function = function () {
+			}, thisArg : Object = {}, ...args) {
+				this._func = func;
+				this._thisArg = thisArg;
+				this._args = args;
+			}
+
+			public apply(...args) : any {
+				return this._func.apply(this._thisArg, args.concat(this._args));
+			}
 		}
 	}
 }

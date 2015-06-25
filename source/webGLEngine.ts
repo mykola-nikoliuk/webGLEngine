@@ -1,12 +1,13 @@
 ///<reference path="./classes/utils/Utils.ts"/>
-///<reference path="./classes/mesh/Mesh.ts"/>
+///<reference path="./classes/mesh/Transformations.ts"/>
 ///<reference path="./classes/mesh/Face.ts"/>
+///<reference path="./classes/mesh/Mesh.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
 ///<reference path="./classes/Camera.ts"/>
+///<reference path="./classes/Render.ts"/>
 ///<reference path="./classes/common/Vector3.ts"/>
 ///<reference path="./classes/mesh/Material.ts"/>
-///<reference path="./classes/mesh/Transformations.ts"/>
 ///<reference path="./classes/animation/Frame.ts"/>
 ///<reference path="./classes/animation/AnimationTarget.ts"/>
 ///<reference path="./classes/animation/Animation.ts"/>
@@ -30,6 +31,8 @@ module webGLEngine {
 		private _meshes : Types.Mesh[];
 		private _lights : Types.Light[];
 
+		private _render : Types.Render;
+
 		private _shaderProgram;
 		private _isLightingEnable : boolean;
 
@@ -49,6 +52,7 @@ module webGLEngine {
 
 			this._camera = new Types.Camera();
 
+			this._render = new Types.Render();
 			this._meshes = [];
 			this._lights = [];
 			this._shaderProgram = null;
@@ -60,6 +64,10 @@ module webGLEngine {
 			this._crateCanvas();
 			this._initGL();
 			this._loadShaders(fragmentShaderPath, vertexShaderPath);
+		}
+
+		get Render() {
+			return this._render;
 		}
 
 		private _crateCanvas() : void {

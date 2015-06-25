@@ -150,7 +150,8 @@ var config = {
 		projectName : 'webGLEngine',
 		tools       : 'tools'
 	},
-	main    : 'webGLEngine.js'
+	main    : 'webGLEngine.js',
+	mainDTS : 'webGLEngine.d.ts'
 };
 
 var exampleProjectFolder = path.join(config.folders.root, config.folders.examplePath),
@@ -173,6 +174,7 @@ copyDir(
 
 // TODO: fix copy to release
 copyFile(path.join(projectFolder, config.main), (path.join(releaseFolder, config.main)));
+copyFile(path.join(projectFolder, config.mainDTS), (path.join(releaseFolder, config.mainDTS)));
 
 process.chdir(releaseFolder);
 
