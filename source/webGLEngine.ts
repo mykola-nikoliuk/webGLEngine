@@ -529,9 +529,18 @@ module webGLEngine {
 						break;
 
 					case 'kd':
-						for (j = 1; j < nodes.length; j++) {
+						var color = new Types.Vector3(),
+							colors = [];
+						for (j = 1; j < nodes.length && colors.length < 3; j++) {
 							if (nodes[j] === '') continue;
-							currentMaterial.diffuseColor[j - 1] = Number(nodes[j]);
+							colors.push(Number(nodes[j]));
+							if (colors.length === 3) {
+								currentMaterial.diffuseColor = color.set(colors[0], colors[1], colors[2]);
+								break;
+							}
+						}
+						if (colors.length !== 3) {
+							console.log('Error: MaterialParse: color.length !== 3');
 						}
 						break;
 

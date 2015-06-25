@@ -104,7 +104,7 @@ declare module webGLEngine {
             private _y;
             private _z;
             constructor(x?: any, y?: any, z?: any);
-            set(x: any, y: any, z: any): void;
+            set(x: any, y: any, z: any): Vector3;
             add(x: any, y: any, z: any): void;
             minus(vector: Vector3): void;
             plus(vector: Vector3): void;
@@ -298,7 +298,7 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class Material {
-            diffuseColor: number[];
+            diffuseColor: Vector3;
             specular: number;
             imageLink: string;
             ready: boolean;

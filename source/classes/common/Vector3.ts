@@ -12,10 +12,11 @@ module webGLEngine {
 				this.set(x, y, z);
 			}
 
-			public set(x, y, z) : void {
+			public set(x, y, z) : Vector3 {
 				this._x = typeof x === 'number' ? x : 0;
 				this._y = typeof y === 'number' ? y : 0;
 				this._z = typeof z === 'number' ? z : 0;
+				return this;
 			}
 
 			public add(x, y, z) : void {

@@ -6,7 +6,7 @@ module webGLEngine {
 
 		export class Material {
 
-			public diffuseColor : number[];
+			public diffuseColor : Vector3;
 			public specular : number;
 			public imageLink : string;
 			public ready : boolean;
@@ -18,7 +18,7 @@ module webGLEngine {
 			private _callback : Utils.Callback;
 
 			constructor() {
-				this.diffuseColor = [Math.random(), Math.random(), Math.random()];
+				this.diffuseColor = new Vector3(0, 0, 0);
 				this.specular = 0;
 				this.imageLink = '';
 				this.ready = true;

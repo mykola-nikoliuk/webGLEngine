@@ -94,13 +94,15 @@ module webGLEngine {
 							indexes.push(this._faces[material][i].vertexIndex);
 							textures[this._faces[material][i].vertexIndex * 2] = this._vertextTextures[this._faces[material][i].textureIndex * 2];
 							textures[this._faces[material][i].vertexIndex * 2 + 1] = this._vertextTextures[this._faces[material][i].textureIndex * 2 + 1];
+
 							normals[this._faces[material][i].vertexIndex * 3] = this._vertexNormals[this._faces[material][i].normalIndex * 3];
 							normals[this._faces[material][i].vertexIndex * 3 + 1] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 1];
 							normals[this._faces[material][i].vertexIndex * 3 + 2] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 2];
-							for (j = 0; j < 3; j++) {
-								colors.push(this._materials[material].diffuseColor[j]);
-							}
-							colors.push(1);
+
+							colors.push(this._materials[material].diffuseColor.r);
+							colors.push(this._materials[material].diffuseColor.g);
+							colors.push(this._materials[material].diffuseColor.b);
+							//colors.push(1);
 						}
 
 						vertexIndexBuffer = this._webGL.createBuffer();
@@ -125,7 +127,7 @@ module webGLEngine {
 				// create vertex color buffer
 				this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexColorBuffer);
 				this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(colors), this._webGL.STATIC_DRAW);
-				this._vertexColorBuffer.itemSize = 4;
+				this._vertexColorBuffer.itemSize = 3;
 				this._vertexColorBuffer.numItems = colors.length / this._vertexColorBuffer.itemSize;
 
 				// create vertex texture buffer

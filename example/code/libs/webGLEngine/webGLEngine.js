@@ -934,6 +934,7 @@ var webGLEngine;
                 this._x = typeof x === 'number' ? x : 0;
                 this._y = typeof y === 'number' ? y : 0;
                 this._z = typeof z === 'number' ? z : 0;
+                return this;
             };
             Vector3.prototype.add = function (x, y, z) {
                 this._x += typeof x === 'number' ? x : 0;
@@ -1156,10 +1157,9 @@ var webGLEngine;
                             normals[this._faces[material][i].vertexIndex * 3] = this._vertexNormals[this._faces[material][i].normalIndex * 3];
                             normals[this._faces[material][i].vertexIndex * 3 + 1] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 1];
                             normals[this._faces[material][i].vertexIndex * 3 + 2] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 2];
-                            for (j = 0; j < 3; j++) {
-                                colors.push(this._materials[material].diffuseColor[j]);
-                            }
-                            colors.push(1);
+                            colors.push(this._materials[material].diffuseColor.r);
+                            colors.push(this._materials[material].diffuseColor.g);
+                            colors.push(this._materials[material].diffuseColor.b);
                         }
                         vertexIndexBuffer = this._webGL.createBuffer();
                         this._webGL.bindBuffer(this._webGL.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
@@ -1180,7 +1180,7 @@ var webGLEngine;
                 // create vertex color buffer
                 this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexColorBuffer);
                 this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(colors), this._webGL.STATIC_DRAW);
-                this._vertexColorBuffer.itemSize = 4;
+                this._vertexColorBuffer.itemSize = 3;
                 this._vertexColorBuffer.numItems = colors.length / this._vertexColorBuffer.itemSize;
                 // create vertex texture buffer
                 this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexTextureBuffer);
@@ -1581,7 +1581,7 @@ var webGLEngine;
             function Material() {
                 this.texture = null;
                 this.image = null;
-                this.diffuseColor = [Math.random(), Math.random(), Math.random()];
+                this.diffuseColor = new Types.Vector3(0, 0, 0);
                 this.specular = 0;
                 this.imageLink = '';
                 this.ready = true;
@@ -1607,6 +1607,7 @@ var webGLEngine;
                 }
                 this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
                 if (!this._loadingImage) {
+                    //return;
                     this.ready = false;
                     this.texture = gl.createTexture();
                 }
@@ -2320,10 +2321,18 @@ var webGLEngine;
                         }
                         break;
                     case 'kd':
-                        for (j = 1; j < nodes.length; j++) {
+                        var color = new webGLEngine.Types.Vector3(), colors = [];
+                        for (j = 1; j < nodes.length && colors.length < 3; j++) {
                             if (nodes[j] === '')
                                 continue;
-                            currentMaterial.diffuseColor[j - 1] = Number(nodes[j]);
+                            colors.push(Number(nodes[j]));
+                            if (colors.length === 3) {
+                                currentMaterial.diffuseColor = color.set(colors[0], colors[1], colors[2]);
+                                break;
+                            }
+                        }
+                        if (colors.length !== 3) {
+                            console.log('Error: MaterialParse: color.length !== 3');
                         }
                         break;
                     case 'ns':
