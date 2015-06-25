@@ -298,17 +298,22 @@ declare module webGLEngine {
             private _reservedTransformation;
             private _mesh;
             private _startTime;
+            private _pausedTime;
             private _frameIndex;
+            private _isPaused;
             private _callback;
             constructor(mesh: Transformations);
             start(callback?: Utils.Callback): void;
+            pause(): void;
+            resume(): void;
+            isPaused(): boolean;
             nextFrame(): number;
             shiftStartTime(time: number): void;
             callback(): void;
             saveTransformation(): void;
             revertTransformation(): void;
             getFrameIndex(): number;
-            getMesh(): Transformations;
+            getTransformable(): Transformations;
             getStartTime(): number;
         }
     }
@@ -326,17 +331,19 @@ declare module webGLEngine {
                 WITHOUT_CHANGES: number;
             };
             constructor(type: number, initialFrame: Frame, frames: Frame[]);
-            start(mesh: Transformations, callback?: Utils.Callback): void;
+            start(transformable: Transformations, callback?: Utils.Callback): void;
             /** Do updates before render */
             updateBeforeRender(): void;
             /** Do updated after render */
             updateAfterRender(): void;
-            update(): void;
             setTimeByDistance(time: number): void;
+            pause(transformable: Transformations): void;
+            resume(transformable: Transformations): void;
             /** Adds animation to general animations list */
             turnOn(): void;
             /** Removes animation from general animations list */
             turnOff(): void;
+            private _update();
             private _updateTarget(target, frameIndex, percents);
         }
     }

@@ -1588,6 +1588,8 @@ var webGLEngine;
         var AnimationTarget = (function () {
             function AnimationTarget(mesh) {
                 if (mesh instanceof Types.Transformations) {
+                    this._startTime = 0;
+                    this._pausedTime = 0;
                     this._mesh = mesh;
                     this._frameIndex = 0;
                 }
@@ -1598,11 +1600,28 @@ var webGLEngine;
             AnimationTarget.prototype.start = function (callback) {
                 this._startTime = Date.now();
                 if (callback instanceof webGLEngine.Utils.Callback) {
+                    this._isPaused = false;
                     this._callback = callback;
                 }
                 else {
-                    this._callback = new webGLEngine.Utils.Callback(function () { }, {});
+                    this._callback = new webGLEngine.Utils.Callback(function () {
+                    }, {});
                 }
+            };
+            AnimationTarget.prototype.pause = function () {
+                if (!this._isPaused) {
+                    this._isPaused = true;
+                    this._pausedTime = Date.now();
+                }
+            };
+            AnimationTarget.prototype.resume = function () {
+                if (this._isPaused) {
+                    this._isPaused = false;
+                    this._startTime += Date.now() - this._pausedTime;
+                }
+            };
+            AnimationTarget.prototype.isPaused = function () {
+                return this._isPaused;
             };
             AnimationTarget.prototype.nextFrame = function () {
                 return ++this._frameIndex;
@@ -1622,7 +1641,7 @@ var webGLEngine;
             AnimationTarget.prototype.getFrameIndex = function () {
                 return this._frameIndex;
             };
-            AnimationTarget.prototype.getMesh = function () {
+            AnimationTarget.prototype.getTransformable = function () {
                 return this._mesh;
             };
             AnimationTarget.prototype.getStartTime = function () {
@@ -1652,11 +1671,11 @@ var webGLEngine;
                 }
                 this.turnOn();
             }
-            Animation.prototype.start = function (mesh, callback) {
-                var target = new Types.AnimationTarget(mesh), i;
+            Animation.prototype.start = function (transformable, callback) {
+                var target = new Types.AnimationTarget(transformable), i;
                 target.start(callback);
                 for (i = 0; i < this._targets.length; i++) {
-                    if (this._targets[i].getMesh() === mesh) {
+                    if (this._targets[i].getTransformable() === transformable) {
                         this._targets.splice(i, 1);
                         i--;
                     }
@@ -1665,7 +1684,7 @@ var webGLEngine;
             };
             /** Do updates before render */
             Animation.prototype.updateBeforeRender = function () {
-                this.update();
+                this._update();
             };
             /** Do updated after render */
             Animation.prototype.updateAfterRender = function () {
@@ -1676,10 +1695,68 @@ var webGLEngine;
                     }
                 }
             };
-            Animation.prototype.update = function () {
+            Animation.prototype.setTimeByDistance = function (time) {
+                var length, totalLength = 0, frame, nextFrame, sectorsLength = [], i;
+                if (typeof time === 'number' && time > 0) {
+                    // get distance between frames
+                    for (i = 0; i < this._frames.length; i++) {
+                        frame = i === 0 ? this._initialFrame : this._frames[i - 1];
+                        nextFrame = this._frames[i];
+                        length = frame.getPosition().getDistanceTo(nextFrame.getPosition());
+                        totalLength += length;
+                        sectorsLength.push(length);
+                    }
+                    for (i = 0; i < this._frames.length; i++) {
+                        this._frames[i].setTime(time * (sectorsLength[i] / totalLength));
+                    }
+                }
+                else {
+                    console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
+                }
+            };
+            Animation.prototype.pause = function (transformable) {
+                for (var i = 0; i < this._targets.length; i++) {
+                    if (this._targets[i].getTransformable() === transformable) {
+                        this._targets[i].pause();
+                        break;
+                    }
+                }
+            };
+            Animation.prototype.resume = function (transformable) {
+                for (var i = 0; i < this._targets.length; i++) {
+                    if (this._targets[i].getTransformable() === transformable) {
+                        this._targets[i].resume();
+                        break;
+                    }
+                }
+            };
+            /** Adds animation to general animations list */
+            Animation.prototype.turnOn = function () {
+                var index, i;
+                if ((index = Animation.animations.indexOf(this)) < 0) {
+                    Animation.animations.push(this);
+                }
+                for (i = 0; i < this._targets.length; i++) {
+                    this._targets[i].resume();
+                }
+            };
+            /** Removes animation from general animations list */
+            Animation.prototype.turnOff = function () {
+                var index, i;
+                if ((index = Animation.animations.indexOf(this)) >= 0) {
+                    Animation.animations.splice(index, 1);
+                }
+                for (i = 0; i < this._targets.length; i++) {
+                    this._targets[i].pause();
+                }
+            };
+            Animation.prototype._update = function () {
                 var elapsedTime, frameIndex, targetRemoved, target, i;
                 for (i = 0; i < this._targets.length; i++) {
                     target = this._targets[i];
+                    if (target.isPaused()) {
+                        continue;
+                    }
                     if (this._type === Animation.Types.WITHOUT_CHANGES) {
                         target.saveTransformation();
                     }
@@ -1705,43 +1782,10 @@ var webGLEngine;
                     } while (elapsedTime >= this._frames[frameIndex].getTime());
                 }
             };
-            Animation.prototype.setTimeByDistance = function (time) {
-                var length, totalLength = 0, frame, nextFrame, sectorsLength = [], i;
-                if (typeof time === 'number' && time > 0) {
-                    // get distance between frames
-                    for (i = 0; i < this._frames.length; i++) {
-                        frame = i === 0 ? this._initialFrame : this._frames[i - 1];
-                        nextFrame = this._frames[i];
-                        length = frame.getPosition().getDistanceTo(nextFrame.getPosition());
-                        totalLength += length;
-                        sectorsLength.push(length);
-                    }
-                    for (i = 0; i < this._frames.length; i++) {
-                        this._frames[i].setTime(time * (sectorsLength[i] / totalLength));
-                    }
-                }
-                else {
-                    console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
-                }
-            };
-            /** Adds animation to general animations list */
-            Animation.prototype.turnOn = function () {
-                var index;
-                if ((index = Animation.animations.indexOf(this)) < 0) {
-                    Animation.animations.push(this);
-                }
-            };
-            /** Removes animation from general animations list */
-            Animation.prototype.turnOff = function () {
-                var index;
-                if ((index = Animation.animations.indexOf(this)) >= 0) {
-                    Animation.animations.splice(index, 1);
-                }
-            };
             Animation.prototype._updateTarget = function (target, frameIndex, percents) {
                 var frame, previousFrame = frameIndex > 0 ? this._frames[frameIndex - 1] : this._initialFrame, mesh, vector;
                 frame = this._frames[frameIndex];
-                mesh = target.getMesh();
+                mesh = target.getTransformable();
                 if (frame.getPosition()) {
                     vector = frame.getPosition().clone();
                     vector.minus(previousFrame.getPosition());

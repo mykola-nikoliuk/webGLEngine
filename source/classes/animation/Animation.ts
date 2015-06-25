@@ -31,13 +31,13 @@ module webGLEngine {
 				this.turnOn();
 			}
 
-			public start(mesh : Transformations, callback? : Utils.Callback) : void {
-				var target = new AnimationTarget(mesh),
+			public start(transformable : Transformations, callback? : Utils.Callback) : void {
+				var target = new AnimationTarget(transformable),
 					i : number;
 
 				target.start(callback);
 				for (i = 0; i < this._targets.length; i++) {
-					if (this._targets[i].getMesh() === mesh) {
+					if (this._targets[i].getTransformable() === transformable) {
 						this._targets.splice(i, 1);
 						i--;
 					}
@@ -47,7 +47,7 @@ module webGLEngine {
 
 			/** Do updates before render */
 			public updateBeforeRender() {
-				this.update();
+				this._update();
 			}
 
 			/** Do updated after render */
@@ -61,7 +61,79 @@ module webGLEngine {
 				}
 			}
 
-			public update() : void {
+			public setTimeByDistance(time : number) {
+				var length : number,
+					totalLength = 0,
+					frame : Frame,
+					nextFrame : Frame,
+					sectorsLength = [],
+					i : number;
+
+				if (typeof time === 'number' && time > 0) {
+					// get distance between frames
+					for (i = 0; i < this._frames.length; i++) {
+						frame = i === 0 ? this._initialFrame : this._frames[i - 1];
+						nextFrame = this._frames[i];
+						length = frame.getPosition().getDistanceTo(nextFrame.getPosition());
+						totalLength += length;
+						sectorsLength.push(length);
+					}
+					for (i = 0; i < this._frames.length; i++) {
+						this._frames[i].setTime(time * (sectorsLength[i] / totalLength));
+					}
+				}
+				else {
+					console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
+				}
+			}
+
+			public pause(transformable : Transformations) : void {
+				for (var i = 0; i < this._targets.length; i++) {
+					if (this._targets[i].getTransformable() === transformable) {
+						this._targets[i].pause();
+						break;
+					}
+				}
+			}
+
+			public resume(transformable : Transformations) : void {
+				for (var i = 0; i < this._targets.length; i++) {
+					if (this._targets[i].getTransformable() === transformable) {
+						this._targets[i].resume();
+						break;
+					}
+				}
+			}
+
+			/** Adds animation to general animations list */
+			public turnOn() {
+				var index : number,
+					i : number;
+
+				if ((index = Animation.animations.indexOf(this)) < 0) {
+					Animation.animations.push(this);
+				}
+
+				for (i = 0; i < this._targets.length; i++) {
+					this._targets[i].resume();
+				}
+			}
+
+			/** Removes animation from general animations list */
+			public turnOff() {
+				var index : number,
+					i : number;
+
+				if ((index = Animation.animations.indexOf(this)) >= 0) {
+					Animation.animations.splice(index, 1);
+				}
+
+				for (i = 0; i < this._targets.length; i++) {
+					this._targets[i].pause();
+				}
+			}
+
+			private _update() : void {
 				var elapsedTime : number,
 					frameIndex : number,
 					targetRemoved : boolean,
@@ -70,6 +142,10 @@ module webGLEngine {
 
 				for (i = 0; i < this._targets.length; i++) {
 					target = this._targets[i];
+
+					if (target.isPaused()) {
+						continue;
+					}
 
 					if (this._type === Animation.Types.WITHOUT_CHANGES) {
 						target.saveTransformation();
@@ -100,50 +176,6 @@ module webGLEngine {
 				}
 			}
 
-			public setTimeByDistance(time : number) {
-				var length : number,
-					totalLength = 0,
-					frame : Frame,
-					nextFrame : Frame,
-					sectorsLength = [],
-					i : number;
-
-				if (typeof time === 'number' && time > 0) {
-					// get distance between frames
-					for (i = 0; i < this._frames.length; i++) {
-						frame = i === 0 ? this._initialFrame : this._frames[i - 1];
-						nextFrame = this._frames[i];
-						length = frame.getPosition().getDistanceTo(nextFrame.getPosition());
-						totalLength += length;
-						sectorsLength.push(length);
-					}
-					for (i = 0; i < this._frames.length; i++) {
-						this._frames[i].setTime(time * (sectorsLength[i] / totalLength));
-					}
-				}
-				else {
-					console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
-				}
-			}
-
-			/** Adds animation to general animations list */
-			public turnOn() {
-				var index : number;
-
-				if ((index = Animation.animations.indexOf(this)) < 0) {
-					Animation.animations.push(this);
-				}
-			}
-
-			/** Removes animation from general animations list */
-			public turnOff() {
-				var index : number;
-
-				if ((index = Animation.animations.indexOf(this)) >= 0) {
-					Animation.animations.splice(index, 1);
-				}
-			}
-
 			private _updateTarget(target : AnimationTarget, frameIndex : number, percents : number) : void {
 				var frame : Frame,
 					previousFrame : Frame = frameIndex > 0 ? this._frames[frameIndex - 1] : this._initialFrame,
@@ -151,7 +183,7 @@ module webGLEngine {
 					vector : Vector3;
 
 				frame = this._frames[frameIndex];
-				mesh = target.getMesh();
+				mesh = target.getTransformable();
 				if (frame.getPosition()) {
 					vector = frame.getPosition().clone();
 					vector.minus(previousFrame.getPosition());
