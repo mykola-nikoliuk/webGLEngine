@@ -231,14 +231,15 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class Render {
+            private _engine;
             private _subscribers;
             private _renderTimer;
-            constructor();
+            constructor(engine: Engine);
             /** set render frequency per second
              * @param framePerSecond frames per second
              * @returns is set successful
              */
-            setRenderFPS(framePerSecond: number): boolean;
+            setFPS(framePerSecond: number): boolean;
             /** Add render subscriber
              * @param renderCallback
              * @return is callback Was added
@@ -312,10 +313,13 @@ declare module webGLEngine {
             private _frames;
             private _initialFrame;
             private _targets;
+            static animations: Animation[];
             constructor(initialFrame: Frame, frames: Frame[]);
             start(mesh: Transformations, callback?: Utils.Callback): void;
             update(): void;
             setTimeByDistance(time: number): void;
+            /** Removes animation from general animations list */
+            destroy(): void;
             private _updateTarget(target, frameIndex, percents);
         }
     }

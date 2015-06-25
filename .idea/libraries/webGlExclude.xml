@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="webGlExclude" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/source/webGLEngine.d.ts" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/source/webGLEngine.d.ts" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>

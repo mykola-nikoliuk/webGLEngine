@@ -52,7 +52,7 @@ module webGLEngine {
 
 			this._camera = new Types.Camera();
 
-			this._render = new Types.Render();
+			this._render = new Types.Render(this);
 			this._meshes = [];
 			this._lights = [];
 			this._shaderProgram = null;
@@ -210,17 +210,16 @@ module webGLEngine {
 		}
 
 		public draw(mesh : Types.Mesh) : void {
-
-			if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
-				return;
-			}
-
 			var vertexIndexBuffers,
 				vertexPositionBuffer,
 				vertexNormalBuffer,
 				vertexColorBuffer,
 				vertexTextureBuffer,
 				i, material;
+
+			if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
+				return;
+			}
 
 			this._mvPushMatrix();
 

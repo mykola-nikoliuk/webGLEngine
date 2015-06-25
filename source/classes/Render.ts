@@ -4,11 +4,12 @@ module webGLEngine {
 
 		export class Render {
 
-
+			private _engine : Engine;
 			private _subscribers : Utils.Callback[];
 			private _renderTimer : Utils.Timer;
 
-			constructor() {
+			constructor(engine : Engine) {
+				this._engine = engine;
 				this._subscribers = [];
 				this._renderTimer = new Utils.Timer();
 			}
@@ -17,12 +18,12 @@ module webGLEngine {
 			 * @param framePerSecond frames per second
 			 * @returns is set successful
 			 */
-			public setRenderFPS(framePerSecond : number) : boolean {
+			public setFPS(framePerSecond : number) : boolean {
 				if (typeof framePerSecond === 'number') {
 					if (this._renderTimer.isTimerEnabled()) {
 						this._renderTimer.stop();
 					}
-					this._renderTimer.start(new Utils.Callback(this._render, this), framePerSecond);
+					this._renderTimer.start(new Utils.Callback(this._render, this), 1000 / framePerSecond);
 					return true;
 				}
 				return false;
@@ -61,12 +62,17 @@ module webGLEngine {
 
 			private _render() {
 				var i : number;
+				if (this._engine.isReady()) {
+					// TODO : finish render
 
-				// TODO : finish render
+					for (i = 0; i < Animation.animations.length; i++) {
+						Animation.animations[i].update();
+					}
 
-				// call subscribed function for render
-				for (i = 0; i < this._subscribers.length; i++) {
-					this._subscribers[i].apply();
+					// call subscribed functions for render
+					for (i = 0; i < this._subscribers.length; i++) {
+						this._subscribers[i].apply();
+					}
 				}
 			}
 		}

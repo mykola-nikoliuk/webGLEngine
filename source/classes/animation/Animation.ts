@@ -7,6 +7,8 @@ module webGLEngine {
 			private _initialFrame : Frame;
 			private _targets : AnimationTarget[];
 
+			public static animations : Animation[] = [];
+
 			constructor(initialFrame : Frame, frames : Frame[]) {
 				this._initialFrame = initialFrame;
 				this._frames = [];
@@ -19,6 +21,8 @@ module webGLEngine {
 						}
 					}
 				}
+
+				Animation.animations.push(this);
 			}
 
 			public start(mesh : Transformations, callback? : Utils.Callback) : void {
@@ -92,6 +96,15 @@ module webGLEngine {
 				}
 				else {
 					console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
+				}
+			}
+
+			/** Removes animation from general animations list */
+			public destroy() {
+				var index : number;
+
+				if ((index = Animation.animations.indexOf(this)) >= 0) {
+					Animation.animations.splice(index, 1);
 				}
 			}
 

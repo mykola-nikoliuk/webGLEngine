@@ -1398,7 +1398,8 @@ var webGLEngine;
     var Types;
     (function (Types) {
         var Render = (function () {
-            function Render() {
+            function Render(engine) {
+                this._engine = engine;
                 this._subscribers = [];
                 this._renderTimer = new webGLEngine.Utils.Timer();
             }
@@ -1406,12 +1407,12 @@ var webGLEngine;
              * @param framePerSecond frames per second
              * @returns is set successful
              */
-            Render.prototype.setRenderFPS = function (framePerSecond) {
+            Render.prototype.setFPS = function (framePerSecond) {
                 if (typeof framePerSecond === 'number') {
                     if (this._renderTimer.isTimerEnabled()) {
                         this._renderTimer.stop();
                     }
-                    this._renderTimer.start(new webGLEngine.Utils.Callback(this._render, this), framePerSecond);
+                    this._renderTimer.start(new webGLEngine.Utils.Callback(this._render, this), 1000 / framePerSecond);
                     return true;
                 }
                 return false;
@@ -1446,10 +1447,15 @@ var webGLEngine;
             };
             Render.prototype._render = function () {
                 var i;
-                // TODO : finish render
-                // call subscribed function for render
-                for (i = 0; i < this._subscribers.length; i++) {
-                    this._subscribers[i].apply();
+                if (this._engine.isReady()) {
+                    // TODO : finish render
+                    for (i = 0; i < Types.Animation.animations.length; i++) {
+                        Types.Animation.animations[i].update();
+                    }
+                    // call subscribed functions for render
+                    for (i = 0; i < this._subscribers.length; i++) {
+                        this._subscribers[i].apply();
+                    }
                 }
             };
             return Render;
@@ -1614,6 +1620,7 @@ var webGLEngine;
                         }
                     }
                 }
+                Animation.animations.push(this);
             }
             Animation.prototype.start = function (mesh, callback) {
                 var target = new Types.AnimationTarget(mesh), i;
@@ -1671,6 +1678,13 @@ var webGLEngine;
                     console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
                 }
             };
+            /** Removes animation from general animations list */
+            Animation.prototype.destroy = function () {
+                var index;
+                if ((index = Animation.animations.indexOf(this)) >= 0) {
+                    Animation.animations.splice(index, 1);
+                }
+            };
             Animation.prototype._updateTarget = function (target, frameIndex, percents) {
                 var frame, previousFrame = frameIndex > 0 ? this._frames[frameIndex - 1] : this._initialFrame, mesh, vector;
                 frame = this._frames[frameIndex];
@@ -1692,6 +1706,7 @@ var webGLEngine;
                     mesh.rotation = vector;
                 }
             };
+            Animation.animations = [];
             return Animation;
         })();
         Types.Animation = Animation;
@@ -1738,7 +1753,7 @@ var webGLEngine;
             this._pMatrix = webGLEngine.Utils.GLMatrix.mat4.create(undefined);
             this._mvMatrixStack = [];
             this._camera = new webGLEngine.Types.Camera();
-            this._render = new webGLEngine.Types.Render();
+            this._render = new webGLEngine.Types.Render(this);
             this._meshes = [];
             this._lights = [];
             this._shaderProgram = null;
@@ -1866,10 +1881,10 @@ var webGLEngine;
             return this._isReady;
         };
         Engine.prototype.draw = function (mesh) {
+            var vertexIndexBuffers, vertexPositionBuffer, vertexNormalBuffer, vertexColorBuffer, vertexTextureBuffer, i, material;
             if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
                 return;
             }
-            var vertexIndexBuffers, vertexPositionBuffer, vertexNormalBuffer, vertexColorBuffer, vertexTextureBuffer, i, material;
             this._mvPushMatrix();
             vertexIndexBuffers = mesh.getVertexIndexBuffers();
             vertexPositionBuffer = mesh.getVertexPositionBuffer();

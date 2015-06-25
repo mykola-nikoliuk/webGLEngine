@@ -96,6 +96,7 @@ var ns = {
 			this.config.webGL.shaders.fragment,
 			this.config.webGL.shaders.vertex
 		);
+
 		this._camera = this._engine.getCamera();
 		this._game = new this.classes.Game();
 		this._timers = {
@@ -110,9 +111,9 @@ var ns = {
 		};
 
 		this._meshes = {
-			sky     : this._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
-			plane   : this._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false}),
-			street  : this._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false}),
+			sky     : ns._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
+			plane   : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false}),
+			street  : ns._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false}),
 			players : {}
 		};
 
@@ -136,7 +137,7 @@ var ns = {
 
 		if (this._engine) {
 			this._engine.Render.subscribe(new webGLEngine.Utils.Callback(this.mainProc, this));
-			this._engine.Render.setRenderFPS(this.config.engine.FPS);
+			this._engine.Render.setFPS(this.config.engine.FPS);
 		}
 	},
 
@@ -289,34 +290,14 @@ var ns = {
 	mainProc : function () {
 		var engine = this._engine;
 
-		// TODO: delete it
-		var time = Date.now();
-		//clientData  = this.client.getData();
-
-		if (this._engine.isReady()) {
-
-			//					this._engine._lights[0]._position.set(this._camera.position.x, this._camera.position.y, this._camera.position.z);
-
-			this._game.engine();
-
-			this.updateCameraPosition();
-
-			engine.beginDraw();
-			engine.turnOffLight();
-			this._animation.update();
-			engine.draw(this._meshes.sky);
-			engine.draw(this._meshes.street);
-			engine.draw(this._meshes.plane);
-			engine.turnOnLight();
-
-			// TODO : delete it
-			this.count++;
-			this.total += Date.now() - time;
-			if (this.count >= this.config.engine.FPS) {
-				document.getElementById('fps').innerHTML = this.total / this.count | 0;
-				this.count = this.total = 0;
-			}
-		}
+		this._game.engine();
+		this.updateCameraPosition();
+		engine.beginDraw();
+		engine.turnOffLight();
+		engine.draw(this._meshes.sky);
+		engine.draw(this._meshes.street);
+		engine.draw(this._meshes.plane);
+		engine.turnOnLight();
 	},
 
 	/** Locks cursor into canvas for using mouse
@@ -345,8 +326,8 @@ var ns = {
 	 * @public */
 	updateCameraRotation : function (e) {
 		//noinspection JSUnresolvedVariable
-		var x         = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
-				y         = e.movementY || e.mozMovementY || e.webkitMovementY || 0,
+		var x           = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
+				y           = e.movementY || e.mozMovementY || e.webkitMovementY || 0,
 				sensitivity = ns.config.camera.mouse.sensitivity;
 
 		this._camera.rotation.add(y / sensitivity, x / sensitivity, 0);
