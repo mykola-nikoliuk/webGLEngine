@@ -115,7 +115,7 @@ module webGLEngine {
 				vertexTextureBuffer,
 				i, material;
 
-			if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
+			if (!(mesh instanceof Types.Mesh) || !mesh.isReady()) {
 				return;
 			}
 

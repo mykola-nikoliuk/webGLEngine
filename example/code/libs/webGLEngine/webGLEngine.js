@@ -1108,7 +1108,6 @@ var webGLEngine;
                 this._vertexNormals = null;
                 this._faces = null;
                 this._materials = null;
-                this._materialsAmount = 0;
                 this._materialsLoaded = 0;
                 this._isReady = false;
                 this._vertexIndexBuffers = {};
@@ -1137,7 +1136,6 @@ var webGLEngine;
                     for (material in this._materials) {
                         if (this._materials.hasOwnProperty(material)) {
                             if (materials.hasOwnProperty(material)) {
-                                this._materialsAmount++;
                                 this._materials[material] = materials[material];
                                 this._materials[material].callback(this._materialCallback);
                             }
@@ -1240,12 +1238,14 @@ var webGLEngine;
                 return this._vertexTextureBuffer;
             };
             Mesh.prototype._materialIsReady = function () {
-                if (++this._materialsLoaded === this._materialsAmount) {
-                    this._isReady = true;
-                    if (this._createCallback) {
-                        this._createCallback.apply();
+                var loaded = true, material;
+                for (material in this._materials) {
+                    if (this._materials.hasOwnProperty(material) && !this._materials[material].ready) {
+                        loaded = false;
+                        break;
                     }
                 }
+                this._isReady = loaded;
             };
             Mesh.defaultMaterialName = 'noMaterial';
             return Mesh;
@@ -1580,20 +1580,20 @@ var webGLEngine;
         var Material = (function () {
             function Material() {
                 this.texture = null;
+                this.image = null;
                 this.diffuseColor = [Math.random(), Math.random(), Math.random()];
                 this.specular = 0;
                 this.imageLink = '';
                 this.ready = true;
                 this.texture = null;
                 this.textureRepeat = true;
+                this._loadingImage = null;
                 this._callback = null;
             }
             Material.prototype.callback = function (callback) {
+                this._callback = callback;
                 if (this.ready) {
                     callback.apply();
-                }
-                else {
-                    this._callback = callback;
                 }
             };
             Material.prototype.loadTexture = function (gl, path, textureRepeat) {
@@ -1606,18 +1606,21 @@ var webGLEngine;
                     return;
                 }
                 this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
-                this.ready = false;
+                if (!this._loadingImage) {
+                    this.ready = false;
+                    this.texture = gl.createTexture();
+                }
                 this.imageLink = path;
-                this.texture = gl.createTexture();
-                this.texture.image = new Image();
-                this.texture.image.onload = webGLEngine.Utils.bind(this._createTexture, this, gl);
-                this.texture.image.src = this.imageLink;
+                this._loadingImage = new Image();
+                this._loadingImage.onload = webGLEngine.Utils.bind(this._createTexture, this, gl);
+                this._loadingImage.src = path;
             };
             Material.prototype._createTexture = function () {
                 var gl = arguments[arguments.length - 1], repeatType = this.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
+                this.image = this._loadingImage;
                 gl.bindTexture(gl.TEXTURE_2D, this.texture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.texture.image);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
@@ -2004,7 +2007,7 @@ var webGLEngine;
         };
         Engine.prototype.draw = function (mesh) {
             var vertexIndexBuffers, vertexPositionBuffer, vertexNormalBuffer, vertexColorBuffer, vertexTextureBuffer, i, material;
-            if (typeof mesh === 'undefined' || mesh === null || !mesh.isReady()) {
+            if (!(mesh instanceof webGLEngine.Types.Mesh) || !mesh.isReady()) {
                 return;
             }
             this._mvPushMatrix();

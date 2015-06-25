@@ -11,7 +11,6 @@ module webGLEngine {
 			private _faces : Face[][];
 
 			private _materials : {[materialName:string] : Material};
-			private _materialsAmount : number;
 			private _materialsLoaded : number;
 
 			private _isReady : boolean;
@@ -36,7 +35,6 @@ module webGLEngine {
 				this._vertexNormals = null;
 				this._faces = null;
 				this._materials = null;
-				this._materialsAmount = 0;
 				this._materialsLoaded = 0;
 				this._isReady = false;
 
@@ -76,7 +74,6 @@ module webGLEngine {
 					for (material in this._materials) {
 						if (this._materials.hasOwnProperty(material)) {
 							if (materials.hasOwnProperty(material)) {
-								this._materialsAmount++;
 								this._materials[material] = materials[material];
 								this._materials[material].callback(this._materialCallback);
 							}
@@ -197,12 +194,17 @@ module webGLEngine {
 			}
 
 			private _materialIsReady() {
-				if (++this._materialsLoaded === this._materialsAmount) {
-					this._isReady = true;
-					if (this._createCallback) {
-						this._createCallback.apply();
+				var loaded = true,
+					material : string;
+
+				for (material in this._materials) {
+					if (this._materials.hasOwnProperty(material) && !this._materials[material].ready) {
+						loaded = false;
+						break;
 					}
 				}
+
+				this._isReady = loaded;
 			}
 		}
 	}

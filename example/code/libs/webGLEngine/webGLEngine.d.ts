@@ -153,7 +153,6 @@ declare module webGLEngine {
             private _vertexNormals;
             private _faces;
             private _materials;
-            private _materialsAmount;
             private _materialsLoaded;
             private _isReady;
             private _vertexIndexBuffers;
@@ -303,8 +302,10 @@ declare module webGLEngine {
             specular: number;
             imageLink: string;
             ready: boolean;
-            texture: any;
+            texture: WebGLTexture;
+            image: WebGLTexture;
             textureRepeat: boolean;
+            private _loadingImage;
             private _callback;
             constructor();
             callback(callback: Utils.Callback): void;

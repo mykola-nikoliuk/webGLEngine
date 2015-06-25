@@ -111,11 +111,11 @@ var ns = {
 		};
 
 		this._meshes = {
-			sky     : ns._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
-			plane   : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false})
+			sky    : ns._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
+			plane  : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false})
 				.callback(new webGLEngine.Utils.Callback(ns.createSecondPlane, ns)),
-			plane2  : null,
-			street  : ns._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false})
+			plane2 : null,
+			street : ns._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false})
 		};
 
 		this._system = {
@@ -185,8 +185,8 @@ var ns = {
 
 		this._meshes.sky.rotation.set(0, Math.PI, 0);
 		//
-		this._camera.position.set(62, -62, -155);
-		this._camera.rotation.set(0.45, -93, 0);
+		this._camera.position.set(113, -105, 20);
+		this._camera.rotation.set(0.49, -4.2, 0);
 
 		this._meshes.sky.position.set(-this._camera.position.x,
 			-this._camera.position.y, -this._camera.position.z);
@@ -302,9 +302,7 @@ var ns = {
 		engine.draw(this._meshes.sky);
 		engine.draw(this._meshes.street);
 		engine.draw(this._meshes.plane);
-		if (this._meshes.plane2) {
-			engine.draw(this._meshes.plane2);
-		}
+		engine.draw(this._meshes.plane2);
 		engine.turnOnLight();
 	},
 
