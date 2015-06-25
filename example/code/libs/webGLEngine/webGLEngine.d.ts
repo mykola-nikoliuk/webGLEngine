@@ -310,12 +310,21 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class Animation {
+            private _type;
             private _frames;
             private _initialFrame;
             private _targets;
             static animations: Animation[];
-            constructor(initialFrame: Frame, frames: Frame[]);
+            static Types: {
+                WITH_CHANGES: number;
+                WITHOUT_CHANGES: number;
+            };
+            constructor(type: number, initialFrame: Frame, frames: Frame[]);
             start(mesh: Transformations, callback?: Utils.Callback): void;
+            /** Do updates before render */
+            updateBeforeRender(): void;
+            /** Do updated after render */
+            updateAfterRender(): void;
             update(): void;
             setTimeByDistance(time: number): void;
             /** Removes animation from general animations list */

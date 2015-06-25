@@ -3,4 +3,5 @@
 # User-specific files
 source/*.map
 source/*.js
+source/*.d.ts
 build/*

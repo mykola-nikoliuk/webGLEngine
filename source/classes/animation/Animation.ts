@@ -3,13 +3,19 @@ module webGLEngine {
 	export module Types {
 
 		export class Animation {
+			private _type : number;
 			private _frames : Frame[];
 			private _initialFrame : Frame;
 			private _targets : AnimationTarget[];
 
 			public static animations : Animation[] = [];
+			public static Types = {
+				WITH_CHANGES   : 0,
+				WITHOUT_CHANGES: 1
+			};
 
-			constructor(initialFrame : Frame, frames : Frame[]) {
+			constructor(type : number, initialFrame : Frame, frames : Frame[]) {
+				this._type = type;
 				this._initialFrame = initialFrame;
 				this._frames = [];
 				this._targets = [];
@@ -37,6 +43,16 @@ module webGLEngine {
 					}
 				}
 				this._targets.push(target);
+			}
+
+			/** Do updates before render */
+			public updateBeforeRender() {
+				this.update();
+			}
+
+			/** Do updated after render */
+			public updateAfterRender() {
+
 			}
 
 			public update() : void {

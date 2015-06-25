@@ -65,13 +65,19 @@ module webGLEngine {
 				if (this._engine.isReady()) {
 					// TODO : finish render
 
+					// updates before render
 					for (i = 0; i < Animation.animations.length; i++) {
-						Animation.animations[i].update();
+						Animation.animations[i].updateBeforeRender();
 					}
 
 					// call subscribed functions for render
 					for (i = 0; i < this._subscribers.length; i++) {
 						this._subscribers[i].apply();
+					}
+
+					// update after render
+					for (i = 0; i < Animation.animations.length; i++) {
+						Animation.animations[i].updateAfterRender();
 					}
 				}
 			}

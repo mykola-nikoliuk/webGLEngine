@@ -1449,12 +1449,17 @@ var webGLEngine;
                 var i;
                 if (this._engine.isReady()) {
                     // TODO : finish render
+                    // updates before render
                     for (i = 0; i < Types.Animation.animations.length; i++) {
-                        Types.Animation.animations[i].update();
+                        Types.Animation.animations[i].updateBeforeRender();
                     }
                     // call subscribed functions for render
                     for (i = 0; i < this._subscribers.length; i++) {
                         this._subscribers[i].apply();
+                    }
+                    // update after render
+                    for (i = 0; i < Types.Animation.animations.length; i++) {
+                        Types.Animation.animations[i].updateAfterRender();
                     }
                 }
             };
@@ -1609,7 +1614,8 @@ var webGLEngine;
     var Types;
     (function (Types) {
         var Animation = (function () {
-            function Animation(initialFrame, frames) {
+            function Animation(type, initialFrame, frames) {
+                this._type = type;
                 this._initialFrame = initialFrame;
                 this._frames = [];
                 this._targets = [];
@@ -1632,6 +1638,13 @@ var webGLEngine;
                     }
                 }
                 this._targets.push(target);
+            };
+            /** Do updates before render */
+            Animation.prototype.updateBeforeRender = function () {
+                this.update();
+            };
+            /** Do updated after render */
+            Animation.prototype.updateAfterRender = function () {
             };
             Animation.prototype.update = function () {
                 var elapsedTime, frameIndex, targetRemoved, target, i;
@@ -1707,6 +1720,10 @@ var webGLEngine;
                 }
             };
             Animation.animations = [];
+            Animation.Types = {
+                WITH_CHANGES: 0,
+                WITHOUT_CHANGES: 1
+            };
             return Animation;
         })();
         Types.Animation = Animation;

@@ -398,9 +398,12 @@ var ns = {
 	_createAnimation : function () {
 		// test animation
 		this._animation = new webGLEngine.Types.Animation(
+			webGLEngine.Types.Animation.Types.WITH_CHANGES,
+
 			new webGLEngine.Types.Frame()
 				.setPosition(new webGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
 				.setRotation(new webGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, -1.610796326794911, 0)),
+
 			[
 				new webGLEngine.Types.Frame()
 					.setPosition(new webGLEngine.Types.Vector3(136.40451406685602, 5.415755109754397, 133.30897309960255))
