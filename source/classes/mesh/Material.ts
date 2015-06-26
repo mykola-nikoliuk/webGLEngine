@@ -45,7 +45,7 @@ module webGLEngine {
 					return;
 				}
 				this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
-				if (!this._loadingImage) {
+				if (!this.image) {
 					this.ready = false;
 					this.texture = gl.createTexture();
 				}

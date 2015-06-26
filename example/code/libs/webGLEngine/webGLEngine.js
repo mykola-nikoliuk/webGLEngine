@@ -1606,8 +1606,7 @@ var webGLEngine;
                     return;
                 }
                 this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
-                if (!this._loadingImage) {
-                    //return;
+                if (!this.image) {
                     this.ready = false;
                     this.texture = gl.createTexture();
                 }
