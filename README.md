@@ -35,6 +35,11 @@
 ------------
 #### Releases
 ##### v0.3
+	- render added;
+	- console added;
+	- animation added;
+	- camera added;
+	- camera position and rotation fix;
 	- mesh structure changed;
 	- frame animation added;
 	- example instruction added.

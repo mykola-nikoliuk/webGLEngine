@@ -180,8 +180,8 @@ var ns = {
 		this._meshes.sky.scale.set(10000, 10000, 10000);
 		this._meshes.sky.rotation.set(0, Math.PI, 0);
 		//
-		this._camera.position.set(113, -105, 20);
-		this._camera.rotation.set(0.49, -4.2, 0);
+		this._camera.position.set(-113, 105, -20);
+		this._camera.rotation.set(-0.49, 4.2, 0);
 
 		this._meshes.sky.position.set(-this._camera.position.x,
 			-this._camera.position.y, -this._camera.position.z);
@@ -331,7 +331,7 @@ var ns = {
 				y           = e.movementY || e.mozMovementY || e.webkitMovementY || 0,
 				sensitivity = ns.config.camera.mouse.sensitivity;
 
-		this._camera.rotation.add(y / sensitivity, x / sensitivity, 0);
+		this._camera.rotation.add(-y / sensitivity, -x / sensitivity, 0);
 		// look limitation
 		if (this._camera.rotation.x > Math.PI / 2) {
 			this._camera.rotation.x = Math.PI / 2;
@@ -348,30 +348,30 @@ var ns = {
 	updateCameraPosition : function () {
 		var staticSpeed, speed, cosX, Y = 0, X = 0, Z = 0;
 		staticSpeed = 2;
-		cosX = Math.cos(this._camera.rotation.x);
+		cosX = Math.cos(-this._camera.rotation.x);
 
 		speed = staticSpeed;
 
 		if (this._timers.key_w) {
-			Y += Math.sin(this._camera.rotation.x);
-			X += cosX * -Math.sin(this._camera.rotation.y);
-			Z += cosX * Math.cos(this._camera.rotation.y);
+			Y -= Math.sin(-this._camera.rotation.x);
+			X -= cosX * -Math.sin(-this._camera.rotation.y);
+			Z -= cosX * Math.cos(-this._camera.rotation.y);
 		}
 
 		if (this._timers.key_s) {
-			Y -= Math.sin(this._camera.rotation.x);
-			X -= cosX * -Math.sin(this._camera.rotation.y);
-			Z -= cosX * Math.cos(this._camera.rotation.y);
+			Y += Math.sin(-this._camera.rotation.x);
+			X += cosX * -Math.sin(-this._camera.rotation.y);
+			Z += cosX * Math.cos(-this._camera.rotation.y);
 		}
 
 		if (this._timers.key_a) {
-			X += -Math.sin(this._camera.rotation.y - Math.PI / 2);
-			Z += Math.cos(this._camera.rotation.y - Math.PI / 2);
+			X += Math.sin(-this._camera.rotation.y - Math.PI / 2);
+			Z += -Math.cos(-this._camera.rotation.y - Math.PI / 2);
 		}
 
 		if (this._timers.key_d) {
-			X += Math.sin(this._camera.rotation.y - Math.PI / 2);
-			Z += -Math.cos(this._camera.rotation.y - Math.PI / 2);
+			X += -Math.sin(-this._camera.rotation.y - Math.PI / 2);
+			Z += Math.cos(-this._camera.rotation.y - Math.PI / 2);
 		}
 
 		//		if (this._timers.key_up) {

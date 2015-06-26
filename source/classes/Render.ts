@@ -37,11 +37,15 @@ module webGLEngine {
 			private _render() {
 				var i : number;
 				if (this._engine.isReady()) {
-					// TODO : finish render
 
 					// updates before render
 					for (i = 0; i < Animation.animations.length; i++) {
 						Animation.animations[i].updateBeforeRender();
+					}
+
+					// updates cameras
+					for (i = 0; i < Camera.cameras.length; i++) {
+						Camera.cameras[i].update();
 					}
 
 					// call subscribed functions for render

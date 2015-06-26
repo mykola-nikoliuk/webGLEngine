@@ -918,6 +918,7 @@ var webGLEngine;
                 consoleDiv.style.backgroundColor = Console._config.consoleColor;
                 document.body.appendChild(consoleDiv);
             };
+            /** adds line to log */
             Console.prototype._addLine = function (msg, color) {
                 var lineDiv = document.createElement('div');
                 lineDiv.style.color = color;
@@ -950,7 +951,7 @@ var webGLEngine;
                 linePadding: 4,
                 lineColor: 'rgba(32, 32, 32, 0.5)',
                 lineIndent: 16,
-                fontSize: 16
+                fontSize: 14
             };
             return Console;
         })();
@@ -1044,6 +1045,12 @@ var webGLEngine;
             };
             Vector3.prototype.clone = function () {
                 return new Vector3(this._x, this._y, this._z);
+            };
+            Vector3.prototype.invertSign = function () {
+                this._x *= -1;
+                this._y *= -1;
+                this._z *= -1;
+                return this;
             };
             Vector3.prototype.copyFrom = function (vector) {
                 this._x = vector._x;
@@ -1525,7 +1532,40 @@ var webGLEngine;
             __extends(Camera, _super);
             function Camera() {
                 _super.call(this);
+                this._followTarget = null;
+                this.turnOn();
             }
+            /** Sets follow state for camera */
+            Camera.prototype.follow = function (transformations, distance) {
+                if (transformations instanceof Types.Transformations) {
+                    this._followTarget = transformations;
+                    this._distance = typeof distance === 'number' ? distance : -1;
+                }
+                else {
+                    webGLEngine.Console.error('Camera:follow() : first parameter should be instance of Transformations');
+                }
+            };
+            /** Removes follow state */
+            Camera.prototype.unfollow = function () {
+                this._followTarget = null;
+            };
+            Camera.prototype.update = function () {
+                if (this._followTarget) {
+                    this.position.copyFrom(this._followTarget.position);
+                }
+            };
+            /** Adds camera to engine */
+            Camera.prototype.turnOn = function () {
+                Camera.cameras.push(this);
+            };
+            /** Release camera from engine */
+            Camera.prototype.turnOff = function () {
+                var index;
+                if ((index = Camera.cameras.indexOf(this)) >= 0) {
+                    Camera.cameras.splice(index, 1);
+                }
+            };
+            Camera.cameras = [];
             return Camera;
         })(Types.Transformations);
         Types.Camera = Camera;
@@ -1602,10 +1642,13 @@ var webGLEngine;
             Render.prototype._render = function () {
                 var i;
                 if (this._engine.isReady()) {
-                    // TODO : finish render
                     // updates before render
                     for (i = 0; i < Types.Animation.animations.length; i++) {
                         Types.Animation.animations[i].updateBeforeRender();
+                    }
+                    // updates cameras
+                    for (i = 0; i < Types.Camera.cameras.length; i++) {
+                        Types.Camera.cameras[i].update();
                     }
                     // call subscribed functions for render
                     for (i = 0; i < this._subscribers.length; i++) {
@@ -2094,10 +2137,10 @@ var webGLEngine;
             webGLEngine.Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix);
             webGLEngine.Utils.GLMatrix.mat4.identity(this._mvMatrix);
             // set camera position
-            webGLEngine.Utils.GLMatrix.mat4.rotateX(this._mvMatrix, this._camera.rotation.x);
-            webGLEngine.Utils.GLMatrix.mat4.rotateY(this._mvMatrix, this._camera.rotation.y);
-            webGLEngine.Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, this._camera.rotation.z);
-            webGLEngine.Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.getArray());
+            webGLEngine.Utils.GLMatrix.mat4.rotateX(this._mvMatrix, -this._camera.rotation.x);
+            webGLEngine.Utils.GLMatrix.mat4.rotateY(this._mvMatrix, -this._camera.rotation.y);
+            webGLEngine.Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, -this._camera.rotation.z);
+            webGLEngine.Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.clone().invertSign().getArray());
             //noinspection ConstantIfStatementJS
             if (false) {
                 this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);

@@ -89,10 +89,10 @@ module webGLEngine {
 			Utils.GLMatrix.mat4.identity(this._mvMatrix);
 
 			// set camera position
-			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, this._camera.rotation.x);
-			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, this._camera.rotation.y);
-			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, this._camera.rotation.z);
-			Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.getArray());
+			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, -this._camera.rotation.x);
+			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, -this._camera.rotation.y);
+			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, -this._camera.rotation.z);
+			Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.clone().invertSign().getArray());
 
 			//noinspection ConstantIfStatementJS
 			if (false) {

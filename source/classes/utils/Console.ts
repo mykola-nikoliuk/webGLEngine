@@ -20,7 +20,7 @@ module webGLEngine {
 				linePadding   : 4,
 				lineColor     : 'rgba(32, 32, 32, 0.5)',
 				lineIndent    : 16,
-				fontSize      : 16
+				fontSize      : 14
 			};
 
 			constructor() {
@@ -70,7 +70,8 @@ module webGLEngine {
 				document.body.appendChild(consoleDiv);
 			}
 
-			private _addLine(msg, color) : void {
+			/** adds line to log */
+			private _addLine(msg : string, color : string) : void {
 				var lineDiv = document.createElement('div');
 				lineDiv.style.color = color;
 				lineDiv.style.fontSize = Console._config.fontSize + 'px';

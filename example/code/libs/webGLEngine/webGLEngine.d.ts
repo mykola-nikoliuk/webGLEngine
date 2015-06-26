@@ -105,6 +105,7 @@ declare module webGLEngine {
             error(msg: string): void;
             /** creates console view */
             private _createView(x, y, maxWidth, maxHeight);
+            /** adds line to log */
             private _addLine(msg, color);
         }
     }
@@ -130,6 +131,7 @@ declare module webGLEngine {
             plus(vector: Vector3): void;
             multiply(multiplier: number): void;
             clone(): Vector3;
+            invertSign(): Vector3;
             copyFrom(vector: Vector3): void;
             getArray(): any[];
             getDistanceTo(point: Vector3): number;
@@ -260,7 +262,19 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class Camera extends Transformations {
+            static cameras: Camera[];
+            private _followTarget;
+            private _distance;
             constructor();
+            /** Sets follow state for camera */
+            follow(transformations: Transformations, distance?: number): void;
+            /** Removes follow state */
+            unfollow(): void;
+            update(): void;
+            /** Adds camera to engine */
+            turnOn(): void;
+            /** Release camera from engine */
+            turnOff(): void;
         }
     }
 }

@@ -47,6 +47,13 @@ module webGLEngine {
 				return new Vector3(this._x, this._y, this._z);
 			}
 
+			public invertSign() : Vector3 {
+				this._x *= -1;
+				this._y *= -1;
+				this._z *= -1;
+				return this;
+			}
+
 			public copyFrom(vector : Vector3) : void {
 				this._x = vector._x;
 				this._y = vector._y;
