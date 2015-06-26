@@ -38,7 +38,7 @@ module webGLEngine {
 				this._callback = callback;
 
 				if (this._isLoading) {
-					console.log('> Another shader is loading for now.');
+					Console.error('Another shader is loading for now.');
 					this._callback.apply();
 				}
 
@@ -68,10 +68,10 @@ module webGLEngine {
 				var shader;
 
 				if (!result) {
-					console.log('Error loading shader: "' + url + '"')
+					Console.error('Error loading shader: "' + url + '"')
 				}
 				else {
-					console.log('    shader loaded from: ' + url);
+					Console.log('\tshader loaded => ' + url);
 					switch (url) {
 						case this._fragmentShaderURL:
 							this._fragmentShader = shader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
@@ -89,14 +89,14 @@ module webGLEngine {
 					this._gl.compileShader(shader);
 
 					if (!this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS)) {
-						console.log(this._gl.getShaderInfoLog(shader));
+						Console.error(this._gl.getShaderInfoLog(shader));
 						return null;
 					}
 				}
 
 				if (++this._shaderCouter >= 2) {
 					this._isLoading = false;
-					console.log('> Shaders loaded successfully.');
+					Console.log('Shaders loaded successfully.');
 					this._callback.apply();
 				}
 			}

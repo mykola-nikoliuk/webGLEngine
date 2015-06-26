@@ -37,11 +37,11 @@ module webGLEngine {
 
 			public loadTexture(gl, path, textureRepeat) {
 				if (typeof gl !== 'object') {
-					console.log('GL parameter is not a object');
+					Console.error('GL parameter is not a object');
 					return;
 				}
 				if (typeof path !== 'string') {
-					console.log('Texture path parameter is not a string');
+					Console.error('Texture path parameter is not a string');
 					return;
 				}
 				this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;

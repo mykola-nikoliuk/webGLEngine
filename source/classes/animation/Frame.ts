@@ -16,7 +16,7 @@ module webGLEngine {
 					this._position = position;
 				}
 				else {
-					console.log('>>> Error: Frame:setPosition() position is not instance of Vector3');
+					Console.error('>>> Frame:setPosition() : position is not instance of Vector3');
 				}
 				return this;
 			}
@@ -30,7 +30,7 @@ module webGLEngine {
 					this._rotation = rotation;
 				}
 				else {
-					console.log('>>> Error: Frame:setRotation() rotation is not instance of Vector3');
+					Console.log('>>> Frame:setRotation() : rotation is not instance of Vector3');
 				}
 				return this;
 			}

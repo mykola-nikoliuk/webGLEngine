@@ -17,6 +17,8 @@
 
 module webGLEngine {
 
+	export var Console = new Utils.Console();
+
 	export class Engine {
 
 		private _gl : any;
@@ -41,7 +43,7 @@ module webGLEngine {
 
 		constructor(fragmentShaderPath : string, vertexShaderPath : string) {
 
-			console.log('> Start webGL initialization.');
+			Console.log('Start webGL initialization.');
 
 			this._gl = null;
 			this._isReady = false;
@@ -65,7 +67,7 @@ module webGLEngine {
 
 			window.addEventListener('resize', Utils.bind(this.onResize, this), false);
 
-			this._crateCanvas();
+			this._createCanvas();
 			this._initGL();
 			this._loadShaders(fragmentShaderPath, vertexShaderPath);
 		}
@@ -257,7 +259,7 @@ module webGLEngine {
 			return this._gl;
 		}
 
-		private _crateCanvas() : void {
+		private _createCanvas() : void {
 			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasID);
 			if (this._canvasNode === null) {
 				this._canvasNode = document.createElement('canvas');
@@ -278,13 +280,13 @@ module webGLEngine {
 			catch (e) {
 			}
 			if (!this._gl) {
-				console.log("Could not initialise WebGL, sorry :-(");
+				Console.error("Could not initialise WebGL, sorry :-(");
 			}
 		}
 
 		private _loadShaders(fragmentShaderPath : string, vertexShaderPath : string) : void {
 			this._shader = new Types.Shader(this._gl);
-			console.log('> Start shaders loading.');
+			Console.log('Start shaders loading.');
 			this._isReady = false;
 			this._shader.add(
 				new Utils.Callback(this._initShaders, this),
@@ -305,7 +307,7 @@ module webGLEngine {
 			this._gl.linkProgram(this._shaderProgram);
 
 			if (!this._gl.getProgramParameter(this._shaderProgram, this._gl.LINK_STATUS)) {
-				console.log("Could not initialise shaders");
+				Console.error("Could not initialise shaders");
 			}
 
 			this._gl.useProgram(this._shaderProgram);
@@ -373,7 +375,7 @@ module webGLEngine {
 					textureRepeat: true
 				};
 
-			console.log('> Start loading mesh => "' + Utils.getFileNameFromPath(path) + '"');
+			Console.log('Start loading mesh => "' + Utils.getFileNameFromPath(path) + '"');
 
 			this._meshes.push(mesh);
 
@@ -400,7 +402,7 @@ module webGLEngine {
 				hasMaterial = false,
 				objList, materialPath;
 
-			console.log('> Start parsing mesh => "' + Utils.getFileNameFromPath(path) + '"');
+			Console.log('Start parsing mesh => "' + Utils.getFileNameFromPath(path) + '"');
 
 			materials[currentMaterial] = new Types.Material();
 			faces[currentMaterial] = [];
@@ -419,7 +421,7 @@ module webGLEngine {
 							vertexes.push(Number(nodes[j]));
 						}
 						if (vertexCounter !== 3) {
-							console.log('>>> Error : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
+							Console.error('>>> _parseObjFile() : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
 						}
 						break;
 
@@ -452,9 +454,8 @@ module webGLEngine {
 							);
 
 							if (faceArray.length < 2) {
-								console.log('>>> Warning : There is no texture coordinate');
+								Console.warning('>>> _parseObjFile : There is no texture coordinate');
 							}
-
 
 							if (j >= 4) {
 								faces[currentMaterial].push(firstFace);
@@ -470,7 +471,7 @@ module webGLEngine {
 						}
 						totalFaceCounter++;
 						if (j > 4) {
-							console.log('>>> Warning : ' + (j - 1) + ' vertexes in face');
+							Console.warning('>>> _parseObjFile : ' + (j - 1) + ' vertexes in face');
 						}
 						break;
 
@@ -490,7 +491,7 @@ module webGLEngine {
 				}
 			}
 
-			console.log('    done =>' +
+			Console.log('\tdone =>' +
 				' Parse time: ' + (Date.now() - startParsingTime) + 'ms' +
 				' | F: ' + totalFaceCounter +
 				' | V: ' + vertexes.length / 3 +
@@ -509,7 +510,7 @@ module webGLEngine {
 				allMaterials : {[materialName:string] : Types.Material} = {},
 				currentMaterial : Types.Material = null;
 
-			console.log('> Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
+			Console.log('Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
 
 			mtlConfig.lineSeparator.lastIndex = 0;
 			mtlList = mtlFile.split(mtlConfig.lineSeparator);
@@ -546,7 +547,7 @@ module webGLEngine {
 							}
 						}
 						if (colors.length !== 3) {
-							console.log('Error: MaterialParse: color.length !== 3');
+							Console.error('>>> _parseMaterial() : color.length !== 3');
 						}
 						break;
 
@@ -562,7 +563,7 @@ module webGLEngine {
 				}
 			}
 
-			console.log('    done');
+			Console.log('\tdone');
 
 			mesh.initBuffers(allMaterials);
 		}

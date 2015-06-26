@@ -872,9 +872,95 @@ var webGLEngine;
         Utils.Timer = Timer;
     })(Utils = webGLEngine.Utils || (webGLEngine.Utils = {}));
 })(webGLEngine || (webGLEngine = {}));
+var webGLEngine;
+(function (webGLEngine) {
+    var Utils;
+    (function (Utils) {
+        var Console = (function () {
+            function Console() {
+                this._isCreated = false;
+            }
+            /** creates console and show on screen */
+            Console.prototype.create = function (x, y, maxWidth, maxHeight, maxLines) {
+                if (!this._isCreated) {
+                    this._isCreated = true;
+                    this._freeLinesLeft = maxLines;
+                    this._createView.apply(this, arguments);
+                    this.log('console created');
+                }
+            };
+            Console.prototype.log = function (msg) {
+                if (this._isCreated) {
+                    this._addLine(msg, Console._colors.INFO);
+                }
+            };
+            Console.prototype.warning = function (msg) {
+                if (this._isCreated) {
+                    this._addLine(msg, Console._colors.WARNING);
+                }
+            };
+            Console.prototype.error = function (msg) {
+                if (this._isCreated) {
+                    this._addLine(msg, Console._colors.ERROR);
+                }
+            };
+            /** creates console view */
+            Console.prototype._createView = function (x, y, maxWidth, maxHeight) {
+                var consoleDiv = document.createElement('div');
+                this._consoleView = consoleDiv;
+                consoleDiv.style.position = 'fixed';
+                consoleDiv.style.left = x + 'px';
+                consoleDiv.style.top = y + 'px';
+                consoleDiv.style.maxWidth = maxWidth + 'px';
+                consoleDiv.style.maxHeight = maxHeight + 'px';
+                consoleDiv.style.padding = Console._config.consolePadding + 'px 0';
+                consoleDiv.style.zIndex = Console._config.zIndex + '';
+                consoleDiv.style.backgroundColor = Console._config.consoleColor;
+                document.body.appendChild(consoleDiv);
+            };
+            Console.prototype._addLine = function (msg, color) {
+                var lineDiv = document.createElement('div');
+                lineDiv.style.color = color;
+                lineDiv.style.fontSize = Console._config.fontSize + 'px';
+                lineDiv.style.margin = Console._config.lineMargin + 'px';
+                lineDiv.style.marginLeft = Console._config.lineMargin +
+                    (Console._config.lineIndent * (msg.split('\t').length - 1)) +
+                    'px';
+                lineDiv.style.padding = Console._config.linePadding + 'px';
+                lineDiv.style.backgroundColor = Console._config.lineColor;
+                lineDiv.innerText = msg;
+                this._consoleView.appendChild(lineDiv);
+                if (this._freeLinesLeft - 1 < 0) {
+                    this._consoleView.removeChild(this._consoleView.firstChild);
+                }
+                else {
+                    this._freeLinesLeft--;
+                }
+            };
+            Console._colors = {
+                ERROR: 'red',
+                WARNING: 'orange',
+                INFO: 'white'
+            };
+            Console._config = {
+                zIndex: 9999,
+                consolePadding: 8,
+                consoleColor: 'rgba(0, 0, 0, 0.6)',
+                lineMargin: 4,
+                linePadding: 4,
+                lineColor: 'rgba(32, 32, 32, 0.5)',
+                lineIndent: 16,
+                fontSize: 16
+            };
+            return Console;
+        })();
+        Utils.Console = Console;
+    })(Utils = webGLEngine.Utils || (webGLEngine.Utils = {}));
+})(webGLEngine || (webGLEngine = {}));
 ///<reference path="Callback.ts"/>
 ///<reference path="glMatrix.ts"/>
 ///<reference path="Timer.ts"/>
+///<reference path="Console.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Utils;
@@ -1344,7 +1430,7 @@ var webGLEngine;
             Shader.prototype.add = function (callback, fragmentShader, vertexShader) {
                 this._callback = callback;
                 if (this._isLoading) {
-                    console.log('> Another shader is loading for now.');
+                    webGLEngine.Console.error('Another shader is loading for now.');
                     this._callback.apply();
                 }
                 if (typeof fragmentShader !== 'string' || typeof vertexShader !== 'string') {
@@ -1369,10 +1455,10 @@ var webGLEngine;
             Shader.prototype.loaded = function (result, url, text) {
                 var shader;
                 if (!result) {
-                    console.log('Error loading shader: "' + url + '"');
+                    webGLEngine.Console.error('Error loading shader: "' + url + '"');
                 }
                 else {
-                    console.log('    shader loaded from: ' + url);
+                    webGLEngine.Console.log('\tshader loaded => ' + url);
                     switch (url) {
                         case this._fragmentShaderURL:
                             this._fragmentShader = shader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
@@ -1386,13 +1472,13 @@ var webGLEngine;
                     this._gl.shaderSource(shader, text);
                     this._gl.compileShader(shader);
                     if (!this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS)) {
-                        console.log(this._gl.getShaderInfoLog(shader));
+                        webGLEngine.Console.error(this._gl.getShaderInfoLog(shader));
                         return null;
                     }
                 }
                 if (++this._shaderCouter >= 2) {
                     this._isLoading = false;
-                    console.log('> Shaders loaded successfully.');
+                    webGLEngine.Console.log('Shaders loaded successfully.');
                     this._callback.apply();
                 }
             };
@@ -1598,11 +1684,11 @@ var webGLEngine;
             };
             Material.prototype.loadTexture = function (gl, path, textureRepeat) {
                 if (typeof gl !== 'object') {
-                    console.log('GL parameter is not a object');
+                    webGLEngine.Console.error('GL parameter is not a object');
                     return;
                 }
                 if (typeof path !== 'string') {
-                    console.log('Texture path parameter is not a string');
+                    webGLEngine.Console.error('Texture path parameter is not a string');
                     return;
                 }
                 this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
@@ -1648,7 +1734,7 @@ var webGLEngine;
                     this._position = position;
                 }
                 else {
-                    console.log('>>> Error: Frame:setPosition() position is not instance of Vector3');
+                    webGLEngine.Console.error('>>> Frame:setPosition() : position is not instance of Vector3');
                 }
                 return this;
             };
@@ -1660,7 +1746,7 @@ var webGLEngine;
                     this._rotation = rotation;
                 }
                 else {
-                    console.log('>>> Error: Frame:setRotation() rotation is not instance of Vector3');
+                    webGLEngine.Console.log('>>> Frame:setRotation() : rotation is not instance of Vector3');
                 }
                 return this;
             };
@@ -1694,7 +1780,7 @@ var webGLEngine;
                     this._frameIndex = 0;
                 }
                 else {
-                    console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Transformations()');
+                    webGLEngine.Console.error('>>> AnimationTarget:constructor() : mesh isn\'t instance of Transformations()');
                 }
             }
             AnimationTarget.prototype.start = function (callback) {
@@ -1811,7 +1897,7 @@ var webGLEngine;
                     }
                 }
                 else {
-                    console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
+                    webGLEngine.Console.error('>>> Animation:setTimeByDistance() : time should be a positive number');
                 }
             };
             Animation.prototype.pause = function (transformable) {
@@ -1964,9 +2050,10 @@ var webGLEngine;
 ///<reference path="webGLConfig.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
+    webGLEngine.Console = new webGLEngine.Utils.Console();
     var Engine = (function () {
         function Engine(fragmentShaderPath, vertexShaderPath) {
-            console.log('> Start webGL initialization.');
+            webGLEngine.Console.log('Start webGL initialization.');
             this._gl = null;
             this._isReady = false;
             this._shader = null;
@@ -1983,7 +2070,7 @@ var webGLEngine;
             this._shaderProgram = null;
             this._isLightingEnable = true;
             window.addEventListener('resize', webGLEngine.Utils.bind(this.onResize, this), false);
-            this._crateCanvas();
+            this._createCanvas();
             this._initGL();
             this._loadShaders(fragmentShaderPath, vertexShaderPath);
         }
@@ -2136,7 +2223,7 @@ var webGLEngine;
         Engine.prototype.getGLInstance = function () {
             return this._gl;
         };
-        Engine.prototype._crateCanvas = function () {
+        Engine.prototype._createCanvas = function () {
             this._canvasNode = document.getElementById(webGLEngine.Config.html.canvasID);
             if (this._canvasNode === null) {
                 this._canvasNode = document.createElement('canvas');
@@ -2156,12 +2243,12 @@ var webGLEngine;
             catch (e) {
             }
             if (!this._gl) {
-                console.log("Could not initialise WebGL, sorry :-(");
+                webGLEngine.Console.error("Could not initialise WebGL, sorry :-(");
             }
         };
         Engine.prototype._loadShaders = function (fragmentShaderPath, vertexShaderPath) {
             this._shader = new webGLEngine.Types.Shader(this._gl);
-            console.log('> Start shaders loading.');
+            webGLEngine.Console.log('Start shaders loading.');
             this._isReady = false;
             this._shader.add(new webGLEngine.Utils.Callback(this._initShaders, this), fragmentShaderPath, vertexShaderPath);
         };
@@ -2174,7 +2261,7 @@ var webGLEngine;
             this._gl.attachShader(this._shaderProgram, fragmentShader);
             this._gl.linkProgram(this._shaderProgram);
             if (!this._gl.getProgramParameter(this._shaderProgram, this._gl.LINK_STATUS)) {
-                console.log("Could not initialise shaders");
+                webGLEngine.Console.error("Could not initialise shaders");
             }
             this._gl.useProgram(this._shaderProgram);
             this._shaderProgram.vertexPositionAttribute = this._gl.getAttribLocation(this._shaderProgram, "aVertexPosition");
@@ -2226,7 +2313,7 @@ var webGLEngine;
             var mesh = new webGLEngine.Types.Mesh(this._gl), parameters = {
                 textureRepeat: true
             };
-            console.log('> Start loading mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
+            webGLEngine.Console.log('Start loading mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             this._meshes.push(mesh);
             if (typeof params === 'object') {
                 if (typeof params.textureRepeat === 'boolean') {
@@ -2238,7 +2325,7 @@ var webGLEngine;
         };
         Engine.prototype._parseObjFile = function (objFile, mesh, path, parameters) {
             var i, j, nodes, vertexes = [], textures = [], normals = [], faces = [], materials = {}, currentMaterial = webGLEngine.Types.Mesh.defaultMaterialName, objConfig = webGLEngine.Config.File.obj, lineTypes = objConfig.lineTypes, startParsingTime = Date.now(), totalFaceCounter = 0, vertexCounter, hasMaterial = false, objList, materialPath;
-            console.log('> Start parsing mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
+            webGLEngine.Console.log('Start parsing mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             materials[currentMaterial] = new webGLEngine.Types.Material();
             faces[currentMaterial] = [];
             objConfig.lineSeparator.lastIndex = 0;
@@ -2256,7 +2343,7 @@ var webGLEngine;
                             vertexes.push(Number(nodes[j]));
                         }
                         if (vertexCounter !== 3) {
-                            console.log('>>> Error : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
+                            webGLEngine.Console.error('>>> _parseObjFile() : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
                         }
                         break;
                     case lineTypes.VERTEX_TEXTURE:
@@ -2280,7 +2367,7 @@ var webGLEngine;
                                 break;
                             face = new webGLEngine.Types.Face(Number(faceArray[0]) - 1, faceArray.length > 1 ? Number(faceArray[1]) - 1 : 0, faceArray.length > 2 ? Number(faceArray[2]) - 1 : 0);
                             if (faceArray.length < 2) {
-                                console.log('>>> Warning : There is no texture coordinate');
+                                webGLEngine.Console.warning('>>> _parseObjFile : There is no texture coordinate');
                             }
                             if (j >= 4) {
                                 faces[currentMaterial].push(firstFace);
@@ -2294,7 +2381,7 @@ var webGLEngine;
                         }
                         totalFaceCounter++;
                         if (j > 4) {
-                            console.log('>>> Warning : ' + (j - 1) + ' vertexes in face');
+                            webGLEngine.Console.warning('>>> _parseObjFile : ' + (j - 1) + ' vertexes in face');
                         }
                         break;
                     case lineTypes.MATERIAL_LIBRARY:
@@ -2311,7 +2398,7 @@ var webGLEngine;
                         break;
                 }
             }
-            console.log('    done =>' +
+            webGLEngine.Console.log('\tdone =>' +
                 ' Parse time: ' + (Date.now() - startParsingTime) + 'ms' +
                 ' | F: ' + totalFaceCounter +
                 ' | V: ' + vertexes.length / 3 +
@@ -2324,7 +2411,7 @@ var webGLEngine;
         };
         Engine.prototype._parseMaterial = function (mtlFile, path, mesh, parameters) {
             var mtlList, i, j, nodes, material, mtlConfig = webGLEngine.Config.File.mtl, lineTypes = mtlConfig.lineTypes, allMaterials = {}, currentMaterial = null;
-            console.log('> Start parsing material => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
+            webGLEngine.Console.log('Start parsing material => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             mtlConfig.lineSeparator.lastIndex = 0;
             mtlList = mtlFile.split(mtlConfig.lineSeparator);
             for (i = 0; i < mtlList.length; i++) {
@@ -2354,7 +2441,7 @@ var webGLEngine;
                             }
                         }
                         if (colors.length !== 3) {
-                            console.log('Error: MaterialParse: color.length !== 3');
+                            webGLEngine.Console.error('>>> _parseMaterial() : color.length !== 3');
                         }
                         break;
                     case lineTypes.SPECULAR:
@@ -2368,7 +2455,7 @@ var webGLEngine;
                         break;
                 }
             }
-            console.log('    done');
+            webGLEngine.Console.log('\tdone');
             mesh.initBuffers(allMaterials);
         };
         return Engine;

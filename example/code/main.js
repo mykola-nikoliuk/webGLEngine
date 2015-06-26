@@ -92,6 +92,8 @@ var ns = {
 
 		this.utils = new InitUtilities();
 
+		webGLEngine.Console.create(16, 16, 600, 800, 60);
+
 		this._engine = new webGLEngine.Engine(
 			this.config.webGL.shaders.fragment,
 			this.config.webGL.shaders.vertex

@@ -83,7 +83,7 @@ module webGLEngine {
 					}
 				}
 				else {
-					console.log('>>> Error: Animation:setTimeByDistance() time should be a positive number');
+					Console.error('>>> Animation:setTimeByDistance() : time should be a positive number');
 				}
 			}
 

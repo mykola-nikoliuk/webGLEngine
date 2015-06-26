@@ -91,6 +91,26 @@ declare module webGLEngine {
 }
 declare module webGLEngine {
     module Utils {
+        class Console {
+            private _consoleView;
+            private _isCreated;
+            private _freeLinesLeft;
+            private static _colors;
+            private static _config;
+            constructor();
+            /** creates console and show on screen */
+            create(x: number, y: number, maxWidth: number, maxHeight: number, maxLines: number): void;
+            log(msg: string): void;
+            warning(msg: string): void;
+            error(msg: string): void;
+            /** creates console view */
+            private _createView(x, y, maxWidth, maxHeight);
+            private _addLine(msg, color);
+        }
+    }
+}
+declare module webGLEngine {
+    module Utils {
         function bind(callBackFunc: Function, thisArg: any, ...arg: any[]): () => any;
         function requestFile(url: string, callback: Callback): void;
         function requestResult(event: Event, request: XMLHttpRequest, url: string, callback: Callback): void;
@@ -419,6 +439,7 @@ declare module webGLEngine {
     };
 }
 declare module webGLEngine {
+    var Console: Utils.Console;
     class Engine {
         private _gl;
         private _isReady;
@@ -448,7 +469,7 @@ declare module webGLEngine {
         getCamera(): Types.Transformations;
         createMesh(vertexes: any, textures: any, normals: any, faces: any, materials: any): Types.Mesh;
         getGLInstance(): any;
-        private _crateCanvas();
+        private _createCanvas();
         private _initGL();
         private _loadShaders(fragmentShaderPath, vertexShaderPath);
         private _initShaders();

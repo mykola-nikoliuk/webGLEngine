@@ -19,7 +19,7 @@ module webGLEngine {
 					this._frameIndex = 0;
 				}
 				else {
-					console.log('>>> Error: AnimationTarget:constructor() mesh isn\'t instance of Transformations()');
+					Console.error('>>> AnimationTarget:constructor() : mesh isn\'t instance of Transformations()');
 				}
 			}
 

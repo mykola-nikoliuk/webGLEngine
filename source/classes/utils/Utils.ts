@@ -1,6 +1,7 @@
 ///<reference path="Callback.ts"/>
 ///<reference path="glMatrix.ts"/>
 ///<reference path="Timer.ts"/>
+///<reference path="Console.ts"/>
 
 module webGLEngine {
 
