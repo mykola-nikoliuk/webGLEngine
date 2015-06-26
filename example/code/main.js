@@ -111,7 +111,7 @@ var ns = {
 		};
 
 		this._meshes = {
-			sky    : ns._engine._createMeshFromFile('./resources/world/sky.obj', {textureRepeat : false}),
+			sky    : ns._engine._createMeshFromFile('./resources/world/cubemap.obj', {textureRepeat : false}),
 			plane  : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false})
 				.callback(new webGLEngine.Utils.Callback(ns.createSecondPlane, ns)),
 			plane2 : null,
@@ -175,14 +175,7 @@ var ns = {
 
 	/** @public */
 	configure : function () {
-		//				this._meshes.runner.getTransformations().position.set(0, 197.8, 30);
-		//				this._meshes.runner.getTransformations().rotation.set(-0.16, Math.PI, 0);
-		//				this._meshes.runner.getTransformations().scale.set(3, 3, 3);
-
-		//		var scale = 20;
-
-		//				this._meshes.car.getTransformations().scale.set(scale, scale, scale);
-
+		this._meshes.sky.scale.set(10000, 10000, 10000);
 		this._meshes.sky.rotation.set(0, Math.PI, 0);
 		//
 		this._camera.position.set(113, -105, 20);

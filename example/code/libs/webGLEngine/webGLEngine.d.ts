@@ -387,12 +387,36 @@ declare module webGLEngine {
     }
 }
 declare module webGLEngine {
-    class config {
-        static version: string;
-        static html: {
+    var Config: {
+        version: string;
+        html: {
             canvasID: string;
         };
-    }
+        File: {
+            obj: {
+                lineSeparator: RegExp;
+                nodeSeparator: RegExp;
+                lineTypes: {
+                    MATERIAL_LIBRARY: string;
+                    USE_MATERIAL: string;
+                    FACE: string;
+                    VERTEX: string;
+                    VERTEX_TEXTURE: string;
+                    VERTEX_NORMAL: string;
+                };
+            };
+            mtl: {
+                lineSeparator: RegExp;
+                nodeSeparator: RegExp;
+                lineTypes: {
+                    NEW_MATERIAL: string;
+                    MAP_TEXTURE: string;
+                    DIFFUSE_COLOR: string;
+                    SPECULAR: string;
+                };
+            };
+        };
+    };
 }
 declare module webGLEngine {
     class Engine {

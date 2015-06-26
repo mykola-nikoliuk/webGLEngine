@@ -258,10 +258,10 @@ module webGLEngine {
 		}
 
 		private _crateCanvas() : void {
-			this._canvasNode = <HTMLCanvasElement>document.getElementById(config.html.canvasID);
+			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasID);
 			if (this._canvasNode === null) {
 				this._canvasNode = document.createElement('canvas');
-				this._canvasNode.id = config.html.canvasID;
+				this._canvasNode.id = Config.html.canvasID;
 				this._canvasNode.style.position = 'fixed';
 				this._canvasNode.style.left = '0px';
 				this._canvasNode.style.top = '0px';
@@ -392,22 +392,26 @@ module webGLEngine {
 				vertexes = [], textures = [], normals = [], faces = [],
 				materials : {[materialName:string] : Types.Material} = {},
 				currentMaterial = Types.Mesh.defaultMaterialName,
-				vertexCounter,
+				objConfig = Config.File.obj,
+				lineTypes = objConfig.lineTypes,
+				startParsingTime = Date.now(),
+				totalFaceCounter = 0,
+				vertexCounter : number,
 				hasMaterial = false,
 				objList, materialPath;
-
-			// TODO : Async and fill mesh
 
 			console.log('> Start parsing mesh => "' + Utils.getFileNameFromPath(path) + '"');
 
 			materials[currentMaterial] = new Types.Material();
 			faces[currentMaterial] = [];
 
-			objList = objFile.split(/\r\n|\n|\r/g);
+			objConfig.lineSeparator.lastIndex = 0;
+			objList = objFile.split(objConfig.lineSeparator);
 			for (i = 0; i < objList.length; i++) {
-				nodes = objList[i].split(/\s+/g);
+				objConfig.nodeSeparator.lastIndex = 0;
+				nodes = objList[i].split(objConfig.nodeSeparator);
 				switch (nodes[0].toLowerCase()) {
-					case 'v':
+					case lineTypes.VERTEX:
 						vertexCounter = 0;
 						for (j = 1; j < nodes.length && vertexCounter < 3; j++) {
 							if (nodes[j] === '') continue;
@@ -419,32 +423,27 @@ module webGLEngine {
 						}
 						break;
 
-					case 'vt':
+					case lineTypes.VERTEX_TEXTURE:
 						textures.push(Number(nodes[1]));
 						textures.push(Number(nodes[2]));
 						//textures.push(Number(Math.random());
 						//textures.push(Number(Math.random());
 						break;
 
-					case 'vn':
+					case lineTypes.VERTEX_NORMAL:
 						for (j = 1; j < nodes.length; j++) {
 							if (nodes[j] === '') continue;
 							normals.push(Number(nodes[j]));
 						}
 						break;
 
-					case 'f':
-						if (nodes.length > 4) {
-							//							console.log('face isn\'t triangle');
-						}
+					case lineTypes.FACE:
 						var lastFace = null, firstFace = null;
 						for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
-							/** @class Face */
-							var faceArray = nodes[j].split('/'), face;
+							var faceArray = nodes[j].split('/'),
+								face : Types.Face;
 
 							if (isNaN(faceArray[0])) break;
-
-							//console.log(Number(faceArray[1]));
 
 							face = new Types.Face(
 								Number(faceArray[0]) - 1,
@@ -469,18 +468,19 @@ module webGLEngine {
 
 							faces[currentMaterial].push(face);
 						}
+						totalFaceCounter++;
 						if (j > 4) {
 							console.log('>>> Warning : ' + (j - 1) + ' vertexes in face');
 						}
 						break;
 
-					case 'mtllib':
+					case lineTypes.MATERIAL_LIBRARY:
 						hasMaterial = true;
 						materialPath = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
 						Utils.requestFile(materialPath, new Utils.Callback(this._parseMaterial, this, materialPath, mesh, parameters));
 						break;
 
-					case 'usemtl':
+					case lineTypes.USE_MATERIAL:
 						if (!materials.hasOwnProperty(nodes[1])) {
 							materials[nodes[1]] = new Types.Material();
 							faces[nodes[1]] = [];
@@ -490,8 +490,10 @@ module webGLEngine {
 				}
 			}
 
-
-			console.log('    done => V: ' + vertexes.length / 3 +
+			console.log('    done =>' +
+				' Parse time: ' + (Date.now() - startParsingTime) + 'ms' +
+				' | F: ' + totalFaceCounter +
+				' | V: ' + vertexes.length / 3 +
 				' | VT: ' + textures.length +
 				' | N: ' + normals.length / 3);
 			mesh.fillBuffers(vertexes, textures, normals, faces, materials);
@@ -502,23 +504,27 @@ module webGLEngine {
 
 		private _parseMaterial(mtlFile : string, path : string, mesh : Types.Mesh, parameters : any) : void {
 			var mtlList, i, j, nodes, material,
+				mtlConfig = Config.File.mtl,
+				lineTypes = mtlConfig.lineTypes,
 				allMaterials : {[materialName:string] : Types.Material} = {},
 				currentMaterial : Types.Material = null;
 
 			console.log('> Start parsing material => "' + Utils.getFileNameFromPath(path) + '"');
 
-			mtlList = mtlFile.split(/\r\n|\n|\r/g);
+			mtlConfig.lineSeparator.lastIndex = 0;
+			mtlList = mtlFile.split(mtlConfig.lineSeparator);
 			for (i = 0; i < mtlList.length; i++) {
-				nodes = mtlList[i].split(/\s+/g);
+				mtlConfig.nodeSeparator.lastIndex = 0;
+				nodes = mtlList[i].split(mtlConfig.nodeSeparator);
 				switch (nodes[0].toLowerCase()) {
-					case 'newmtl':
+					case lineTypes.NEW_MATERIAL:
 						/** @type {Material} */
 						material = new Types.Material();
 						allMaterials[nodes[1]] = material;
 						currentMaterial = material;
 						break;
 
-					case 'map_kd':
+					case lineTypes.MAP_TEXTURE:
 						if (currentMaterial) {
 							currentMaterial.loadTexture(
 								this._gl,
@@ -528,7 +534,7 @@ module webGLEngine {
 						}
 						break;
 
-					case 'kd':
+					case lineTypes.DIFFUSE_COLOR:
 						var color = new Types.Vector3(),
 							colors = [];
 						for (j = 1; j < nodes.length && colors.length < 3; j++) {
@@ -544,7 +550,7 @@ module webGLEngine {
 						}
 						break;
 
-					case 'ns':
+					case lineTypes.SPECULAR:
 						//				case 'Tr':
 						for (j = 1; j < nodes.length; j++) {
 							if (!isNaN(nodes[j])) {

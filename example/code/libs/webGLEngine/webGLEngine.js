@@ -1915,16 +1915,36 @@ var webGLEngine;
 })(webGLEngine || (webGLEngine = {}));
 var webGLEngine;
 (function (webGLEngine) {
-    var config = (function () {
-        function config() {
-        }
-        config.version = '0.2';
-        config.html = {
+    webGLEngine.Config = {
+        version: '0.2',
+        html: {
             canvasID: 'webGLCanvas'
-        };
-        return config;
-    })();
-    webGLEngine.config = config;
+        },
+        File: {
+            obj: {
+                lineSeparator: /(\r\n|\n|\r)/g,
+                nodeSeparator: /\s+/g,
+                lineTypes: {
+                    MATERIAL_LIBRARY: 'mtllib',
+                    USE_MATERIAL: 'usemtl',
+                    FACE: 'f',
+                    VERTEX: 'v',
+                    VERTEX_TEXTURE: 'vt',
+                    VERTEX_NORMAL: 'vn'
+                }
+            },
+            mtl: {
+                lineSeparator: /(\r\n|\n|\r)/g,
+                nodeSeparator: /\s+/g,
+                lineTypes: {
+                    NEW_MATERIAL: 'newmtl',
+                    MAP_TEXTURE: 'map_kd',
+                    DIFFUSE_COLOR: 'kd',
+                    SPECULAR: 'ns'
+                }
+            }
+        }
+    };
 })(webGLEngine || (webGLEngine = {}));
 ///<reference path="./classes/utils/Utils.ts"/>
 ///<reference path="./classes/mesh/Transformations.ts"/>
@@ -2117,10 +2137,10 @@ var webGLEngine;
             return this._gl;
         };
         Engine.prototype._crateCanvas = function () {
-            this._canvasNode = document.getElementById(webGLEngine.config.html.canvasID);
+            this._canvasNode = document.getElementById(webGLEngine.Config.html.canvasID);
             if (this._canvasNode === null) {
                 this._canvasNode = document.createElement('canvas');
-                this._canvasNode.id = webGLEngine.config.html.canvasID;
+                this._canvasNode.id = webGLEngine.Config.html.canvasID;
                 this._canvasNode.style.position = 'fixed';
                 this._canvasNode.style.left = '0px';
                 this._canvasNode.style.top = '0px';
@@ -2217,16 +2237,17 @@ var webGLEngine;
             return mesh;
         };
         Engine.prototype._parseObjFile = function (objFile, mesh, path, parameters) {
-            var i, j, nodes, vertexes = [], textures = [], normals = [], faces = [], materials = {}, currentMaterial = webGLEngine.Types.Mesh.defaultMaterialName, vertexCounter, hasMaterial = false, objList, materialPath;
-            // TODO : Async and fill mesh
+            var i, j, nodes, vertexes = [], textures = [], normals = [], faces = [], materials = {}, currentMaterial = webGLEngine.Types.Mesh.defaultMaterialName, objConfig = webGLEngine.Config.File.obj, lineTypes = objConfig.lineTypes, startParsingTime = Date.now(), totalFaceCounter = 0, vertexCounter, hasMaterial = false, objList, materialPath;
             console.log('> Start parsing mesh => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
             materials[currentMaterial] = new webGLEngine.Types.Material();
             faces[currentMaterial] = [];
-            objList = objFile.split(/\r\n|\n|\r/g);
+            objConfig.lineSeparator.lastIndex = 0;
+            objList = objFile.split(objConfig.lineSeparator);
             for (i = 0; i < objList.length; i++) {
-                nodes = objList[i].split(/\s+/g);
+                objConfig.nodeSeparator.lastIndex = 0;
+                nodes = objList[i].split(objConfig.nodeSeparator);
                 switch (nodes[0].toLowerCase()) {
-                    case 'v':
+                    case lineTypes.VERTEX:
                         vertexCounter = 0;
                         for (j = 1; j < nodes.length && vertexCounter < 3; j++) {
                             if (nodes[j] === '')
@@ -2238,29 +2259,25 @@ var webGLEngine;
                             console.log('>>> Error : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
                         }
                         break;
-                    case 'vt':
+                    case lineTypes.VERTEX_TEXTURE:
                         textures.push(Number(nodes[1]));
                         textures.push(Number(nodes[2]));
                         //textures.push(Number(Math.random());
                         //textures.push(Number(Math.random());
                         break;
-                    case 'vn':
+                    case lineTypes.VERTEX_NORMAL:
                         for (j = 1; j < nodes.length; j++) {
                             if (nodes[j] === '')
                                 continue;
                             normals.push(Number(nodes[j]));
                         }
                         break;
-                    case 'f':
-                        if (nodes.length > 4) {
-                        }
+                    case lineTypes.FACE:
                         var lastFace = null, firstFace = null;
                         for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
-                            /** @class Face */
                             var faceArray = nodes[j].split('/'), face;
                             if (isNaN(faceArray[0]))
                                 break;
-                            //console.log(Number(faceArray[1]));
                             face = new webGLEngine.Types.Face(Number(faceArray[0]) - 1, faceArray.length > 1 ? Number(faceArray[1]) - 1 : 0, faceArray.length > 2 ? Number(faceArray[2]) - 1 : 0);
                             if (faceArray.length < 2) {
                                 console.log('>>> Warning : There is no texture coordinate');
@@ -2275,16 +2292,17 @@ var webGLEngine;
                             lastFace = face;
                             faces[currentMaterial].push(face);
                         }
+                        totalFaceCounter++;
                         if (j > 4) {
                             console.log('>>> Warning : ' + (j - 1) + ' vertexes in face');
                         }
                         break;
-                    case 'mtllib':
+                    case lineTypes.MATERIAL_LIBRARY:
                         hasMaterial = true;
                         materialPath = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
                         webGLEngine.Utils.requestFile(materialPath, new webGLEngine.Utils.Callback(this._parseMaterial, this, materialPath, mesh, parameters));
                         break;
-                    case 'usemtl':
+                    case lineTypes.USE_MATERIAL:
                         if (!materials.hasOwnProperty(nodes[1])) {
                             materials[nodes[1]] = new webGLEngine.Types.Material();
                             faces[nodes[1]] = [];
@@ -2293,7 +2311,10 @@ var webGLEngine;
                         break;
                 }
             }
-            console.log('    done => V: ' + vertexes.length / 3 +
+            console.log('    done =>' +
+                ' Parse time: ' + (Date.now() - startParsingTime) + 'ms' +
+                ' | F: ' + totalFaceCounter +
+                ' | V: ' + vertexes.length / 3 +
                 ' | VT: ' + textures.length +
                 ' | N: ' + normals.length / 3);
             mesh.fillBuffers(vertexes, textures, normals, faces, materials);
@@ -2302,24 +2323,26 @@ var webGLEngine;
             }
         };
         Engine.prototype._parseMaterial = function (mtlFile, path, mesh, parameters) {
-            var mtlList, i, j, nodes, material, allMaterials = {}, currentMaterial = null;
+            var mtlList, i, j, nodes, material, mtlConfig = webGLEngine.Config.File.mtl, lineTypes = mtlConfig.lineTypes, allMaterials = {}, currentMaterial = null;
             console.log('> Start parsing material => "' + webGLEngine.Utils.getFileNameFromPath(path) + '"');
-            mtlList = mtlFile.split(/\r\n|\n|\r/g);
+            mtlConfig.lineSeparator.lastIndex = 0;
+            mtlList = mtlFile.split(mtlConfig.lineSeparator);
             for (i = 0; i < mtlList.length; i++) {
-                nodes = mtlList[i].split(/\s+/g);
+                mtlConfig.nodeSeparator.lastIndex = 0;
+                nodes = mtlList[i].split(mtlConfig.nodeSeparator);
                 switch (nodes[0].toLowerCase()) {
-                    case 'newmtl':
+                    case lineTypes.NEW_MATERIAL:
                         /** @type {Material} */
                         material = new webGLEngine.Types.Material();
                         allMaterials[nodes[1]] = material;
                         currentMaterial = material;
                         break;
-                    case 'map_kd':
+                    case lineTypes.MAP_TEXTURE:
                         if (currentMaterial) {
                             currentMaterial.loadTexture(this._gl, (path.substring(0, path.lastIndexOf("/") + 1) + nodes[1]), parameters.textureRepeat);
                         }
                         break;
-                    case 'kd':
+                    case lineTypes.DIFFUSE_COLOR:
                         var color = new webGLEngine.Types.Vector3(), colors = [];
                         for (j = 1; j < nodes.length && colors.length < 3; j++) {
                             if (nodes[j] === '')
@@ -2334,7 +2357,7 @@ var webGLEngine;
                             console.log('Error: MaterialParse: color.length !== 3');
                         }
                         break;
-                    case 'ns':
+                    case lineTypes.SPECULAR:
                         //				case 'Tr':
                         for (j = 1; j < nodes.length; j++) {
                             if (!isNaN(nodes[j])) {
