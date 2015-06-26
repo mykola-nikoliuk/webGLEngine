@@ -519,7 +519,6 @@ module webGLEngine {
 				nodes = mtlList[i].split(mtlConfig.nodeSeparator);
 				switch (nodes[0].toLowerCase()) {
 					case lineTypes.NEW_MATERIAL:
-						/** @type {Material} */
 						material = new Types.Material();
 						allMaterials[nodes[1]] = material;
 						currentMaterial = material;
