@@ -25,22 +25,32 @@ module webGLEngine {
 				this._z += typeof z === 'number' ? z : 0;
 			}
 
-			public minus(vector : Vector3) : void {
+			public minus(vector : Vector3) : Vector3 {
 				this._x -= vector._x;
 				this._y -= vector._y;
 				this._z -= vector._z;
+				return this;
 			}
 
-			public plus(vector : Vector3) : void {
+			public plus(vector : Vector3) : Vector3 {
 				this._x += vector._x;
 				this._y += vector._y;
 				this._z += vector._z;
+				return this;
 			}
 
-			public multiply(multiplier : number) {
+			public multiply(multiplier : number) : Vector3 {
 				this._x *= multiplier;
 				this._y *= multiplier;
 				this._z *= multiplier;
+				return this;
+			}
+
+			public divide(divider : number) : Vector3 {
+				this._x /= divider;
+				this._y /= divider;
+				this._z /= divider;
+				return this;
 			}
 
 			public clone() : Vector3 {

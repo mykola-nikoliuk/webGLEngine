@@ -180,8 +180,8 @@ var ns = {
 		this._meshes.sky.scale.set(10000, 10000, 10000);
 		this._meshes.sky.rotation.set(0, Math.PI, 0);
 		//
-		this._camera.position.set(-113, 105, -20);
-		this._camera.rotation.set(-0.49, 4.2, 0);
+		this._camera.position.set(-86, 56, -56);
+		//this._camera.rotation.set(0, Math.PI/2, 0);
 
 		this._meshes.sky.position.set(-this._camera.position.x,
 			-this._camera.position.y, -this._camera.position.z);

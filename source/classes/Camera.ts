@@ -16,7 +16,7 @@ module webGLEngine {
 				this.turnOn();
 			}
 
-			public static get pool () : Pool<Camera> {
+			public static get pool() : Pool<Camera> {
 				return this._pool;
 			}
 
@@ -37,9 +37,41 @@ module webGLEngine {
 			}
 
 			public update() {
+				var hypotenuse2D : number,
+					distance : number,
+					ratio : number,
+					yAngle : number,
+					position : Vector3;
+
 				if (this._followTarget) {
-					this.position.copyFrom(this._followTarget.position);
-					// TODO : change position by follow rules
+					if (this._distance === 0) {
+						this.position.copyFrom(this._followTarget.position);
+						this.rotation.y = this._followTarget.rotation.y;
+					}
+					else {
+						position = this._followTarget.position.clone().minus(this.position);
+						hypotenuse2D = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2));
+						yAngle = Math.asin(position.x / hypotenuse2D);
+
+						if (position.z > 0) {
+							if (position.x < 0) {
+								yAngle = -Math.PI - yAngle;
+							}
+							else {
+								yAngle = Math.PI - yAngle;
+							}
+						}
+
+						this.rotation.y = -yAngle;
+						this.rotation.x = Math.atan(position.y / hypotenuse2D);
+
+						if (this._distance > 0) {
+							distance = this.position.getDistanceTo(this._followTarget.position);
+							ratio = this._distance / distance;
+							position.multiply(ratio);
+							this.position = this._followTarget.position.clone().minus(position);
+						}
+					}
 				}
 			}
 

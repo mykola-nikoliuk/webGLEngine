@@ -1032,16 +1032,25 @@ var webGLEngine;
                 this._x -= vector._x;
                 this._y -= vector._y;
                 this._z -= vector._z;
+                return this;
             };
             Vector3.prototype.plus = function (vector) {
                 this._x += vector._x;
                 this._y += vector._y;
                 this._z += vector._z;
+                return this;
             };
             Vector3.prototype.multiply = function (multiplier) {
                 this._x *= multiplier;
                 this._y *= multiplier;
                 this._z *= multiplier;
+                return this;
+            };
+            Vector3.prototype.divide = function (divider) {
+                this._x /= divider;
+                this._y /= divider;
+                this._z /= divider;
+                return this;
             };
             Vector3.prototype.clone = function () {
                 return new Vector3(this._x, this._y, this._z);
@@ -1616,8 +1625,33 @@ var webGLEngine;
                 this._followTarget = null;
             };
             Camera.prototype.update = function () {
+                var hypotenuse2D, distance, ratio, yAngle, position;
                 if (this._followTarget) {
-                    this.position.copyFrom(this._followTarget.position);
+                    if (this._distance === 0) {
+                        this.position.copyFrom(this._followTarget.position);
+                        this.rotation.y = this._followTarget.rotation.y;
+                    }
+                    else {
+                        position = this._followTarget.position.clone().minus(this.position);
+                        hypotenuse2D = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2));
+                        yAngle = Math.asin(position.x / hypotenuse2D);
+                        if (position.z > 0) {
+                            if (position.x < 0) {
+                                yAngle = -Math.PI - yAngle;
+                            }
+                            else {
+                                yAngle = Math.PI - yAngle;
+                            }
+                        }
+                        this.rotation.y = -yAngle;
+                        this.rotation.x = Math.atan(position.y / hypotenuse2D);
+                        if (this._distance > 0) {
+                            distance = this.position.getDistanceTo(this._followTarget.position);
+                            ratio = this._distance / distance;
+                            position.multiply(ratio);
+                            this.position = this._followTarget.position.clone().minus(position);
+                        }
+                    }
                 }
             };
             /** Adds camera to cameras pool

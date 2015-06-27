@@ -127,9 +127,10 @@ declare module webGLEngine {
             constructor(x?: any, y?: any, z?: any);
             set(x: any, y: any, z: any): Vector3;
             add(x: any, y: any, z: any): void;
-            minus(vector: Vector3): void;
-            plus(vector: Vector3): void;
-            multiply(multiplier: number): void;
+            minus(vector: Vector3): Vector3;
+            plus(vector: Vector3): Vector3;
+            multiply(multiplier: number): Vector3;
+            divide(divider: number): Vector3;
             clone(): Vector3;
             invertSign(): Vector3;
             copyFrom(vector: Vector3): void;
