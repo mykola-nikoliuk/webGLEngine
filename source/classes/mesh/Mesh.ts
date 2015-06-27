@@ -4,6 +4,8 @@ module webGLEngine {
 
 		export class Mesh extends Transformations {
 
+			public static defaultMaterialName = 'noMaterial';
+
 			private _webGL : any;
 			private _vertexes : number[];
 			private _vertextTextures : number[];
@@ -22,8 +24,6 @@ module webGLEngine {
 			private _materialCallback : Utils.Callback;
 
 			private _createCallback : Utils.Callback;
-
-			public static defaultMaterialName = 'noMaterial';
 
 			constructor(webGL : any) {
 				super();

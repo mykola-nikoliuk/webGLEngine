@@ -2044,11 +2044,17 @@ var webGLEngine;
             /** Adds animation to general animations pool
              * Removes true if animation was added, otherwise false */
             Animation.prototype.turnOn = function () {
+                for (var i = 0; i < this._targets.length; i++) {
+                    this._targets[i].resume();
+                }
                 return Animation._pool.add(this);
             };
             /** Removes animation from general animations pool
              * Removes true if animation was removed, otherwise false */
             Animation.prototype.turnOff = function () {
+                for (var i = 0; i < this._targets.length; i++) {
+                    this._targets[i].pause();
+                }
                 return Animation._pool.remove(this);
             };
             Animation.prototype._update = function () {

@@ -113,12 +113,20 @@ module webGLEngine {
 			/** Adds animation to general animations pool
 			 * Removes true if animation was added, otherwise false */
 			public turnOn() : boolean {
+				for (var i = 0; i < this._targets.length; i++) {
+					this._targets[i].resume();
+				}
+
 				return Animation._pool.add(this);
 			}
 
 			/** Removes animation from general animations pool
 			 * Removes true if animation was removed, otherwise false */
 			public turnOff() : boolean {
+				for (var i = 0; i < this._targets.length; i++) {
+					this._targets[i].pause();
+				}
+
 				return Animation._pool.remove(this);
 			}
 

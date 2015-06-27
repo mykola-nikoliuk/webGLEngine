@@ -187,6 +187,7 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class Mesh extends Transformations {
+            static defaultMaterialName: string;
             private _webGL;
             private _vertexes;
             private _vertextTextures;
@@ -202,7 +203,6 @@ declare module webGLEngine {
             private _vertexTextureBuffer;
             private _materialCallback;
             private _createCallback;
-            static defaultMaterialName: string;
             constructor(webGL: any);
             fillBuffers(vertexes: number[], vertexTexture: number[], vertexNormals: number[], faces: Face[][], materials: {
                 [materialName: string]: Material;
