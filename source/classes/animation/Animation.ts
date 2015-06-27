@@ -3,16 +3,17 @@ module webGLEngine {
 	export module Types {
 
 		export class Animation {
-			private _type : number;
-			private _frames : Frame[];
-			private _initialFrame : Frame;
-			private _targets : AnimationTarget[];
 
-			public static animations : Animation[] = [];
 			public static Types = {
 				WITH_CHANGES   : 0,
 				WITHOUT_CHANGES: 1
 			};
+
+			private static _pool = new Pool<Animation>();
+			private _type : number;
+			private _frames : Frame[];
+			private _initialFrame : Frame;
+			private _targets : AnimationTarget[];
 
 			constructor(type : number, initialFrame : Frame, frames : Frame[]) {
 				this._type = type;
@@ -29,6 +30,10 @@ module webGLEngine {
 				}
 
 				this.turnOn();
+			}
+
+			public static get pool() : Pool<Animation> {
+				return this._pool;
 			}
 
 			public start(transformable : Transformations, callback? : Utils.Callback) : void {
@@ -105,32 +110,16 @@ module webGLEngine {
 				}
 			}
 
-			/** Adds animation to general animations list */
-			public turnOn() {
-				var index : number,
-					i : number;
-
-				if ((index = Animation.animations.indexOf(this)) < 0) {
-					Animation.animations.push(this);
-				}
-
-				for (i = 0; i < this._targets.length; i++) {
-					this._targets[i].resume();
-				}
+			/** Adds animation to general animations pool
+			 * Removes true if animation was added, otherwise false */
+			public turnOn() : boolean {
+				return Animation._pool.add(this);
 			}
 
-			/** Removes animation from general animations list */
-			public turnOff() {
-				var index : number,
-					i : number;
-
-				if ((index = Animation.animations.indexOf(this)) >= 0) {
-					Animation.animations.splice(index, 1);
-				}
-
-				for (i = 0; i < this._targets.length; i++) {
-					this._targets[i].pause();
-				}
+			/** Removes animation from general animations pool
+			 * Removes true if animation was removed, otherwise false */
+			public turnOff() : boolean {
+				return Animation._pool.remove(this);
 			}
 
 			private _update() : void {

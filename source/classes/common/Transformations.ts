@@ -1,4 +1,4 @@
-///<reference path="../common/Vector3.ts"/>
+///<reference path="Vector3.ts"/>
 
 module webGLEngine {
 

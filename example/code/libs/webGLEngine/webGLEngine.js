@@ -1136,7 +1136,66 @@ var webGLEngine;
         Types.Vector3 = Vector3;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="../common/Vector3.ts"/>
+///<reference path="Vector3.ts"/>
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Pool = (function () {
+            function Pool() {
+                this._pool = [];
+            }
+            /** Returns pool size */
+            Pool.prototype.size = function () {
+                return this._pool.length;
+            };
+            /** Returns pool element */
+            Pool.prototype.get = function (index) {
+                if (typeof index === 'number') {
+                    if (index >= 0 && index < this._pool.length) {
+                        return this._pool[index];
+                    }
+                    else {
+                        webGLEngine.Console.error('Pool:get() : index is out of range');
+                    }
+                }
+                else {
+                    webGLEngine.Console.error('Pool:get() : parameter should be number');
+                }
+                return null;
+            };
+            /** Add element to pool
+             * Returns true if element was added, otherwise false */
+            Pool.prototype.add = function (element) {
+                if (this._pool.indexOf(element) < 0) {
+                    this._pool.push(element);
+                    return true;
+                }
+                else {
+                    webGLEngine.Console.warning('Pool.add() : element already added. To add element you should remove it first\n' +
+                        'Please note, constructor() may adding himself to this pool when element created');
+                }
+                return false;
+            };
+            /** Removes element from general pool
+             * Returns true if element was removed, otherwise false */
+            Pool.prototype.remove = function (element) {
+                var index;
+                if ((index = this._pool.indexOf(element)) >= 0) {
+                    this._pool.splice(index, 1);
+                    return true;
+                }
+                else {
+                    webGLEngine.Console.warning('Pool.remove() : Material not found');
+                }
+                return false;
+            };
+            return Pool;
+        })();
+        Types.Pool = Pool;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+///<reference path="Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1535,6 +1594,13 @@ var webGLEngine;
                 this._followTarget = null;
                 this.turnOn();
             }
+            Object.defineProperty(Camera, "pool", {
+                get: function () {
+                    return this._pool;
+                },
+                enumerable: true,
+                configurable: true
+            });
             /** Sets follow state for camera */
             Camera.prototype.follow = function (transformations, distance) {
                 if (transformations instanceof Types.Transformations) {
@@ -1554,18 +1620,17 @@ var webGLEngine;
                     this.position.copyFrom(this._followTarget.position);
                 }
             };
-            /** Adds camera to engine */
+            /** Adds camera to cameras pool
+             * Removes true if animation was added, otherwise false */
             Camera.prototype.turnOn = function () {
-                Camera.cameras.push(this);
+                return Camera.pool.add(this);
             };
-            /** Release camera from engine */
+            /** Remove camera from cameras pool
+             * Removes true if camera was removed, otherwise false  */
             Camera.prototype.turnOff = function () {
-                var index;
-                if ((index = Camera.cameras.indexOf(this)) >= 0) {
-                    Camera.cameras.splice(index, 1);
-                }
+                return Camera.pool.remove(this);
             };
-            Camera.cameras = [];
+            Camera._pool = new Types.Pool();
             return Camera;
         })(Types.Transformations);
         Types.Camera = Camera;
@@ -1643,20 +1708,20 @@ var webGLEngine;
                 var i;
                 if (this._engine.isReady()) {
                     // updates before render
-                    for (i = 0; i < Types.Animation.animations.length; i++) {
-                        Types.Animation.animations[i].updateBeforeRender();
+                    for (i = 0; i < Types.Animation.pool.size(); i++) {
+                        Types.Animation.pool.get(i).updateBeforeRender();
                     }
                     // updates cameras
-                    for (i = 0; i < Types.Camera.cameras.length; i++) {
-                        Types.Camera.cameras[i].update();
+                    for (i = 0; i < Types.Camera.pool.size(); i++) {
+                        Types.Camera.pool.get(i).update();
                     }
                     // call subscribed functions for render
                     for (i = 0; i < this._subscribers.length; i++) {
                         this._subscribers[i].apply();
                     }
                     // update after render
-                    for (i = 0; i < Types.Animation.animations.length; i++) {
-                        Types.Animation.animations[i].updateAfterRender();
+                    for (i = 0; i < Types.Animation.pool.size(); i++) {
+                        Types.Animation.pool.get(i).updateAfterRender();
                     }
                 }
             };
@@ -1718,7 +1783,15 @@ var webGLEngine;
                 this.textureRepeat = true;
                 this._loadingImage = null;
                 this._callback = null;
+                Material._pool.add(this);
             }
+            Object.defineProperty(Material, "pool", {
+                get: function () {
+                    return this._pool;
+                },
+                enumerable: true,
+                configurable: true
+            });
             Material.prototype.callback = function (callback) {
                 this._callback = callback;
                 if (this.ready) {
@@ -1760,6 +1833,7 @@ var webGLEngine;
                     this._callback.apply();
                 }
             };
+            Material._pool = new Types.Pool();
             return Material;
         })();
         Types.Material = Material;
@@ -1901,6 +1975,13 @@ var webGLEngine;
                 }
                 this.turnOn();
             }
+            Object.defineProperty(Animation, "pool", {
+                get: function () {
+                    return this._pool;
+                },
+                enumerable: true,
+                configurable: true
+            });
             Animation.prototype.start = function (transformable, callback) {
                 var target = new Types.AnimationTarget(transformable), i;
                 target.start(callback);
@@ -1960,25 +2041,15 @@ var webGLEngine;
                     }
                 }
             };
-            /** Adds animation to general animations list */
+            /** Adds animation to general animations pool
+             * Removes true if animation was added, otherwise false */
             Animation.prototype.turnOn = function () {
-                var index, i;
-                if ((index = Animation.animations.indexOf(this)) < 0) {
-                    Animation.animations.push(this);
-                }
-                for (i = 0; i < this._targets.length; i++) {
-                    this._targets[i].resume();
-                }
+                return Animation._pool.add(this);
             };
-            /** Removes animation from general animations list */
+            /** Removes animation from general animations pool
+             * Removes true if animation was removed, otherwise false */
             Animation.prototype.turnOff = function () {
-                var index, i;
-                if ((index = Animation.animations.indexOf(this)) >= 0) {
-                    Animation.animations.splice(index, 1);
-                }
-                for (i = 0; i < this._targets.length; i++) {
-                    this._targets[i].pause();
-                }
+                return Animation._pool.remove(this);
             };
             Animation.prototype._update = function () {
                 var elapsedTime, frameIndex, targetRemoved, target, i;
@@ -2033,11 +2104,11 @@ var webGLEngine;
                     mesh.rotation = vector;
                 }
             };
-            Animation.animations = [];
             Animation.Types = {
                 WITH_CHANGES: 0,
                 WITHOUT_CHANGES: 1
             };
+            Animation._pool = new Types.Pool();
             return Animation;
         })();
         Types.Animation = Animation;
@@ -2077,7 +2148,8 @@ var webGLEngine;
     };
 })(webGLEngine || (webGLEngine = {}));
 ///<reference path="./classes/utils/Utils.ts"/>
-///<reference path="./classes/mesh/Transformations.ts"/>
+///<reference path="./classes/common/Pool.ts"/>
+///<reference path="./classes/common/Transformations.ts"/>
 ///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/mesh/Mesh.ts"/>
 ///<reference path="./classes/Light.ts"/>

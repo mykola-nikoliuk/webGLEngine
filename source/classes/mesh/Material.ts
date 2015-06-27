@@ -14,6 +14,8 @@ module webGLEngine {
 			public image : WebGLTexture = null;
 			public textureRepeat : boolean;
 
+			private static _pool = new Pool<Material>();
+
 			private _loadingImage;
 			private _callback : Utils.Callback;
 
@@ -26,6 +28,11 @@ module webGLEngine {
 				this.textureRepeat = true;
 				this._loadingImage = null;
 				this._callback = null;
+				Material._pool.add(this);
+			}
+
+			public static get pool() : Pool<Material> {
+				return this._pool;
 			}
 
 			public callback(callback : Utils.Callback) : void {
@@ -78,5 +85,4 @@ module webGLEngine {
 			}
 		}
 	}
-
 }

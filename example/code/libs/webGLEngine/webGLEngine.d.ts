@@ -146,6 +146,24 @@ declare module webGLEngine {
 }
 declare module webGLEngine {
     module Types {
+        class Pool<T> {
+            private _pool;
+            constructor();
+            /** Returns pool size */
+            size(): number;
+            /** Returns pool element */
+            get(index: number): T;
+            /** Add element to pool
+             * Returns true if element was added, otherwise false */
+            add(element: T): boolean;
+            /** Removes element from general pool
+             * Returns true if element was removed, otherwise false */
+            remove(element: T): boolean;
+        }
+    }
+}
+declare module webGLEngine {
+    module Types {
         class Transformations {
             position: Vector3;
             rotation: Vector3;
@@ -262,19 +280,22 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class Camera extends Transformations {
-            static cameras: Camera[];
+            private static _pool;
             private _followTarget;
             private _distance;
             constructor();
+            static pool: Pool<Camera>;
             /** Sets follow state for camera */
             follow(transformations: Transformations, distance?: number): void;
             /** Removes follow state */
             unfollow(): void;
             update(): void;
-            /** Adds camera to engine */
-            turnOn(): void;
-            /** Release camera from engine */
-            turnOff(): void;
+            /** Adds camera to cameras pool
+             * Removes true if animation was added, otherwise false */
+            turnOn(): boolean;
+            /** Remove camera from cameras pool
+             * Removes true if camera was removed, otherwise false  */
+            turnOff(): boolean;
         }
     }
 }
@@ -339,9 +360,11 @@ declare module webGLEngine {
             texture: WebGLTexture;
             image: WebGLTexture;
             textureRepeat: boolean;
+            private static _pool;
             private _loadingImage;
             private _callback;
             constructor();
+            static pool: Pool<Material>;
             callback(callback: Utils.Callback): void;
             loadTexture(gl: any, path: any, textureRepeat: any): void;
             private _createTexture();
@@ -393,16 +416,17 @@ declare module webGLEngine {
 declare module webGLEngine {
     module Types {
         class Animation {
-            private _type;
-            private _frames;
-            private _initialFrame;
-            private _targets;
-            static animations: Animation[];
             static Types: {
                 WITH_CHANGES: number;
                 WITHOUT_CHANGES: number;
             };
+            private static _pool;
+            private _type;
+            private _frames;
+            private _initialFrame;
+            private _targets;
             constructor(type: number, initialFrame: Frame, frames: Frame[]);
+            static pool: Pool<Animation>;
             start(transformable: Transformations, callback?: Utils.Callback): void;
             /** Do updates before render */
             updateBeforeRender(): void;
@@ -411,10 +435,12 @@ declare module webGLEngine {
             setTimeByDistance(time: number): void;
             pause(transformable: Transformations): void;
             resume(transformable: Transformations): void;
-            /** Adds animation to general animations list */
-            turnOn(): void;
-            /** Removes animation from general animations list */
-            turnOff(): void;
+            /** Adds animation to general animations pool
+             * Removes true if animation was added, otherwise false */
+            turnOn(): boolean;
+            /** Removes animation from general animations pool
+             * Removes true if animation was removed, otherwise false */
+            turnOff(): boolean;
             private _update();
             private _updateTarget(target, frameIndex, percents);
         }

@@ -4,10 +4,9 @@ module webGLEngine {
 
 	export module Types {
 
-		export class Camera extends Transformations{
+		export class Camera extends Transformations {
 
-			public static cameras : Camera[] = [];
-
+			private static _pool = new Pool<Camera>();
 			private _followTarget : Transformations;
 			private _distance : number;
 
@@ -15,6 +14,10 @@ module webGLEngine {
 				super();
 				this._followTarget = null;
 				this.turnOn();
+			}
+
+			public static get pool () : Pool<Camera> {
+				return this._pool;
 			}
 
 			/** Sets follow state for camera */
@@ -40,17 +43,16 @@ module webGLEngine {
 				}
 			}
 
-			/** Adds camera to engine */
-			public turnOn() {
-				Camera.cameras.push(this);
+			/** Adds camera to cameras pool
+			 * Removes true if animation was added, otherwise false */
+			public turnOn() : boolean {
+				return Camera.pool.add(this);
 			}
 
-			/** Release camera from engine */
-			public turnOff() {
-				var index : number;
-				if ((index = Camera.cameras.indexOf(this)) >= 0) {
-					Camera.cameras.splice(index, 1);
-				}
+			/** Remove camera from cameras pool
+			 * Removes true if camera was removed, otherwise false  */
+			public turnOff() : boolean {
+				return Camera.pool.remove(this);
 			}
 		}
 

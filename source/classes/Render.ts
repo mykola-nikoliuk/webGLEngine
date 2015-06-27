@@ -39,13 +39,13 @@ module webGLEngine {
 				if (this._engine.isReady()) {
 
 					// updates before render
-					for (i = 0; i < Animation.animations.length; i++) {
-						Animation.animations[i].updateBeforeRender();
+					for (i = 0; i < Animation.pool.size(); i++) {
+						Animation.pool.get(i).updateBeforeRender();
 					}
 
 					// updates cameras
-					for (i = 0; i < Camera.cameras.length; i++) {
-						Camera.cameras[i].update();
+					for (i = 0; i < Camera.pool.size(); i++) {
+						Camera.pool.get(i).update();
 					}
 
 					// call subscribed functions for render
@@ -54,8 +54,8 @@ module webGLEngine {
 					}
 
 					// update after render
-					for (i = 0; i < Animation.animations.length; i++) {
-						Animation.animations[i].updateAfterRender();
+					for (i = 0; i < Animation.pool.size(); i++) {
+						Animation.pool.get(i).updateAfterRender();
 					}
 				}
 			}
