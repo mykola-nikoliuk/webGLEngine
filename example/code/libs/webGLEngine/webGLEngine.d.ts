@@ -169,7 +169,11 @@ declare module webGLEngine {
             position: Vector3;
             rotation: Vector3;
             scale: Vector3;
+            private _parent;
             constructor();
+            setParent(parent: Transformations): boolean;
+            clearParent(): void;
+            getParent(): Transformations;
             copyFrom(transformation: Transformations): void;
             cloneTransformations(): Transformations;
         }
@@ -510,6 +514,7 @@ declare module webGLEngine {
         getCamera(): Types.Transformations;
         createMesh(vertexes: any, textures: any, normals: any, faces: any, materials: any): Types.Mesh;
         getGLInstance(): any;
+        private _applyTransformations(matrix, object);
         private _createCanvas();
         private _initGL();
         private _loadShaders(fragmentShaderPath, vertexShaderPath);

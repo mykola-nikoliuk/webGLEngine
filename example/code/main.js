@@ -114,6 +114,7 @@ var ns = {
 
 		this._meshes = {
 			sky    : ns._engine._createMeshFromFile('./resources/world/cubemap.obj', {textureRepeat : false}),
+			cube   : ns._engine._createMeshFromFile('./resources/world/cubemap.obj', {textureRepeat : false}),
 			plane  : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false})
 				.callback(new webGLEngine.Utils.Callback(ns.createSecondPlane, ns)),
 			plane2 : null,
@@ -137,6 +138,7 @@ var ns = {
 
 		this._createAnimation();
 		this._startAnimation();
+		this._startAnimation2();
 
 		if (this._engine) {
 			this._engine.Render.subscribe(new webGLEngine.Utils.Callback(this.mainProc, this));
@@ -178,8 +180,12 @@ var ns = {
 	/** @public */
 	configure : function () {
 		this._meshes.sky.scale.set(10000, 10000, 10000);
-		this._meshes.sky.rotation.set(0, Math.PI, 0);
-		//
+
+		this._meshes.cube.position.set(0, 0, 10);
+		this._meshes.cube.rotation.set(Math.PI / 2, 0, 0);
+		//this._meshes.cube.scale.set(10, 10, 10);
+		this._meshes.cube.setParent(this._meshes.plane);
+
 		this._camera.position.set(-86, 56, -56);
 		//this._camera.rotation.set(0, Math.PI/2, 0);
 
@@ -187,6 +193,8 @@ var ns = {
 			-this._camera.position.y, -this._camera.position.z);
 
 		this._meshes.street.scale.set(5, 5, 5);
+		//this._meshes.street.position.set(0, -20, 0);
+
 		this._meshes.plane.scale.set(0.3, 0.3, 0.3);
 		this._meshes.plane.position.set(70, -10, 0);
 	},
@@ -295,6 +303,7 @@ var ns = {
 		engine.beginDraw();
 		engine.turnOffLight();
 		engine.draw(this._meshes.sky);
+		engine.draw(this._meshes.cube);
 		engine.draw(this._meshes.street);
 		engine.draw(this._meshes.plane);
 		engine.draw(this._meshes.plane2);
@@ -442,10 +451,34 @@ var ns = {
 			]
 		);
 		this._animation.setTimeByDistance(10000);
+
+
+		this._animation2 = new webGLEngine.Types.Animation(
+			webGLEngine.Types.Animation.Types.WITH_CHANGES,
+
+			new webGLEngine.Types.Frame()
+				.setPosition(new webGLEngine.Types.Vector3(0, 0, 10))
+				.setRotation(new webGLEngine.Types.Vector3(Math.PI / 2, 0, 0)),
+
+			[
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(0, 0, 12))
+					.setRotation(new webGLEngine.Types.Vector3(Math.PI / 2, 0, Math.PI * 2))
+					.setTime(500),
+				new webGLEngine.Types.Frame()
+					.setPosition(new webGLEngine.Types.Vector3(0, 0, 10))
+					.setRotation(new webGLEngine.Types.Vector3(Math.PI / 2, 0, Math.PI * 4))
+					.setTime(1000),
+			]
+		);
 	},
 
 	_startAnimation : function () {
 		this._animation.start(this._meshes.plane, new webGLEngine.Utils.Callback(this._startAnimation, this));
+	},
+
+	_startAnimation2 : function () {
+		this._animation2.start(this._meshes.cube, new webGLEngine.Utils.Callback(this._startAnimation2, this));
 	},
 
 	_showTransfrmations : function () {
@@ -525,7 +558,7 @@ var ns = {
 				break;
 
 			case 13:
-				this._startAnimation();
+				//this._startAnimation();
 				break;
 
 			case 32:
@@ -534,7 +567,7 @@ var ns = {
 
 			case 38:
 			case 29460:
-				this._startAnimation();
+				//this._startAnimation();
 				break;
 
 			case 40:

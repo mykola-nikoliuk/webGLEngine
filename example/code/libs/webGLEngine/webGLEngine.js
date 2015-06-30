@@ -1211,6 +1211,7 @@ var webGLEngine;
     (function (Types) {
         var Transformations = (function () {
             function Transformations() {
+                this._parent = null;
                 this.position = new Types.Vector3();
                 this.rotation = new Types.Vector3(0, 0, 0);
                 this.scale = new Types.Vector3(1, 1, 1);
@@ -1220,6 +1221,23 @@ var webGLEngine;
             //	this.rotation = rotation;
             //	this.scale = scale;
             //}
+            Transformations.prototype.setParent = function (parent) {
+                if (parent instanceof Transformations) {
+                    this._parent = parent;
+                    return true;
+                }
+                else {
+                    webGLEngine.Console.warning('Transformations.setParent() : parent isn\'t instance of Transformations\n' +
+                        'parent isn\'t added');
+                }
+                return false;
+            };
+            Transformations.prototype.clearParent = function () {
+                this._parent = null;
+            };
+            Transformations.prototype.getParent = function () {
+                return this._parent;
+            };
             Transformations.prototype.copyFrom = function (transformation) {
                 this.position.copyFrom(transformation.position);
                 this.rotation.copyFrom(transformation.rotation);
@@ -2269,7 +2287,7 @@ var webGLEngine;
             return this._isReady;
         };
         Engine.prototype.draw = function (mesh) {
-            var vertexIndexBuffers, vertexPositionBuffer, vertexNormalBuffer, vertexColorBuffer, vertexTextureBuffer, i, material;
+            var vertexIndexBuffers, vertexPositionBuffer, vertexNormalBuffer, vertexColorBuffer, vertexTextureBuffer, parent, parents, i, material;
             if (!(mesh instanceof webGLEngine.Types.Mesh) || !mesh.isReady()) {
                 return;
             }
@@ -2280,11 +2298,14 @@ var webGLEngine;
             vertexColorBuffer = mesh.getVertexColorBuffer();
             vertexTextureBuffer = mesh.getVertexTextureBuffer();
             // apply matrix mesh
-            webGLEngine.Utils.GLMatrix.mat4.translate(this._mvMatrix, mesh.position.getArray());
-            webGLEngine.Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, mesh.rotation.z);
-            webGLEngine.Utils.GLMatrix.mat4.rotateY(this._mvMatrix, mesh.rotation.y);
-            webGLEngine.Utils.GLMatrix.mat4.rotateX(this._mvMatrix, mesh.rotation.x);
-            webGLEngine.Utils.GLMatrix.mat4.scale(this._mvMatrix, mesh.scale.getArray());
+            parent = mesh;
+            parents = [parent];
+            while (parent = parent.getParent()) {
+                parents.push(parent);
+            }
+            while (parents.length) {
+                this._applyTransformations(this._mvMatrix, parents.pop());
+            }
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
             this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
@@ -2378,6 +2399,13 @@ var webGLEngine;
         };
         Engine.prototype.getGLInstance = function () {
             return this._gl;
+        };
+        Engine.prototype._applyTransformations = function (matrix, object) {
+            webGLEngine.Utils.GLMatrix.mat4.translate(this._mvMatrix, object.position.getArray());
+            webGLEngine.Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, object.rotation.z);
+            webGLEngine.Utils.GLMatrix.mat4.rotateY(this._mvMatrix, object.rotation.y);
+            webGLEngine.Utils.GLMatrix.mat4.rotateX(this._mvMatrix, object.rotation.x);
+            webGLEngine.Utils.GLMatrix.mat4.scale(this._mvMatrix, object.scale.getArray());
         };
         Engine.prototype._createCanvas = function () {
             this._canvasNode = document.getElementById(webGLEngine.Config.html.canvasID);

@@ -116,6 +116,8 @@ module webGLEngine {
 				vertexNormalBuffer,
 				vertexColorBuffer,
 				vertexTextureBuffer,
+				parent : Types.Transformations,
+				parents : Types.Transformations[],
 				i, material;
 
 			if (!(mesh instanceof Types.Mesh) || !mesh.isReady()) {
@@ -131,11 +133,14 @@ module webGLEngine {
 			vertexTextureBuffer = mesh.getVertexTextureBuffer();
 
 			// apply matrix mesh
-			Utils.GLMatrix.mat4.translate(this._mvMatrix, mesh.position.getArray());
-			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, mesh.rotation.z);
-			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, mesh.rotation.y);
-			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, mesh.rotation.x);
-			Utils.GLMatrix.mat4.scale(this._mvMatrix, mesh.scale.getArray());
+			parent = mesh;
+			parents = [parent];
+			while (parent = parent.getParent()) {
+				parents.push(parent);
+			}
+			while (parents.length) {
+				this._applyTransformations(this._mvMatrix, parents.pop());
+			}
 
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
 			this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
@@ -258,6 +263,14 @@ module webGLEngine {
 
 		public getGLInstance() : any {
 			return this._gl;
+		}
+
+		private _applyTransformations(matrix : Float32Array, object : Types.Transformations) {
+			Utils.GLMatrix.mat4.translate(this._mvMatrix, object.position.getArray());
+			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, object.rotation.z);
+			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, object.rotation.y);
+			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, object.rotation.x);
+			Utils.GLMatrix.mat4.scale(this._mvMatrix, object.scale.getArray());
 		}
 
 		private _createCanvas() : void {
