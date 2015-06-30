@@ -7,6 +7,7 @@ module webGLEngine {
 			private _consoleView : HTMLDivElement;
 			private _isCreated : boolean;
 			private _freeLinesLeft : number;
+			private _maxHeight : number;
 			private static _colors = {
 				ERROR  : 'red',
 				WARNING: 'orange',
@@ -58,8 +59,11 @@ module webGLEngine {
 			/** creates console view */
 			private _createView(x : number, y : number, maxWidth : number, maxHeight : number) : void {
 				var consoleDiv = document.createElement('div');
+				this._maxHeight = typeof maxHeight === 'number' ? maxHeight : 100000;
 				this._consoleView = consoleDiv;
 				consoleDiv.style.position = 'fixed';
+				consoleDiv.style.overflowX = 'hidden';
+				consoleDiv.style.overflowY = 'scroll';
 				consoleDiv.style.left = x + 'px';
 				consoleDiv.style.top = y + 'px';
 				consoleDiv.style.maxWidth = maxWidth + 'px';
@@ -83,6 +87,7 @@ module webGLEngine {
 				lineDiv.style.backgroundColor = Console._config.lineColor;
 				lineDiv.innerText = msg;
 				this._consoleView.appendChild(lineDiv);
+				this._consoleView.scrollTop = this._maxHeight;
 
 				if (this._freeLinesLeft - 1 < 0) {
 					this._consoleView.removeChild(this._consoleView.firstChild);

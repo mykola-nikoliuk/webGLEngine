@@ -95,6 +95,7 @@ declare module webGLEngine {
             private _consoleView;
             private _isCreated;
             private _freeLinesLeft;
+            private _maxHeight;
             private static _colors;
             private static _config;
             constructor();

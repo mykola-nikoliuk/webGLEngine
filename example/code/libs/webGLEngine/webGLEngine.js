@@ -907,8 +907,11 @@ var webGLEngine;
             /** creates console view */
             Console.prototype._createView = function (x, y, maxWidth, maxHeight) {
                 var consoleDiv = document.createElement('div');
+                this._maxHeight = typeof maxHeight === 'number' ? maxHeight : 100000;
                 this._consoleView = consoleDiv;
                 consoleDiv.style.position = 'fixed';
+                consoleDiv.style.overflowX = 'hidden';
+                consoleDiv.style.overflowY = 'scroll';
                 consoleDiv.style.left = x + 'px';
                 consoleDiv.style.top = y + 'px';
                 consoleDiv.style.maxWidth = maxWidth + 'px';
@@ -931,6 +934,7 @@ var webGLEngine;
                 lineDiv.style.backgroundColor = Console._config.lineColor;
                 lineDiv.innerText = msg;
                 this._consoleView.appendChild(lineDiv);
+                this._consoleView.scrollTop = this._maxHeight;
                 if (this._freeLinesLeft - 1 < 0) {
                     this._consoleView.removeChild(this._consoleView.firstChild);
                 }
