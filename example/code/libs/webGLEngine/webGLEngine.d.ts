@@ -121,33 +121,6 @@ declare module webGLEngine {
 }
 declare module webGLEngine {
     module Types {
-        class Vector3 {
-            private _x;
-            private _y;
-            private _z;
-            constructor(x?: any, y?: any, z?: any);
-            set(x: any, y: any, z: any): Vector3;
-            add(x: any, y: any, z: any): void;
-            minus(vector: Vector3): Vector3;
-            plus(vector: Vector3): Vector3;
-            multiply(multiplier: number): Vector3;
-            divide(divider: number): Vector3;
-            clone(): Vector3;
-            invertSign(): Vector3;
-            copyFrom(vector: Vector3): void;
-            getArray(): any[];
-            getDistanceTo(point: Vector3): number;
-            x: number;
-            y: number;
-            z: number;
-            r: number;
-            g: number;
-            b: number;
-        }
-    }
-}
-declare module webGLEngine {
-    module Types {
         class Pool<T> {
             private _pool;
             constructor();
@@ -170,13 +143,33 @@ declare module webGLEngine {
             position: Vector3;
             rotation: Vector3;
             scale: Vector3;
-            private _parent;
             constructor();
-            setParent(parent: Transformations): boolean;
-            clearParent(): void;
-            getParent(): Transformations;
             copyFrom(transformation: Transformations): void;
             cloneTransformations(): Transformations;
+        }
+    }
+}
+declare module webGLEngine {
+    module Types {
+        class LinkedTransformations extends Transformations {
+            private _parent;
+            private _children;
+            constructor();
+            /** Sets parent and adds current child to parent */
+            setParent(parent: LinkedTransformations): boolean;
+            /** Clear parent and current child from it */
+            clearParent(): void;
+            /** Returns parent */
+            getParent(): LinkedTransformations;
+            /** Adds dependent child
+             * Returns true if child was added, otherwise false */
+            addChild(child: LinkedTransformations): boolean;
+            /** Removes dependent child
+             * Returns true if child was removed, otherwise false */
+            removeChild(child: LinkedTransformations): boolean;
+            /** Check is child presented
+             * Returns true if child presented, otherwise false */
+            hasChild(child: LinkedTransformations): boolean;
         }
     }
 }
@@ -192,7 +185,7 @@ declare module webGLEngine {
 }
 declare module webGLEngine {
     module Types {
-        class Mesh extends Transformations {
+        class Mesh extends LinkedTransformations {
             static defaultMaterialName: string;
             private _webGL;
             private _vertexes;
@@ -286,7 +279,7 @@ declare module webGLEngine {
 }
 declare module webGLEngine {
     module Types {
-        class Camera extends Transformations {
+        class Camera extends LinkedTransformations {
             private static _pool;
             private _followTarget;
             private _distance;
@@ -354,6 +347,33 @@ declare module webGLEngine {
             sendEvent(event: string): void;
             getLastLoadedMesh(): Mesh;
             private _handler(event, parameter);
+        }
+    }
+}
+declare module webGLEngine {
+    module Types {
+        class Vector3 {
+            private _x;
+            private _y;
+            private _z;
+            constructor(x?: any, y?: any, z?: any);
+            set(x: any, y: any, z: any): Vector3;
+            add(x: any, y: any, z: any): void;
+            minus(vector: Vector3): Vector3;
+            plus(vector: Vector3): Vector3;
+            multiply(multiplier: number): Vector3;
+            divide(divider: number): Vector3;
+            clone(): Vector3;
+            invertSign(): Vector3;
+            copyFrom(vector: Vector3): void;
+            getArray(): any[];
+            getDistanceTo(point: Vector3): number;
+            x: number;
+            y: number;
+            z: number;
+            r: number;
+            g: number;
+            b: number;
         }
     }
 }

@@ -1,5 +1,3 @@
-///<reference path="./../utils/Utils.ts"/>
-
 module webGLEngine {
 
 	export module Types {

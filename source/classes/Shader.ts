@@ -1,5 +1,3 @@
-///<reference path="utils/Callback.ts"/>
-
 module webGLEngine {
 
 	export module Types {

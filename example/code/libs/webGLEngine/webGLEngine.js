@@ -1014,146 +1014,6 @@ var webGLEngine;
 (function (webGLEngine) {
     var Types;
     (function (Types) {
-        var Vector3 = (function () {
-            function Vector3(x, y, z) {
-                this._x = 0;
-                this._y = 0;
-                this._z = 0;
-                this.set(x, y, z);
-            }
-            Vector3.prototype.set = function (x, y, z) {
-                this._x = typeof x === 'number' ? x : 0;
-                this._y = typeof y === 'number' ? y : 0;
-                this._z = typeof z === 'number' ? z : 0;
-                return this;
-            };
-            Vector3.prototype.add = function (x, y, z) {
-                this._x += typeof x === 'number' ? x : 0;
-                this._y += typeof y === 'number' ? y : 0;
-                this._z += typeof z === 'number' ? z : 0;
-            };
-            Vector3.prototype.minus = function (vector) {
-                this._x -= vector._x;
-                this._y -= vector._y;
-                this._z -= vector._z;
-                return this;
-            };
-            Vector3.prototype.plus = function (vector) {
-                this._x += vector._x;
-                this._y += vector._y;
-                this._z += vector._z;
-                return this;
-            };
-            Vector3.prototype.multiply = function (multiplier) {
-                this._x *= multiplier;
-                this._y *= multiplier;
-                this._z *= multiplier;
-                return this;
-            };
-            Vector3.prototype.divide = function (divider) {
-                this._x /= divider;
-                this._y /= divider;
-                this._z /= divider;
-                return this;
-            };
-            Vector3.prototype.clone = function () {
-                return new Vector3(this._x, this._y, this._z);
-            };
-            Vector3.prototype.invertSign = function () {
-                this._x *= -1;
-                this._y *= -1;
-                this._z *= -1;
-                return this;
-            };
-            Vector3.prototype.copyFrom = function (vector) {
-                this._x = vector._x;
-                this._y = vector._y;
-                this._z = vector._z;
-            };
-            Vector3.prototype.getArray = function () {
-                return [this._x, this._y, this._z];
-            };
-            Vector3.prototype.getDistanceTo = function (point) {
-                return Math.sqrt(Math.abs(Math.pow(this._x - point._x, 2) +
-                    Math.pow(this._y - point._y, 2) +
-                    Math.pow(this._z - point._z, 2)));
-            };
-            Object.defineProperty(Vector3.prototype, "x", {
-                get: function () {
-                    return this._x;
-                },
-                set: function (value) {
-                    if (typeof value === 'number')
-                        this._x = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(Vector3.prototype, "y", {
-                get: function () {
-                    return this._y;
-                },
-                set: function (value) {
-                    if (typeof value === 'number')
-                        this._y = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(Vector3.prototype, "z", {
-                get: function () {
-                    return this._z;
-                },
-                set: function (value) {
-                    if (typeof value === 'number')
-                        this._z = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(Vector3.prototype, "r", {
-                get: function () {
-                    return this._x;
-                },
-                set: function (value) {
-                    if (typeof value === 'number')
-                        this._x = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(Vector3.prototype, "g", {
-                get: function () {
-                    return this._y;
-                },
-                set: function (value) {
-                    if (typeof value === 'number')
-                        this._y = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(Vector3.prototype, "b", {
-                get: function () {
-                    return this._z;
-                },
-                set: function (value) {
-                    if (typeof value === 'number')
-                        this._z = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            return Vector3;
-        })();
-        Types.Vector3 = Vector3;
-    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
-})(webGLEngine || (webGLEngine = {}));
-///<reference path="Vector3.ts"/>
-var webGLEngine;
-(function (webGLEngine) {
-    var Types;
-    (function (Types) {
         var Pool = (function () {
             function Pool() {
                 this._pool = [];
@@ -1208,7 +1068,6 @@ var webGLEngine;
         Types.Pool = Pool;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1513,7 +1372,6 @@ var webGLEngine;
         Types.Mesh = Mesh;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="common/Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1582,7 +1440,6 @@ var webGLEngine;
         Types.Light = Light;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="utils/Callback.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1690,7 +1547,6 @@ var webGLEngine;
         Types.Shader = Shader;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="common/Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1769,7 +1625,6 @@ var webGLEngine;
         Types.Camera = Camera;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="common/Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1863,7 +1718,6 @@ var webGLEngine;
         Types.Render = Render;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="common/Vector3.ts"/>
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1899,7 +1753,145 @@ var webGLEngine;
         Types.Controller = Controller;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-///<reference path="./../utils/Utils.ts"/>
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var Vector3 = (function () {
+            function Vector3(x, y, z) {
+                this._x = 0;
+                this._y = 0;
+                this._z = 0;
+                this.set(x, y, z);
+            }
+            Vector3.prototype.set = function (x, y, z) {
+                this._x = typeof x === 'number' ? x : 0;
+                this._y = typeof y === 'number' ? y : 0;
+                this._z = typeof z === 'number' ? z : 0;
+                return this;
+            };
+            Vector3.prototype.add = function (x, y, z) {
+                this._x += typeof x === 'number' ? x : 0;
+                this._y += typeof y === 'number' ? y : 0;
+                this._z += typeof z === 'number' ? z : 0;
+            };
+            Vector3.prototype.minus = function (vector) {
+                this._x -= vector._x;
+                this._y -= vector._y;
+                this._z -= vector._z;
+                return this;
+            };
+            Vector3.prototype.plus = function (vector) {
+                this._x += vector._x;
+                this._y += vector._y;
+                this._z += vector._z;
+                return this;
+            };
+            Vector3.prototype.multiply = function (multiplier) {
+                this._x *= multiplier;
+                this._y *= multiplier;
+                this._z *= multiplier;
+                return this;
+            };
+            Vector3.prototype.divide = function (divider) {
+                this._x /= divider;
+                this._y /= divider;
+                this._z /= divider;
+                return this;
+            };
+            Vector3.prototype.clone = function () {
+                return new Vector3(this._x, this._y, this._z);
+            };
+            Vector3.prototype.invertSign = function () {
+                this._x *= -1;
+                this._y *= -1;
+                this._z *= -1;
+                return this;
+            };
+            Vector3.prototype.copyFrom = function (vector) {
+                this._x = vector._x;
+                this._y = vector._y;
+                this._z = vector._z;
+            };
+            Vector3.prototype.getArray = function () {
+                return [this._x, this._y, this._z];
+            };
+            Vector3.prototype.getDistanceTo = function (point) {
+                return Math.sqrt(Math.abs(Math.pow(this._x - point._x, 2) +
+                    Math.pow(this._y - point._y, 2) +
+                    Math.pow(this._z - point._z, 2)));
+            };
+            Object.defineProperty(Vector3.prototype, "x", {
+                get: function () {
+                    return this._x;
+                },
+                set: function (value) {
+                    if (typeof value === 'number')
+                        this._x = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Vector3.prototype, "y", {
+                get: function () {
+                    return this._y;
+                },
+                set: function (value) {
+                    if (typeof value === 'number')
+                        this._y = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Vector3.prototype, "z", {
+                get: function () {
+                    return this._z;
+                },
+                set: function (value) {
+                    if (typeof value === 'number')
+                        this._z = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Vector3.prototype, "r", {
+                get: function () {
+                    return this._x;
+                },
+                set: function (value) {
+                    if (typeof value === 'number')
+                        this._x = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Vector3.prototype, "g", {
+                get: function () {
+                    return this._y;
+                },
+                set: function (value) {
+                    if (typeof value === 'number')
+                        this._y = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Vector3.prototype, "b", {
+                get: function () {
+                    return this._z;
+                },
+                set: function (value) {
+                    if (typeof value === 'number')
+                        this._z = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            return Vector3;
+        })();
+        Types.Vector3 = Vector3;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
