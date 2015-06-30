@@ -114,12 +114,13 @@ var ns = {
 
 		this._meshes = {
 			sky    : ns._engine._createMeshFromFile('./resources/world/cubemap.obj', {textureRepeat : false}),
-			cube   : ns._engine._createMeshFromFile('./resources/world/cubemap.obj', {textureRepeat : false}),
-			plane  : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false})
-				.callback(new webGLEngine.Utils.Callback(ns.createSecondPlane, ns)),
-			plane2 : null,
+			cube   : null,
+			plane  : ns._engine._createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat : false}),
+			plane2  : null,
 			street : ns._engine._createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat : false})
 		};
+
+		this._meshes.sky.callback(new webGLEngine.Utils.Callback(this.createCube, this));
 
 		this._system = {
 			canvas           : document.getElementById('webGLCanvas'),
@@ -138,7 +139,6 @@ var ns = {
 
 		this._createAnimation();
 		this._startAnimation();
-		this._startAnimation2();
 
 		if (this._engine) {
 			this._engine.Render.subscribe(new webGLEngine.Utils.Callback(this.mainProc, this));
@@ -146,8 +146,13 @@ var ns = {
 		}
 	},
 
-	createSecondPlane : function () {
-		this._meshes.plane2 = this._meshes.plane.transformationClone();
+	createCube : function () {
+		this._meshes.cube = this._meshes.sky.transformationClone();
+		this._meshes.cube.position.set(0, 0, 10);
+		this._meshes.cube.rotation.set(Math.PI / 2, 0, 0);
+		//this._meshes.cube.scale.set(10, 10, 10);
+		this._meshes.cube.setParent(this._meshes.plane);
+		this._startAnimation2();
 	},
 
 	/** @public */
@@ -180,11 +185,6 @@ var ns = {
 	/** @public */
 	configure : function () {
 		this._meshes.sky.scale.set(10000, 10000, 10000);
-
-		this._meshes.cube.position.set(0, 0, 10);
-		this._meshes.cube.rotation.set(Math.PI / 2, 0, 0);
-		//this._meshes.cube.scale.set(10, 10, 10);
-		this._meshes.cube.setParent(this._meshes.plane);
 
 		this._camera.position.set(-86, 56, -56);
 		//this._camera.rotation.set(0, Math.PI/2, 0);
@@ -306,7 +306,6 @@ var ns = {
 		engine.draw(this._meshes.cube);
 		engine.draw(this._meshes.street);
 		engine.draw(this._meshes.plane);
-		engine.draw(this._meshes.plane2);
 		engine.turnOnLight();
 	},
 

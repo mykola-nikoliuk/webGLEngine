@@ -208,6 +208,7 @@ declare module webGLEngine {
             private _vertexColorBuffer;
             private _vertexTextureBuffer;
             private _materialCallback;
+            private _transformationChildren;
             private _createCallback;
             constructor(webGL: any);
             fillBuffers(vertexes: number[], vertexTexture: number[], vertexNormals: number[], faces: Face[][], materials: {

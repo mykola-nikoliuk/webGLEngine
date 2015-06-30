@@ -1199,7 +1199,7 @@ var webGLEngine;
                     return true;
                 }
                 else {
-                    webGLEngine.Console.warning('Pool.remove() : Material not found');
+                    webGLEngine.Console.warning('Pool.remove() : Element not found');
                 }
                 return false;
             };
@@ -1282,6 +1282,7 @@ var webGLEngine;
 (function (webGLEngine) {
     var Types;
     (function (Types) {
+        // TODO : refactor (Create material manager)
         var Mesh = (function (_super) {
             __extends(Mesh, _super);
             function Mesh(webGL) {
@@ -1294,11 +1295,13 @@ var webGLEngine;
                 this._materials = null;
                 this._materialsLoaded = 0;
                 this._isReady = false;
+                this._createCallback = null;
                 this._vertexIndexBuffers = {};
                 this._vertexPositionBuffer = this._webGL.createBuffer();
                 this._vertexNormalBuffer = this._webGL.createBuffer();
                 this._vertexColorBuffer = this._webGL.createBuffer();
                 this._vertexTextureBuffer = this._webGL.createBuffer();
+                this._transformationChildren = [];
                 this._materialCallback = new webGLEngine.Utils.Callback(this._materialIsReady, this);
             }
             Mesh.prototype.fillBuffers = function (vertexes, vertexTexture, vertexNormals, faces, materials) {
@@ -1383,7 +1386,7 @@ var webGLEngine;
                     callback.apply();
                 }
                 else {
-                    this._createCallback = callback;
+                    this._createCallback = callback instanceof webGLEngine.Utils.Callback ? callback : null;
                 }
                 return this;
             };
@@ -1403,6 +1406,10 @@ var webGLEngine;
                 mesh._vertexNormalBuffer = this._vertexNormalBuffer;
                 mesh._vertexColorBuffer = this._vertexColorBuffer;
                 mesh._vertexTextureBuffer = this._vertexTextureBuffer;
+                mesh._materialCallback = this._materialCallback;
+                if (!this._isReady) {
+                    this._transformationChildren.push(mesh);
+                }
                 return mesh;
             };
             Mesh.prototype.getVertexIndexBuffers = function () {
@@ -1426,6 +1433,14 @@ var webGLEngine;
                     if (this._materials.hasOwnProperty(material) && !this._materials[material].ready) {
                         loaded = false;
                         break;
+                    }
+                }
+                if (loaded) {
+                    if (this._createCallback) {
+                        this._createCallback.apply();
+                    }
+                    while (this._transformationChildren.length) {
+                        this._transformationChildren.shift()._isReady = loaded;
                     }
                 }
                 this._isReady = loaded;
@@ -2017,6 +2032,7 @@ var webGLEngine;
     var Types;
     (function (Types) {
         var Animation = (function () {
+            // TODO : add separated animation support
             function Animation(type, initialFrame, frames) {
                 this._type = type;
                 this._initialFrame = initialFrame;

@@ -15,6 +15,8 @@ module webGLEngine {
 			private _initialFrame : Frame;
 			private _targets : AnimationTarget[];
 
+			// TODO : add separated animation support
+
 			constructor(type : number, initialFrame : Frame, frames : Frame[]) {
 				this._type = type;
 				this._initialFrame = initialFrame;

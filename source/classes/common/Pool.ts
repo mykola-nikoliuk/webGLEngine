@@ -57,7 +57,7 @@ module webGLEngine {
 						return true;
 					}
 					else {
-						Console.warning('Pool.remove() : Material not found');
+						Console.warning('Pool.remove() : Element not found');
 					}
 				return false;
 			}

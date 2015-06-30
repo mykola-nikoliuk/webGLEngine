@@ -2,6 +2,7 @@ module webGLEngine {
 
 	export module Types {
 
+		// TODO : refactor (Create material manager)
 		export class Mesh extends Transformations {
 
 			public static defaultMaterialName = 'noMaterial';
@@ -23,6 +24,8 @@ module webGLEngine {
 			private _vertexTextureBuffer : any;
 			private _materialCallback : Utils.Callback;
 
+			private _transformationChildren : Mesh[];
+
 			private _createCallback : Utils.Callback;
 
 			constructor(webGL : any) {
@@ -37,12 +40,15 @@ module webGLEngine {
 				this._materials = null;
 				this._materialsLoaded = 0;
 				this._isReady = false;
+				this._createCallback = null;
 
 				this._vertexIndexBuffers = {};
 				this._vertexPositionBuffer = this._webGL.createBuffer();
 				this._vertexNormalBuffer = this._webGL.createBuffer();
 				this._vertexColorBuffer = this._webGL.createBuffer();
 				this._vertexTextureBuffer = this._webGL.createBuffer();
+
+				this._transformationChildren = [];
 
 				this._materialCallback = new Utils.Callback(this._materialIsReady, this);
 			}
@@ -151,7 +157,7 @@ module webGLEngine {
 					callback.apply();
 				}
 				else {
-					this._createCallback = callback;
+					this._createCallback = callback instanceof Utils.Callback ? callback : null;
 				}
 				return this;
 			}
@@ -172,6 +178,10 @@ module webGLEngine {
 				mesh._vertexNormalBuffer = this._vertexNormalBuffer;
 				mesh._vertexColorBuffer = this._vertexColorBuffer;
 				mesh._vertexTextureBuffer = this._vertexTextureBuffer;
+				mesh._materialCallback = this._materialCallback;
+				if (!this._isReady) {
+					this._transformationChildren.push(mesh);
+				}
 				return mesh;
 			}
 
@@ -203,6 +213,15 @@ module webGLEngine {
 					if (this._materials.hasOwnProperty(material) && !this._materials[material].ready) {
 						loaded = false;
 						break;
+					}
+				}
+
+				if (loaded) {
+					if (this._createCallback) {
+						this._createCallback.apply();
+					}
+					while (this._transformationChildren.length) {
+						this._transformationChildren.shift()._isReady = loaded;
 					}
 				}
 
