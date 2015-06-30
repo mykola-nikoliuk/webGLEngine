@@ -1,4 +1,6 @@
 /** Configuration structure */
+
+/** @type ns.config */
 ns.config = {
 
 	engine : {
