@@ -1,6 +1,7 @@
 ///<reference path="./classes/utils/Utils.ts"/>
 ///<reference path="./classes/common/Pool.ts"/>
 ///<reference path="./classes/common/Transformations.ts"/>
+///<reference path="./classes/common/LinkedTransformations.ts"/>
 ///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/mesh/Mesh.ts"/>
 ///<reference path="./classes/Light.ts"/>
@@ -116,8 +117,8 @@ module webGLEngine {
 				vertexNormalBuffer,
 				vertexColorBuffer,
 				vertexTextureBuffer,
-				parent : Types.Transformations,
-				parents : Types.Transformations[],
+				parent : Types.LinkedTransformations,
+				parents : Types.LinkedTransformations[],
 				i, material;
 
 			if (!(mesh instanceof Types.Mesh) || !mesh.isReady()) {

@@ -1215,7 +1215,6 @@ var webGLEngine;
     (function (Types) {
         var Transformations = (function () {
             function Transformations() {
-                this._parent = null;
                 this.position = new Types.Vector3();
                 this.rotation = new Types.Vector3(0, 0, 0);
                 this.scale = new Types.Vector3(1, 1, 1);
@@ -1225,23 +1224,6 @@ var webGLEngine;
             //	this.rotation = rotation;
             //	this.scale = scale;
             //}
-            Transformations.prototype.setParent = function (parent) {
-                if (parent instanceof Transformations) {
-                    this._parent = parent;
-                    return true;
-                }
-                else {
-                    webGLEngine.Console.warning('Transformations.setParent() : parent isn\'t instance of Transformations\n' +
-                        'parent isn\'t added');
-                }
-                return false;
-            };
-            Transformations.prototype.clearParent = function () {
-                this._parent = null;
-            };
-            Transformations.prototype.getParent = function () {
-                return this._parent;
-            };
             Transformations.prototype.copyFrom = function (transformation) {
                 this.position.copyFrom(transformation.position);
                 this.rotation.copyFrom(transformation.rotation);
@@ -1255,6 +1237,92 @@ var webGLEngine;
             return Transformations;
         })();
         Types.Transformations = Transformations;
+    })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
+})(webGLEngine || (webGLEngine = {}));
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var webGLEngine;
+(function (webGLEngine) {
+    var Types;
+    (function (Types) {
+        var LinkedTransformations = (function (_super) {
+            __extends(LinkedTransformations, _super);
+            function LinkedTransformations() {
+                _super.call(this);
+                this._parent = null;
+                this._children = [];
+            }
+            /** Sets parent and adds current child to parent */
+            LinkedTransformations.prototype.setParent = function (parent) {
+                if (parent instanceof LinkedTransformations) {
+                    this._parent = parent;
+                    this._parent._children.push(this);
+                    return true;
+                }
+                else {
+                    webGLEngine.Console.warning('LinkedTransformations.setParent() : parent isn\'t instance of LinkedTransformations\n' +
+                        'parent isn\'t added');
+                }
+                return false;
+            };
+            /** Clear parent and current child from it */
+            LinkedTransformations.prototype.clearParent = function () {
+                this._parent.removeChild(this);
+                this._parent = null;
+            };
+            /** Returns parent */
+            LinkedTransformations.prototype.getParent = function () {
+                return this._parent;
+            };
+            /** Adds dependent child
+             * Returns true if child was added, otherwise false */
+            LinkedTransformations.prototype.addChild = function (child) {
+                if (child instanceof LinkedTransformations) {
+                    this._children.push(child);
+                    return true;
+                }
+                else {
+                    webGLEngine.Console.error('LinkedTransformations.addChild() : parameter should be instance on LinkedTransformations');
+                    return false;
+                }
+            };
+            /** Removes dependent child
+             * Returns true if child was removed, otherwise false */
+            LinkedTransformations.prototype.removeChild = function (child) {
+                var index;
+                if (child instanceof LinkedTransformations) {
+                    if ((index = this._children.indexOf(child)) >= 0) {
+                        this._children.splice(index, 1);
+                        return true;
+                    }
+                    else {
+                        webGLEngine.Console.warning('LinkedTransformations.removeChild() : child not found');
+                    }
+                    this._children.push(child);
+                }
+                else {
+                    webGLEngine.Console.error('LinkedTransformations.removeChild() : parameter should be instance on LinkedTransformations');
+                }
+                return false;
+            };
+            /** Check is child presented
+             * Returns true if child presented, otherwise false */
+            LinkedTransformations.prototype.hasChild = function (child) {
+                if (child instanceof LinkedTransformations) {
+                    return this._children.indexOf(child) >= 0;
+                }
+                else {
+                    webGLEngine.Console.error('LinkedTransformations.hasChild() : parameter should be instance on LinkedTransformations');
+                }
+                return null;
+            };
+            return LinkedTransformations;
+        })(Types.Transformations);
+        Types.LinkedTransformations = LinkedTransformations;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
 var webGLEngine;
@@ -1272,12 +1340,6 @@ var webGLEngine;
         Types.Face = Face;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
 var webGLEngine;
 (function (webGLEngine) {
     var Types;
@@ -1447,7 +1509,7 @@ var webGLEngine;
             };
             Mesh.defaultMaterialName = 'noMaterial';
             return Mesh;
-        })(Types.Transformations);
+        })(Types.LinkedTransformations);
         Types.Mesh = Mesh;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
@@ -1703,7 +1765,7 @@ var webGLEngine;
             };
             Camera._pool = new Types.Pool();
             return Camera;
-        })(Types.Transformations);
+        })(Types.LinkedTransformations);
         Types.Camera = Camera;
     })(Types = webGLEngine.Types || (webGLEngine.Types = {}));
 })(webGLEngine || (webGLEngine = {}));
@@ -2228,6 +2290,7 @@ var webGLEngine;
 ///<reference path="./classes/utils/Utils.ts"/>
 ///<reference path="./classes/common/Pool.ts"/>
 ///<reference path="./classes/common/Transformations.ts"/>
+///<reference path="./classes/common/LinkedTransformations.ts"/>
 ///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/mesh/Mesh.ts"/>
 ///<reference path="./classes/Light.ts"/>

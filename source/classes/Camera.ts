@@ -4,7 +4,7 @@ module webGLEngine {
 
 	export module Types {
 
-		export class Camera extends Transformations {
+		export class Camera extends LinkedTransformations {
 
 			private static _pool = new Pool<Camera>();
 			private _followTarget : Transformations;

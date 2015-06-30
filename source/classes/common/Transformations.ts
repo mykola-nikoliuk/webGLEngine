@@ -10,10 +10,7 @@ module webGLEngine {
 			public rotation : Vector3;
 			public scale : Vector3;
 
-			private _parent : Transformations;
-
 			constructor() {
-				this._parent = null;
 				this.position = new Vector3();
 				this.rotation = new Vector3(0, 0, 0);
 				this.scale = new Vector3(1, 1, 1);
@@ -24,26 +21,6 @@ module webGLEngine {
 			//	this.rotation = rotation;
 			//	this.scale = scale;
 			//}
-
-			public setParent(parent : Transformations) : boolean {
-				if (parent instanceof  Transformations) {
-					this._parent = parent;
-					return true;
-				}
-				else {
-					Console.warning('Transformations.setParent() : parent isn\'t instance of Transformations\n' +
-						'parent isn\'t added');
-				}
-				return false;
-			}
-
-			public clearParent() {
-				this._parent = null;
-			}
-
-			public getParent() : Transformations {
-				return this._parent;
-			}
 
 			public copyFrom(transformation : Transformations) : void {
 				this.position.copyFrom(transformation.position);

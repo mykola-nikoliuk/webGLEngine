@@ -3,7 +3,7 @@ module webGLEngine {
 	export module Types {
 
 		// TODO : refactor (Create material manager)
-		export class Mesh extends Transformations {
+		export class Mesh extends LinkedTransformations {
 
 			public static defaultMaterialName = 'noMaterial';
 
