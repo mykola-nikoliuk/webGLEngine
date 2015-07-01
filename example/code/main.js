@@ -2743,7 +2743,7 @@ var Example;
     };
 })(Example || (Example = {}));
 ///<reference path="../../source/WebGLEngine.ts"/>
-///<reference path="config1.ts"/>
+///<reference path="config.ts"/>
 var game = null;
 var Example;
 (function (Example) {
