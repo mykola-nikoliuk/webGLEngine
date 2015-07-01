@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () { ns.init.apply(ns); }, false);
 
-
 var ns = {
 
 	/** @type webGLEngine.Engine */
 	_engine : null,
 
-	/** @type {{sky: webGLEngine.Types.Mesh, plane: webGLEngine.Types.Mesh, street: webGLEngine.Types.Mesh}} */
+	/** @type {{sky: {webGLEngine.Types.Mesh}, plane: webGLEngine.Types.Mesh, street: webGLEngine.Types.Mesh}} */
 	_meshes : null,
 
 	/** @type {ns.config} */

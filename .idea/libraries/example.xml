@@ -2,13 +2,13 @@
   <library name="example" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/build" />
         <item url="file://$PROJECT_DIR$/example" />
+        <item url="file://$PROJECT_DIR$/build" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/build" />
       <root url="file://$PROJECT_DIR$/example" />
+      <root url="file://$PROJECT_DIR$/build" />
     </CLASSES>
     <SOURCES />
   </library>

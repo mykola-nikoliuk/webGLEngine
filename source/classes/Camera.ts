@@ -1,6 +1,4 @@
-module webGLEngine {
-
-	export module Types {
+module webGLEngine.Types {
 
 		export class Camera extends LinkedTransformations {
 
@@ -85,6 +83,4 @@ module webGLEngine {
 				return Camera.pool.remove(this);
 			}
 		}
-
-	}
 }

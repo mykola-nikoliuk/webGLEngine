@@ -1,13 +1,10 @@
-module webGLEngine {
+module webGLEngine.Types {
 
-	export module Types {
+	export class Object3D {
 
-		export class Object3D {
-
-			public getName() : string {
-				// TODO : finish
-				return '';
-			}
+		public getName() : string {
+			// TODO : finish
+			return '';
 		}
 	}
 }
