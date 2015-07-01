@@ -1,4 +1,4 @@
-///<reference path="../../source/WebGLEngine2.ts"/>
+///<reference path="../../source/webGLEngine.ts"/>
 ///<reference path="config.ts"/>
 
 var game = null;
