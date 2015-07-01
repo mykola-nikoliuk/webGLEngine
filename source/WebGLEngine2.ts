@@ -15,9 +15,9 @@
 ///<reference path="./classes/animation/Frame.ts"/>
 ///<reference path="./classes/animation/AnimationTarget.ts"/>
 ///<reference path="./classes/animation/Animation.ts"/>
-///<reference path="webGLConfig.ts"/>
+///<reference path="config.ts"/>
 
-module webGLEngine {
+module WebGLEngine {
 
 	export var Console = new Utils.Console();
 
@@ -42,6 +42,10 @@ module webGLEngine {
 
 		private _shaderProgram;
 		private _isLightingEnable : boolean;
+
+		public static getCanvas() : HTMLElement {
+			return document.getElementById(Config.html.canvasID);
+		}
 
 		constructor(fragmentShaderPath : string, vertexShaderPath : string) {
 
@@ -250,16 +254,36 @@ module webGLEngine {
 			}
 		}
 
-		public getCamera() : Types.Transformations {
-			return this._camera;
-		}
-
 		public createMesh(vertexes, textures, normals, faces, materials) : Types.Mesh {
 			var mesh = new Types.Mesh(this._gl);
 			mesh.fillBuffers(vertexes, textures, normals, faces, materials);
 			mesh.initBuffers();
 			this._meshes.push(mesh);
 			return mesh;
+		}
+
+		public createMeshFromFile(path : string, params : any) : Types.Mesh {
+			var mesh = new Types.Mesh(this._gl),
+				parameters = {
+					textureRepeat: true
+				};
+
+			Console.log('Start loading mesh => "' + Utils.getFileNameFromPath(path) + '"');
+
+			this._meshes.push(mesh);
+
+			if (typeof params === 'object') {
+				if (typeof params.textureRepeat === 'boolean') {
+					parameters.textureRepeat = params.textureRepeat;
+				}
+			}
+			Utils.requestFile(path, new Utils.Callback(this._parseObjFile, this, mesh, path, parameters));
+
+			return mesh;
+		}
+
+		public getCamera() : Types.Camera {
+			return this._camera;
 		}
 
 		public getGLInstance() : any {
@@ -383,26 +407,6 @@ module webGLEngine {
 		//private _degToRad(degrees : number) : number {
 		//	return degrees * Math.PI / 180;
 		//}
-
-		private _createMeshFromFile(path : string, params : any) : Types.Mesh {
-			var mesh = new Types.Mesh(this._gl),
-				parameters = {
-					textureRepeat: true
-				};
-
-			Console.log('Start loading mesh => "' + Utils.getFileNameFromPath(path) + '"');
-
-			this._meshes.push(mesh);
-
-			if (typeof params === 'object') {
-				if (typeof params.textureRepeat === 'boolean') {
-					parameters.textureRepeat = params.textureRepeat;
-				}
-			}
-			Utils.requestFile(path, new Utils.Callback(this._parseObjFile, this, mesh, path, parameters));
-
-			return mesh;
-		}
 
 		private _parseObjFile(objFile : string, mesh : Types.Mesh, path : string, parameters : any) : void {
 			var i, j, nodes,

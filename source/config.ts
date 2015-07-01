@@ -1,4 +1,4 @@
-module webGLEngine {
+module WebGLEngine {
 
 	export var Config = {
 

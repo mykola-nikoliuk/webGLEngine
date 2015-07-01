@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="TypeScriptCompiler">
-    <option name="typeScriptCompilerParams" value="--target es5" />
     <option name="hasOutDirectory" value="true" />
-    <option name="outDirectory" value="D:\Projects\Git\Sources\HTML5\take5\games\webGLEngine\source\webGLEngine.js" />
-    <option name="mainFilePath" value="D:\Projects\Git\Sources\HTML5\take5\games\webGLEngine\source\webGLEngine.ts" />
+    <option name="outDirectory" />
     <option name="useMainFile" value="true" />
   </component>
 </project>

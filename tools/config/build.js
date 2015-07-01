@@ -182,10 +182,10 @@ rmDir(exampleProjectFolder);
 mkDir(exampleProjectFolder);
 
 // copy release
-copyDir(
-	path.join(releaseFolder),
-	path.join(exampleProjectFolder)
-);
+//copyDir(
+//	path.join(releaseFolder),
+//	path.join(exampleProjectFolder)
+//);
 
 //copyFile('webGLEngine.js', '../sample/js/webGLEngine.js');
 //rmDir('../build/release');

@@ -1,4 +1,4 @@
-module webGLEngine.Types {
+module WebGLEngine.Types {
 
 	export class Light {
 

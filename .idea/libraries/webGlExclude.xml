@@ -2,14 +2,11 @@
   <library name="webGlExclude" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/example/code/libs/webGLEngine/webGLEngine.js" />
-        <item url="file://$PROJECT_DIR$/source/webGLEngine.js" />
         <item url="file://$PROJECT_DIR$/build" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
       <root url="file://$PROJECT_DIR$/example/code/libs/webGLEngine/webGLEngine.js" />
-      <root url="file://$PROJECT_DIR$/source/webGLEngine.js" />
       <root url="file://$PROJECT_DIR$/build" />
     </CLASSES>
     <SOURCES />
