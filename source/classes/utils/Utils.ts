@@ -30,7 +30,9 @@ module WebGLEngine.Utils {
 			// If we got HTTP status 200 (OK)
 			if (request.status !== 200) {
 				console.log('Can\'t download file: ' + url);
-				callback.apply('');
+				//callback.apply('');
+				// TODO : remove hack and create request manager
+				this.requestFile(url, callback);
 			}
 			else {
 				callback.apply(request.responseText);
