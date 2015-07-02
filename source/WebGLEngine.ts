@@ -115,6 +115,8 @@ module WebGLEngine {
 			return this._isReady;
 		}
 
+		// TODO : add draw for LinkedTransformations
+
 		public draw(mesh : Types.Mesh) : void {
 			var vertexIndexBuffers,
 				vertexPositionBuffer,

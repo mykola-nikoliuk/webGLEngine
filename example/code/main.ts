@@ -1,5 +1,10 @@
-///<reference path="../../source/WebGLEngine.ts"/>
 ///<reference path="config.ts"/>
+///<reference path="../../source/WebGLEngine.ts"/>
+///<reference path="./classes/vehicle/configurations/SimpleVehicle.ts"/>
+///<reference path="./classes/vehicle/VehicleConfiguration.ts"/>
+///<reference path="./classes/vehicle/VehicleBridge.ts"/>
+///<reference path="./classes/vehicle/Vehicle.ts"/>
+///<reference path="./classes/MeshManager.ts"/>
 
 var game = null;
 
@@ -8,6 +13,8 @@ module Example {
 	document.addEventListener('DOMContentLoaded', function () {
 		game = new Game();
 	}, false);
+
+	export var meshManager = new MeshManager();
 
 	export class Game {
 		private _engine : WebGLEngine.Engine;
@@ -45,13 +52,15 @@ module Example {
 
 			this._meshes = {
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj', {textureRepeat: false}),
-				cube  : null,
 				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat: false}),
+				wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: false}),
 				plane2: null,
 				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat: false})
 			};
 
-			this._meshes.sky.callback(new WebGLEngine.Utils.Callback(this._createCube, this));
+			meshManager.add('simpleCarWheel', this._meshes.wheel);
+
+			this._meshes.car = new Vehicle(Cars.SimpleVehicle);
 
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
 			this._mouseHandler = WebGLEngine.Utils.bind(this._updateCameraRotation, this);
@@ -62,6 +71,7 @@ module Example {
 
 			this._createAnimation();
 			this._startAnimation();
+			this._startAnimation2();
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
@@ -69,20 +79,13 @@ module Example {
 			}
 		}
 
-		private _createCube() : void {
-			this._meshes.cube = this._meshes.sky.transformationClone();
-			this._meshes.cube.position.set(0, 0, 10);
-			this._meshes.cube.rotation.set(Math.PI / 2, 0, 0);
-			//this._meshes.cube.scale.set(10, 10, 10);
-			this._meshes.cube.setParent(this._meshes.plane);
-			this._startAnimation2();
-		}
-
 		private _configure() : void {
 			this._meshes.sky.scale.set(10000, 10000, 10000);
 
-			this._camera.position.set(-79, 63, -50);
-			this._camera.rotation.set(-0.23, -2.20, 0);
+			this._meshes.car.position.set(0, 10, 0);
+
+			this._camera.position.set(-16, 19, 9);
+			this._camera.rotation.set(-0.42, -0.935, 0);
 
 			this._meshes.sky.position.set(-this._camera.position.x,
 				-this._camera.position.y, -this._camera.position.z);
@@ -114,15 +117,16 @@ module Example {
 		private _mainProc() : void {
 			var engine = this._engine;
 
-			//this._game.engine();
+			this._keysHandler();
 			this._updateCameraPosition();
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			engine.draw(this._meshes.cube);
 			engine.draw(this._meshes.street);
 			engine.draw(this._meshes.plane);
 			engine.turnOnLight();
+			this._meshes.car.draw(this._engine);
+			//engine.draw(this._meshes.wheel);
 		}
 
 		private _lockCursor() : void {
@@ -140,6 +144,15 @@ module Example {
 				doc.mozPointerLockElement !== this._canvas &&
 				doc.webkitPointerLockElement !== this._canvas) {
 				doc.removeEventListener('mousemove', this._mouseHandler, false);
+			}
+		}
+
+		private _keysHandler() : void {
+			if (this._timers.key_left) {
+				this._meshes.car.turnLeft();
+			}
+			if (this._timers.key_right) {
+				this._meshes.car.turnRight();
 			}
 		}
 
@@ -244,18 +257,17 @@ module Example {
 				WebGLEngine.Types.Animation.Types.WITH_CHANGES,
 
 				new WebGLEngine.Types.Frame()
-					.setPosition(new WebGLEngine.Types.Vector3(0, 0, 10))
-					.setRotation(new WebGLEngine.Types.Vector3(Math.PI / 2, 0, 0)),
-
+					.setPosition(new WebGLEngine.Types.Vector3(0, 10.0001, 0))
+					.setRotation(new WebGLEngine.Types.Vector3(0, 0, 0)),
 				[
 					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(0, 0, 12))
-						.setRotation(new WebGLEngine.Types.Vector3(Math.PI / 2, 0, Math.PI * 2))
-						.setTime(500),
+						.setPosition(new WebGLEngine.Types.Vector3(0, 10.0002, 0))
+						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 2, Math.PI / 4, 0))
+						.setTime(2000),
 					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(0, 0, 10))
-						.setRotation(new WebGLEngine.Types.Vector3(Math.PI / 2, 0, Math.PI * 4))
-						.setTime(1000),
+						.setPosition(new WebGLEngine.Types.Vector3(0, 10.0001, 0))
+						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 4, 0, 0))
+						.setTime(2000),
 				]
 			);
 		}
@@ -265,10 +277,10 @@ module Example {
 		}
 
 		private _startAnimation2() : void {
-			this._animation2.start(this._meshes.cube, new WebGLEngine.Utils.Callback(this._startAnimation2, this));
+			this._animation2.start(this._meshes.wheel, new WebGLEngine.Utils.Callback(this._startAnimation2, this));
 		}
 
-		private _showTransfrmations() : void {
+		private _showTransformations() : void {
 			console.log('--');
 			console.log('' + this._camera.position.x + ', ' + this._camera.position.y + ', ' + this._camera.position.z);
 			console.log('' + this._camera.rotation.x + ', ' + this._camera.rotation.y + ', ' + this._camera.rotation.z);
@@ -341,7 +353,7 @@ module Example {
 					break;
 
 				case 32:
-					this._showTransfrmations();
+					this._showTransformations();
 					break;
 
 				case 38:
