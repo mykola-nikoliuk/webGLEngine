@@ -1,23 +1,23 @@
 newmtl front
 Kd 1 1 0
-map_Kd front.jpg
+map_Kd cubemap/front.jpg
 
 newmtl back
 Kd 1 0 0
-map_Kd back.jpg
+map_Kd cubemap/back.jpg
 
 newmtl left
 Kd 1.000000 1.000000 1.000000
-map_Kd left.jpg
+map_Kd cubemap/left.jpg
 
 newmtl right
 Kd 1.000000 1.000000 1.000000
-map_Kd right.jpg
+map_Kd cubemap/right.jpg
 
 newmtl bottom
 Kd 1.000000 1.000000 1.000000
-map_Kd bottom.jpg
+map_Kd cubemap/bottom.jpg
 
 newmtl top
 Kd 0 1 1
-map_Kd top.jpg
+map_Kd cubemap/top.jpg

@@ -51,11 +51,11 @@ module Example {
 			};
 
 			this._meshes = {
-				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj', {textureRepeat: false}),
-				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat: false}),
-				wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: false}),
-				plane2: null,
-				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj', {textureRepeat: false})
+				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
+				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj'),
+				wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
+				cube: null,
+				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj')
 			};
 
 			meshManager.add('simpleCarWheel', this._meshes.wheel);
@@ -82,10 +82,11 @@ module Example {
 		private _configure() : void {
 			this._meshes.sky.scale.set(10000, 10000, 10000);
 
-			this._meshes.car.position.set(0, 10, 0);
+			this._meshes.wheel.scale.set(10, 10, 10);
+			this._meshes.car.position.set(0, 1, 0);
 
-			this._camera.position.set(-16, 19, 9);
-			this._camera.rotation.set(-0.42, -0.935, 0);
+			this._camera.position.set(-16, 8, 8);
+			this._camera.rotation.set(-0.41, -1.02, 0);
 
 			this._meshes.sky.position.set(-this._camera.position.x,
 				-this._camera.position.y, -this._camera.position.z);
@@ -111,7 +112,7 @@ module Example {
 		}
 
 		private _createLights() {
-			this._engine.createLight(0, [1, 1, 1], [0, 0, 0], 1000.0);
+			this._engine.createLight(0, [1, 1, 1], [0, 1, 0], 1000.0);
 		}
 
 		private _mainProc() : void {
@@ -122,8 +123,8 @@ module Example {
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			engine.draw(this._meshes.street);
 			engine.draw(this._meshes.plane);
+			engine.draw(this._meshes.street);
 			engine.turnOnLight();
 			this._meshes.car.draw(this._engine);
 			//engine.draw(this._meshes.wheel);

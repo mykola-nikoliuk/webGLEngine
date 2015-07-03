@@ -264,7 +264,7 @@ module WebGLEngine {
 			return mesh;
 		}
 
-		public createMeshFromFile(path : string, params : any) : Types.Mesh {
+		public createMeshFromFile(path : string, params? : any) : Types.Mesh {
 			var mesh = new Types.Mesh(this._gl),
 				parameters = {
 					textureRepeat: true
@@ -275,7 +275,7 @@ module WebGLEngine {
 			this._meshes.push(mesh);
 
 			if (typeof params === 'object') {
-				if (typeof params.textureRepeat === 'boolean') {
+				if (typeof params.textureRepeat === 'string') {
 					parameters.textureRepeat = params.textureRepeat;
 				}
 			}

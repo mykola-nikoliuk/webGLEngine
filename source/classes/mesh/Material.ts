@@ -8,7 +8,14 @@ module WebGLEngine.Types {
 		public ready : boolean;
 		public texture : WebGLTexture = null;
 		public image : WebGLTexture = null;
-		public textureRepeat : boolean;
+		public textureRepeat : string;
+
+		public static RepeatTypes = {
+			REPEAT : 'REPEAT',
+			MIRRORED_REPEAT : 'MIRRORED_REPEAT',
+			CLAMP_TO_EDGE : 'CLAMP_TO_EDGE',
+			CLAMP_TO_BORDER : 'CLAMP_TO_BORDER'
+		};
 
 		private static _pool = new Pool<Material>();
 
@@ -21,7 +28,7 @@ module WebGLEngine.Types {
 			this.imageLink = '';
 			this.ready = true;
 			this.texture = null;
-			this.textureRepeat = true;
+			this.textureRepeat = Material.RepeatTypes.CLAMP_TO_EDGE;
 			this._loadingImage = null;
 			this._callback = null;
 			Material._pool.add(this);
@@ -38,7 +45,7 @@ module WebGLEngine.Types {
 			}
 		}
 
-		public loadTexture(gl, path, textureRepeat) {
+		public loadTexture(gl, path : string, textureRepeat : string) {
 			if (typeof gl !== 'object') {
 				Console.error('GL parameter is not a object');
 				return;
@@ -47,7 +54,9 @@ module WebGLEngine.Types {
 				Console.error('Texture path parameter is not a string');
 				return;
 			}
-			this.textureRepeat = typeof textureRepeat === 'boolean' ? textureRepeat : true;
+			if (typeof textureRepeat === 'string') {
+				this.textureRepeat = textureRepeat;
+			}
 			if (!this.image) {
 				this.ready = false;
 				this.texture = gl.createTexture();
@@ -60,15 +69,14 @@ module WebGLEngine.Types {
 		}
 
 		private _createTexture() {
-			var gl = arguments[arguments.length - 1],
-				repeatType = this.textureRepeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
+			var gl = arguments[arguments.length - 1];
 
 			this.image = this._loadingImage;
 
 			gl.bindTexture(gl.TEXTURE_2D, this.texture);
 			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[repeatType]);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[repeatType]);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[this.textureRepeat]);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[this.textureRepeat]);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);

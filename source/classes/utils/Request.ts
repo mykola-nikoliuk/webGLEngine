@@ -25,9 +25,10 @@ module WebGLEngine.Utils {
 		private _send() : void {
 			if (++this._retryCount > Request._retryAmount) {
 				console.error('Can\'t download file: ' + this._url);
-				this._callback.apply(null);
+				this._callback.apply(null, this._url);
 			}
 			else {
+				this._request.open('get', this._url, true);
 				this._request.send(null);
 			}
 		}

@@ -28,7 +28,7 @@ void main(void) {
 
 		if (uUseLighting) {
 				lightColor = vec3(0, 0, 0);
-			 	  for (int i = 0; i < 3; i++) {
+				for (int i = 0; i < 3; i++) {
 						if (uUseLight[i]) {
 								float distanceLight = distance(uLightPosition[i], vPosition.xyz);
 								vec3 lightDirection = normalize(uLightPosition[i] - vPosition.xyz);

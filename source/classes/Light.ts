@@ -32,9 +32,9 @@ module WebGLEngine.Types {
 			}
 
 			if (typeof param === 'object') {
-				this._position.r = typeof param[0] === 'number' ? param[0] : 0;
-				this._position.g = typeof param[1] === 'number' ? param[1] : 0;
-				this._position.b = typeof param[2] === 'number' ? param[2] : 0;
+				this._position.x = typeof param[0] === 'number' ? param[0] : 0;
+				this._position.y = typeof param[1] === 'number' ? param[1] : 0;
+				this._position.z = typeof param[2] === 'number' ? param[2] : 0;
 			}
 		}
 
