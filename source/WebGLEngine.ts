@@ -279,7 +279,7 @@ module WebGLEngine {
 					parameters.textureRepeat = params.textureRepeat;
 				}
 			}
-			Utils.requestFile(path, new Utils.Callback(this._parseObjFile, this, mesh, path, parameters));
+			Utils.requestManager.request(path, new Utils.Callback(this._parseObjFile, this, mesh, path, parameters));
 
 			return mesh;
 		}
@@ -410,7 +410,7 @@ module WebGLEngine {
 		//	return degrees * Math.PI / 180;
 		//}
 
-		private _parseObjFile(objFile : string, mesh : Types.Mesh, path : string, parameters : any) : void {
+		private _parseObjFile(objFile : string, url: string, mesh : Types.Mesh, path : string, parameters : any) : void {
 			var i, j, nodes,
 				vertexes = [], textures = [], normals = [], faces = [],
 				materials : {[materialName:string] : Types.Material} = {},
@@ -499,7 +499,7 @@ module WebGLEngine {
 					case lineTypes.MATERIAL_LIBRARY:
 						hasMaterial = true;
 						materialPath = path.substring(0, path.lastIndexOf("/") + 1) + nodes[1];
-						Utils.requestFile(materialPath, new Utils.Callback(this._parseMaterial, this, materialPath, mesh, parameters));
+						Utils.requestManager.request(materialPath, new Utils.Callback(this._parseMaterial, this, materialPath, mesh, parameters));
 						break;
 
 					case lineTypes.USE_MATERIAL:
@@ -524,7 +524,7 @@ module WebGLEngine {
 			}
 		}
 
-		private _parseMaterial(mtlFile : string, path : string, mesh : Types.Mesh, parameters : any) : void {
+		private _parseMaterial(mtlFile : string, url: string, path : string, mesh : Types.Mesh, parameters : any) : void {
 			var mtlList, i, j, nodes, material,
 				mtlConfig = Config.File.mtl,
 				lineTypes = mtlConfig.lineTypes,

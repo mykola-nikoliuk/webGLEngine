@@ -51,19 +51,14 @@ module WebGLEngine.Types {
 			this._fragmentShader = null;
 			this._isLoading = true;
 
-			this.request(fragmentShader, this.loaded, this);
-			this.request(vertexShader, this.loaded, this);
+			Utils.requestManager.request(fragmentShader, new Utils.Callback(this._loaded, this));
+			Utils.requestManager.request(vertexShader, new Utils.Callback(this._loaded, this));
 		}
 
-		/** Shader loaded
-		 * @private
-		 * @param {boolean} result
-		 * @param {string} url
-		 * @param {string} text */
-		public loaded(result : boolean, url : string, text : string) : void {
+		private _loaded(text : string, url : string) : void {
 			var shader;
 
-			if (!result) {
+			if (!text) {
 				Console.error('Error loading shader: "' + url + '"')
 			}
 			else {
@@ -97,12 +92,10 @@ module WebGLEngine.Types {
 			}
 		}
 
-		/** @public */
 		public getVertexShader() {
 			return this._vertexShader;
 		}
 
-		/** @public */
 		public getFragmentShader() {
 			return this._fragmentShader;
 		}
