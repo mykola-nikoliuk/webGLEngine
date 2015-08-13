@@ -22,6 +22,8 @@
 	- typescript >= 1.5.4;
 		* npm install -g typescript@1.5.4;
 	After that to build the project just execute "make.bash".
+	Build will be created in root as "./build" folder.
+	Example also will be updated.
 ------------
 #### Example
 ##### Starting:
