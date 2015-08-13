@@ -37,6 +37,8 @@ module Example {
 				Config.webGL.shaders.vertex
 			);
 
+			this._engine.Controller.subscribe(new WebGLEngine.Utils.Callback(this._controllerHandler, this));
+
 			this._camera = this._engine.getCamera();
 
 			this._timers = {
@@ -53,15 +55,15 @@ module Example {
 			this._meshes = {
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
 				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj'),
-				wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
+				//wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				cube: null,
-				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj'),
-				sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
+				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj')
+				//sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
 			};
 
 			meshManager.add('simpleCarWheel', this._meshes.wheel);
 
-			this._meshes.car = new Vehicle(Cars.SimpleVehicle);
+			//this._meshes.car = new Vehicle(Cars.SimpleVehicle);
 
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
 			this._mouseHandler = WebGLEngine.Utils.bind(this._updateCameraRotation, this);
@@ -72,7 +74,7 @@ module Example {
 
 			this._createAnimation();
 			this._startAnimation();
-			this._startAnimation2();
+			//this._startAnimation2();
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
@@ -83,13 +85,13 @@ module Example {
 		private _configure() : void {
 			this._meshes.sky.scale.set(10000, 10000, 10000);
 
-			this._meshes.sphere.scale.set(20, 20, 20);
+			//this._meshes.sphere.scale.set(20, 20, 20);
 
-			this._meshes.wheel.scale.set(10, 10, 10);
-			this._meshes.car.position.set(0, 1, 0);
+			//this._meshes.wheel.scale.set(10, 10, 10);
+			//this._meshes.car.position.set(0, 1, 0);
 
-			this._camera.position.set(-16, 8, 8);
-			this._camera.rotation.set(-0.41, -1.02, 0);
+			this._camera.position.set(-176, 78, -64);
+			this._camera.rotation.set(-0.257, 4.173, 0);
 
 			this._meshes.sky.position.set(-this._camera.position.x,
 				-this._camera.position.y, -this._camera.position.z);
@@ -104,7 +106,7 @@ module Example {
 		private _addListeners() : void {
 			this._canvas.addEventListener('mousedown', WebGLEngine.Utils.bind(this._lockCursor, this), false);
 			document.addEventListener('keydown', WebGLEngine.Utils.bind(this._keyDown, this), false);
-			document.addEventListener('keyup', WebGLEngine.Utils.bind(this.keyUp, this), false);
+			document.addEventListener('keyup', WebGLEngine.Utils.bind(this._keyUp, this), false);
 			if ("onpointerlockchange" in document) {
 				document.addEventListener('pointerlockchange', WebGLEngine.Utils.bind(this._releaseCursor, this), false);
 			} else if ("onmozpointerlockchange" in document) {
@@ -130,11 +132,11 @@ module Example {
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			//engine.draw(this._meshes.plane);
-			//engine.draw(this._meshes.street);
+			engine.draw(this._meshes.plane);
+			engine.draw(this._meshes.street);
 			engine.turnOnLight();
-			this._meshes.car.draw(this._engine);
-			engine.draw(this._meshes.sphere);
+			//this._meshes.car.draw(this._engine);
+			//engine.draw(this._meshes.sphere);
 			//engine.draw(this._meshes.wheel);
 		}
 
@@ -339,7 +341,7 @@ module Example {
 			}
 		}
 
-		private keyUp(e) : void {
+		private _keyUp(e) : void {
 			switch (e.keyCode) {
 				case 65:
 					this._timers.key_a = false;
@@ -383,6 +385,17 @@ module Example {
 				case 39:
 				case 5:
 					this._timers.key_right = false;
+					break;
+			}
+		}
+
+		private _controllerHandler(event : string) : void {
+			var events = WebGLEngine.Types.Controller.Events;
+
+			switch (event) {
+				case events.ALL_MESHES_LOADED:
+					WebGLEngine.Console.log('So example is loaded', 'yellow');
+					WebGLEngine.Console.log('Use WASD and mouse to fly', 'yellow');
 					break;
 			}
 		}

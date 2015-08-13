@@ -424,6 +424,8 @@ module WebGLEngine {
 
 			Console.log('Start parsing mesh => "' + Utils.getFileNameFromPath(path) + '"');
 
+			mesh.callback(new Utils.Callback(this._checkMeshes, this));
+
 			materials[currentMaterial] = new Types.Material();
 			faces[currentMaterial] = [];
 
@@ -585,6 +587,23 @@ module WebGLEngine {
 			Console.log('\tdone');
 
 			mesh.initBuffers(allMaterials);
+		}
+
+		private _checkMeshes() : void {
+			var i : number,
+				allMeshesLoaded = true;
+
+			for (i = 0; i < this._meshes.length; i++) {
+				if (!this._meshes[i].isReady()) {
+					console.log(i);
+					allMeshesLoaded = false;
+					break;
+				}
+			}
+			this._controller.sendEvent(Types.Controller.Events.MESH_LOADED);
+			if (allMeshesLoaded) {
+				this._controller.sendEvent(Types.Controller.Events.ALL_MESHES_LOADED);
+			}
 		}
 	}
 }

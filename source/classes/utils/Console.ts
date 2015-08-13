@@ -36,9 +36,9 @@ module WebGLEngine.Utils {
 			}
 		}
 
-		public log(msg : string) : void {
+		public log(msg : string, color? : string) : void {
 			if (this._isCreated) {
-				this._addLine(msg, Console._colors.INFO);
+				this._addLine(msg, color ? color : Console._colors.INFO);
 			}
 		}
 

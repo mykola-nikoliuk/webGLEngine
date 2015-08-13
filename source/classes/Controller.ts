@@ -3,7 +3,8 @@ module WebGLEngine.Types {
 	export class Controller extends Subscribe {
 
 		public static Events = {
-			MESH_LOADED: 'mesh_loaded'
+			MESH_LOADED: 'mesh_loaded',
+			ALL_MESHES_LOADED : 'all_meshes_loaded'
 		};
 
 		private _engine : Engine;

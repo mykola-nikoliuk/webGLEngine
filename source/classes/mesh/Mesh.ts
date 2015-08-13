@@ -24,7 +24,7 @@ module WebGLEngine.Types {
 
 		private _transformationChildren : Mesh[];
 
-		private _createCallback : Utils.Callback;
+		private _createCallback : Utils.Callback[];
 
 		constructor(webGL : any) {
 			super();
@@ -47,6 +47,8 @@ module WebGLEngine.Types {
 			this._vertexTextureBuffer = this._webGL.createBuffer();
 
 			this._transformationChildren = [];
+
+			this._createCallback = [];
 
 			this._materialCallback = new Utils.Callback(this._materialIsReady, this);
 		}
@@ -151,11 +153,11 @@ module WebGLEngine.Types {
 
 		/** Sets create callback, that will called when mesh will be ready */
 		public callback(callback : Utils.Callback) : Mesh {
+			this._createCallback.push(callback);
 			if (this._isReady) {
-				callback.apply();
-			}
-			else {
-				this._createCallback = callback instanceof Utils.Callback ? callback : null;
+				while (this._createCallback.length) {
+					this._createCallback.shift().apply();
+				}
 			}
 			return this;
 		}
@@ -215,15 +217,21 @@ module WebGLEngine.Types {
 			}
 
 			if (loaded) {
-				if (this._createCallback) {
-					this._createCallback.apply();
-				}
 				while (this._transformationChildren.length) {
+					// TODO : fix that (ready callback may be missed)
 					this._transformationChildren.shift()._isReady = loaded;
 				}
 			}
 
 			this._isReady = loaded;
+
+			if (this._isReady) {
+				if (this._createCallback.length) {
+					while (this._createCallback.length) {
+						this._createCallback.shift().apply();
+					}
+				}
+			}
 		}
 	}
 }
