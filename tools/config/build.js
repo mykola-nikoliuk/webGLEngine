@@ -27,20 +27,19 @@ function mkDir(path) {
 }
 
 
-function rmDir(path, logging, hideEntrance) {
-
+function rmDir(dirPath, logging, hideEntrance) {
 	logging = typeof logging === 'boolean' ? logging : false;
 	hideEntrance = typeof hideEntrance === 'boolean' ? hideEntrance : false;
 
 	if (logging && !hideEntrance) {
-		console.log('-- remove dir: "' + path + '"');
+		console.log('-- remove dir: "' + dirPath + '"');
 	}
 
-	if (fs.existsSync(path)) {
-		fs.readdirSync(path).forEach(function (file) {
-			var curPath = path + "\\" + file;
+	if (fs.existsSync(dirPath)) {
+		fs.readdirSync(dirPath).forEach(function (file) {
+			var curPath = path.join(dirPath, file);
 			if (fs.lstatSync(curPath).isDirectory()) { // recurse
-				rmDir(curPath, logging, true);
+				rmDir(curPath , logging, true);
 				if (logging) {
 					console.log('  dir: ' + curPath);
 				}
@@ -51,7 +50,7 @@ function rmDir(path, logging, hideEntrance) {
 				fs.unlinkSync(curPath);
 			}
 		});
-		fs.rmdirSync(path);
+		fs.rmdirSync(dirPath);
 	}
 }
 
@@ -146,19 +145,19 @@ var config = {
 		build       : 'build',
 		release     : 'release',
 		shaders     : 'shaders',
-		examplePath : 'example/code/libs/webGLEngine',
 		projectName : 'webGLEngine',
 		tools       : 'tools'
 	},
-	main    : 'webGLEngine.js',
-	mainDTS : 'webGLEngine.d.ts'
+	main    : 'WebGLEngine.js',
+	mainDTS : 'WebGLEngine.d.ts'
 };
 
-var exampleProjectFolder = path.join(config.folders.root, config.folders.examplePath),
-		projectFolder        = path.join(config.folders.root, config.folders.project),
+var projectFolder        = path.join(config.folders.root, config.folders.project),
 		releaseFolder        = path.join(config.folders.root, config.folders.build, config.folders.release);
 
 //config.folders.release = path.join(config.folders.build, config.folders.release);
+
+
 
 process.chdir(config.folders.root);
 rmDir(config.folders.build);
@@ -178,8 +177,7 @@ copyFile(path.join(projectFolder, config.mainDTS), (path.join(releaseFolder, con
 
 process.chdir(releaseFolder);
 
-rmDir(exampleProjectFolder);
-mkDir(exampleProjectFolder);
+console.log('DONE');
 
 // copy release
 //copyDir(
