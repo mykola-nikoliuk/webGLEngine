@@ -55,7 +55,8 @@ module Example {
 				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj'),
 				wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				cube: null,
-				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj')
+				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj'),
+				sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
 			};
 
 			meshManager.add('simpleCarWheel', this._meshes.wheel);
@@ -81,6 +82,8 @@ module Example {
 
 		private _configure() : void {
 			this._meshes.sky.scale.set(10000, 10000, 10000);
+
+			this._meshes.sphere.scale.set(20, 20, 20);
 
 			this._meshes.wheel.scale.set(10, 10, 10);
 			this._meshes.car.position.set(0, 1, 0);
@@ -112,7 +115,11 @@ module Example {
 		}
 
 		private _createLights() {
-			this._engine.createLight(0, [1, 1, 1], [0, 1, 0], 1000.0);
+			this._engine.addLight(new WebGLEngine.Types.Light(
+				WebGLEngine.Types.Light.Types.DIRECTIONAL,
+				new WebGLEngine.Types.Vector3(0, 1, 1),
+				new WebGLEngine.Types.Vector3(0, 1, 0)
+			));
 		}
 
 		private _mainProc() : void {
@@ -123,10 +130,11 @@ module Example {
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			engine.draw(this._meshes.plane);
-			engine.draw(this._meshes.street);
+			//engine.draw(this._meshes.plane);
+			//engine.draw(this._meshes.street);
 			engine.turnOnLight();
 			this._meshes.car.draw(this._engine);
+			engine.draw(this._meshes.sphere);
 			//engine.draw(this._meshes.wheel);
 		}
 

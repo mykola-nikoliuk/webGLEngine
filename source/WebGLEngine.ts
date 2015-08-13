@@ -184,16 +184,16 @@ module WebGLEngine {
 
 
 					if (this._isLightingEnable) {
-						var lightEnables = [], positions = [], colors = [], distances = [],
-							position, color;
+						var lightEnables = [], directions = [], colors = [], distances = [],
+							direction, color;
 
 						for (i = 0; i < this._lights.length; i++) {
-							position = this._lights[i].position;
+							direction = this._lights[i].direction;
 							color = this._lights[i].color;
 							lightEnables.push(this._lights[i].isEnabled());
-							positions.push(position.x + this._mvMatrix[0]);
-							positions.push(position.y + this._mvMatrix[1]);
-							positions.push(position.z + this._mvMatrix[2]);
+							directions.push(direction.x + this._mvMatrix[0]);
+							directions.push(direction.y + this._mvMatrix[1]);
+							directions.push(direction.z + this._mvMatrix[2]);
 							colors.push(color.r);
 							colors.push(color.g);
 							colors.push(color.b);
@@ -203,7 +203,7 @@ module WebGLEngine {
 						this._gl.uniform1iv(this._shaderProgram.useLightUniform, lightEnables);
 						this._gl.uniform1fv(this._shaderProgram.lightingDistanceUniform, distances);
 						this._gl.uniform3fv(this._shaderProgram.lightColorUniform, colors);
-						this._gl.uniform3fv(this._shaderProgram.lightingPositionUniform, positions);
+						this._gl.uniform3fv(this._shaderProgram.lightingDirectionUniform, directions);
 						this._gl.uniform1f(this._shaderProgram.materialSpecular, vertexIndexBuffers[material].material.specular);
 
 						//						this._gl.uniform3f(this._shaderProgram.ambientColorUniform, 0.2, 0.2, 0.2);
@@ -224,9 +224,8 @@ module WebGLEngine {
 			this._mvPopMatrix();
 		}
 
-		public createLight(type : number, color : number[], param : number[], distance : number) : Types.Light {
-			this._lights.push(new Types.Light(type, color, param, distance));
-			return this._lights[this._lights.length - 1];
+		public addLight(light : Types.Light) : void {
+			this._lights.push(light);
 		}
 
 		public turnOnLight() : boolean {
@@ -372,7 +371,7 @@ module WebGLEngine {
 			this._shaderProgram.useLightingUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLighting");
 			this._shaderProgram.useLightUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLight");
 			this._shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uAmbientColor");
-			this._shaderProgram.lightingPositionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightPosition");
+			this._shaderProgram.lightingDirectionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDirection");
 			this._shaderProgram.lightColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightColor");
 			this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
 			this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");

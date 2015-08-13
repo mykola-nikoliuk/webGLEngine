@@ -2,40 +2,32 @@ module WebGLEngine.Types {
 
 	export class Light {
 
+		public static Types = {
+			DIRECTIONAL: 1,
+			POINT      : 2
+		};
+
 		private _type : number;
 		private _enabled : boolean;
 		private _distance : number;
 		private _color : Vector3;
 		private _position : Vector3;
+		private _direction : Vector3;
 
-
-		constructor(type : number, color : number[], param : number[], distance : number) {
-
-			this._type = 0;
-
+		constructor(type : number, color : Vector3, positionDirection : Vector3, distance? : number) {
 			this._enabled = true;
+			this._type = type;
+			this._color = color;
 
-			this._distance = typeof distance === 'number' ? distance : 10;
+			switch (type) {
+				case Light.Types.DIRECTIONAL:
+					this._direction = positionDirection;
+					break;
 
-			/** @private
-			 * @type {Vector3} */
-			this._color = new Vector3();
-
-			/** @private
-			 * @type {Vector3} */
-			this._position = new Vector3();
-
-			if (typeof color === 'object') {
-				this._color.r = typeof color[0] === 'number' ? color[0] : 0;
-				this._color.g = typeof color[1] === 'number' ? color[1] : 0;
-				this._color.b = typeof color[2] === 'number' ? color[2] : 0;
+				case Light.Types.POINT:
+					this._position = positionDirection;
 			}
-
-			if (typeof param === 'object') {
-				this._position.x = typeof param[0] === 'number' ? param[0] : 0;
-				this._position.y = typeof param[1] === 'number' ? param[1] : 0;
-				this._position.z = typeof param[2] === 'number' ? param[2] : 0;
-			}
+			this._distance = typeof distance === 'number' ? distance : 0;
 		}
 
 		public turnOn() : void {
@@ -46,7 +38,6 @@ module WebGLEngine.Types {
 			this._enabled = false;
 		}
 
-		/** @public */
 		public isEnabled() : boolean {
 			return this._enabled;
 		}
@@ -55,21 +46,25 @@ module WebGLEngine.Types {
 			return this._color;
 		}
 
+		//set color(color) {
+		//}
+
 		get position() : Vector3 {
 			return this._position;
 		}
+
+		//set position(position) {
+		//}
 
 		get distance() : number {
 			return this._distance;
 		}
 
-		set color(color) {
-		}
+		//set distance(distance) {
+		//}
 
-		set position(position) {
-		}
-
-		set distance(distance) {
+		get direction() : Vector3 {
+			return this._direction;
 		}
 	}
 }

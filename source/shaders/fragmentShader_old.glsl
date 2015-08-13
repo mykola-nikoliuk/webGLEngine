@@ -24,15 +24,14 @@ vec3 avarage (vec3 a, vec3 b) {
 void main(void) {
 	vec3 lightWeighting[16];
 	vec4 totalColor = uUseTexture ? texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)) : vColor;
-//	vec3 lightColor;
-	vec3 vLightWeighting;
+	vec3 lightColor;
 
 	if (uUseLighting) {
-//		lightColor = vec3(0, 0, 0);
-//		for (int i = 0; i < 1; i++) {
-//			if (uUseLight[i]) {
-//			float directionalLightWeighting = max(dot(vTransformedNormal, uLightDirection[i]), 0.0);
-//				vLightWeighting = totalColor.rgb + uLightColor[i] * directionalLightWeighting;
+		lightColor = vec3(0, 0, 0);
+		for (int i = 0; i < 3; i++) {
+			if (uUseLight[i]) {
+				float directionalLightWeighting = max(dot(vTransformedNormal, uLightDirection[i]), 0.0);
+				vec3 vLightWeighting = uLightColor[i] * directionalLightWeighting;
 
 //				float distanceLight = distance(uLightPosition[i], vPosition.xyz);
 //				vec3 lightDirection = normalize(uLightPosition[i]);
@@ -55,12 +54,10 @@ void main(void) {
 //				if (lightWeighting[i].g < 0.0) lightWeighting[i].g = 0.0;
 //				if (lightWeighting[i].b < 0.0) lightWeighting[i].b = 0.0;
 
-//				lightColor += vLightWeighting;
-//			}
-//		}
-		float directionalLightWeighting = max(dot(vTransformedNormal, uLightDirection[0]), 0.0);
-		vLightWeighting = totalColor.rgb + totalColor.rgb * directionalLightWeighting;
-		totalColor = vec4(totalColor.rgb * vLightWeighting, totalColor.a);
+				lightColor += uLightColor[i] * vLightWeighting;
+			}
+		}
+		totalColor = vec4(totalColor.rgb * lightColor, totalColor.a);
 	}
 
 	gl_FragColor = vec4(totalColor.rgb, totalColor.a);
