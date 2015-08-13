@@ -1,13 +1,5 @@
-/*
- * Project: cjsc
- *
- * User: igorbz
- * Date: 8/21/2014
- * Time: 9:58 AM
- * © 2014 TRANSGAMING INC. AND ITS AFFILIATES. ALL RIGHTS RESERVED.
- */
 var fs   = require("fs"),
-		path = require('path');
+	path = require('path');
 
 function copyFile(source, destination) {
 	if (fs.existsSync(source)) {
@@ -18,14 +10,12 @@ function copyFile(source, destination) {
 	}
 }
 
-
 function mkDir(path) {
 	if (!fs.existsSync(path))
 		fs.mkdirSync(path);
 	else
 		this.error('folder already exist');
 }
-
 
 function rmDir(dirPath, logging, hideEntrance) {
 	logging = typeof logging === 'boolean' ? logging : false;
@@ -39,7 +29,7 @@ function rmDir(dirPath, logging, hideEntrance) {
 		fs.readdirSync(dirPath).forEach(function (file) {
 			var curPath = path.join(dirPath, file);
 			if (fs.lstatSync(curPath).isDirectory()) { // recurse
-				rmDir(curPath , logging, true);
+				rmDir(curPath, logging, true);
 				if (logging) {
 					console.log('  dir: ' + curPath);
 				}
@@ -137,7 +127,6 @@ function getFilesRecursive(folder, filter) {
 	return filesArray;
 }
 
-
 var config = {
 	folders : {
 		root        : path.join(path.dirname(process.argv[1]), '../..'),
@@ -152,12 +141,10 @@ var config = {
 	mainDTS : 'WebGLEngine.d.ts'
 };
 
-var projectFolder        = path.join(config.folders.root, config.folders.project),
-		releaseFolder        = path.join(config.folders.root, config.folders.build, config.folders.release);
+var projectFolder = path.join(config.folders.root, config.folders.project),
+	releaseFolder = path.join(config.folders.root, config.folders.build, config.folders.release);
 
 //config.folders.release = path.join(config.folders.build, config.folders.release);
-
-
 
 process.chdir(config.folders.root);
 rmDir(config.folders.build);
