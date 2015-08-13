@@ -1,10 +1,11 @@
 ## Ignore temporary files
 
 # User-specific files
+.idea
 source/*.map
 source/*.js
 source/*.d.ts
 example/code/*.map
 example/code/*.js
 example/code/*.d.ts
-build/*
+build
