@@ -17,6 +17,12 @@ module Example {
 	export var meshManager = new MeshManager();
 
 	export class Game {
+		private static _cameraModes = {
+			FLY : 0,
+			FOLLOW : 1,
+			FOLLOW_CLOSE: 2
+		};
+
 		private _engine : WebGLEngine.Engine;
 		private _meshes;
 		private _camera : WebGLEngine.Types.Camera;
@@ -28,8 +34,9 @@ module Example {
 		private _animation : WebGLEngine.Types.Animation;
 		private _animation2 : WebGLEngine.Types.Animation;
 
-		constructor() {
+		private _cameraMode : number;
 
+		constructor() {
 			WebGLEngine.Console.create(16, 16, 600, 800, 30);
 
 			this._engine = new WebGLEngine.Engine(
@@ -40,6 +47,7 @@ module Example {
 			this._engine.Controller.subscribe(new WebGLEngine.Utils.Callback(this._controllerHandler, this));
 
 			this._camera = this._engine.getCamera();
+			this._cameraMode = Game._cameraModes.FLY;
 
 			this._timers = {
 				key_a    : false,
@@ -342,6 +350,8 @@ module Example {
 		}
 
 		private _keyUp(e) : void {
+			console.log(e.keyCode);
+
 			switch (e.keyCode) {
 				case 65:
 					this._timers.key_a = false;
@@ -367,6 +377,10 @@ module Example {
 					this._showTransformations();
 					break;
 
+				case 67: // C
+					this._changeCameraMode();
+					break;
+
 				case 38:
 				case 29460:
 					//this._startAnimation();
@@ -389,13 +403,33 @@ module Example {
 			}
 		}
 
+		private _changeCameraMode() : void {
+			switch (this._cameraMode) {
+				case Game._cameraModes.FLY:
+					this._camera.follow(this._meshes.plane);
+					this._cameraMode = Game._cameraModes.FOLLOW;
+					break;
+
+				case Game._cameraModes.FOLLOW:
+					this._camera.follow(this._meshes.plane, 10);
+					this._cameraMode = Game._cameraModes.FOLLOW_CLOSE;
+					break;
+
+				case Game._cameraModes.FOLLOW_CLOSE:
+					this._camera.unfollow();
+					this._cameraMode = Game._cameraModes.FLY;
+					break;
+			}
+		}
+
 		private _controllerHandler(event : string) : void {
 			var events = WebGLEngine.Types.Controller.Events;
 
 			switch (event) {
 				case events.ALL_MESHES_LOADED:
 					WebGLEngine.Console.log('So example is loaded', 'yellow');
-					WebGLEngine.Console.log('Use WASD and mouse to fly', 'yellow');
+					WebGLEngine.Console.log('Use "WASD" and mouse to fly', 'yellow');
+					WebGLEngine.Console.log('To toggle camera modes use "C". Modes: FLY/FOLLOW/FOLLOW_CLOSE', 'yellow');
 					break;
 			}
 		}

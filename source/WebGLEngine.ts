@@ -595,7 +595,7 @@ module WebGLEngine {
 
 			for (i = 0; i < this._meshes.length; i++) {
 				if (!this._meshes[i].isReady()) {
-					console.log(i);
+					//console.log(i);
 					allMeshesLoaded = false;
 					break;
 				}
