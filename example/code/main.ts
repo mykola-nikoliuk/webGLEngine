@@ -350,8 +350,6 @@ module Example {
 		}
 
 		private _keyUp(e) : void {
-			console.log(e.keyCode);
-
 			switch (e.keyCode) {
 				case 65:
 					this._timers.key_a = false;
