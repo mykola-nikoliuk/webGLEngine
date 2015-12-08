@@ -2,7 +2,6 @@
 ///<reference path="./classes/common/Pool.ts"/>
 ///<reference path="./classes/common/Transformations.ts"/>
 ///<reference path="./classes/common/LinkedTransformations.ts"/>
-///<reference path="./classes/mesh/Face.ts"/>
 ///<reference path="./classes/mesh/Mesh.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
@@ -200,12 +199,10 @@ module WebGLEngine {
 							distances.push(this._lights[i].distance)
 						}
 
-						this._gl.uniform1iv(this._shaderProgram.useLightUniform, lightEnables);
 						this._gl.uniform1fv(this._shaderProgram.lightingDistanceUniform, distances);
 						this._gl.uniform3fv(this._shaderProgram.lightColorUniform, colors);
 						this._gl.uniform3fv(this._shaderProgram.lightingDirectionUniform, directions);
 						this._gl.uniform1f(this._shaderProgram.materialSpecular, vertexIndexBuffers[material].material.specular);
-
 						//						this._gl.uniform3f(this._shaderProgram.ambientColorUniform, 0.2, 0.2, 0.2);
 						//						var lightingDirection = [0.0, 0.0, 0.0];
 						//
@@ -399,9 +396,9 @@ module WebGLEngine {
 			this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
 			this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
 
-			var normalMatrix = Utils.GLMatrix.mat3.create(undefined);
-			Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
-			Utils.GLMatrix.mat3.transpose(normalMatrix);
+			var normalMatrix = Utils.GLMatrix.mat3.identity(Utils.GLMatrix.mat3.create());
+			//Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
+			//Utils.GLMatrix.mat3.transpose(normalMatrix);
 			this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
 		}
 
@@ -411,7 +408,8 @@ module WebGLEngine {
 
 		private _parseObjFile(objFile : string, url: string, mesh : Types.Mesh, path : string, parameters : any) : void {
 			var i, j, nodes,
-				vertexes = [], textures = [], normals = [], faces = [],
+				vertexes = [], textures = [], normals = [],
+				faces : Types.Face[][] = [],
 				materials : {[materialName:string] : Types.Material} = {},
 				currentMaterial = Types.Mesh.defaultMaterialName,
 				objConfig = Config.File.obj,
@@ -443,7 +441,7 @@ module WebGLEngine {
 							vertexes.push(Number(nodes[j]));
 						}
 						if (vertexCounter !== 3) {
-							Console.error('>>> _parseObjFile() : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
+							Console.error('\t_parseObjFile() : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
 						}
 						break;
 
@@ -462,38 +460,47 @@ module WebGLEngine {
 						break;
 
 					case lineTypes.FACE:
-						var lastFace = null, firstFace = null;
+						var lastFace = null, firstFace = null,
+							face = new Types.Face();
 						for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
 							var faceArray = nodes[j].split('/'),
+								vertex : Types.Vertex,
 								face : Types.Face;
 
 							if (isNaN(faceArray[0])) break;
 
-							face = new Types.Face(
+							vertex = new Types.Vertex(
 								Number(faceArray[0]) - 1,
-								faceArray.length > 1 ? Number(faceArray[1]) - 1 : 0,
-								faceArray.length > 2 ? Number(faceArray[2]) - 1 : 0
+								faceArray.length > 1 && faceArray[1] !== '' ? Number(faceArray[1]) - 1 : null,
+								faceArray.length > 2 && faceArray[2] !== '' ? Number(faceArray[2]) - 1 : null
 							);
 
 							if (faceArray.length < 2) {
-								Console.warning('>>> _parseObjFile : There is no texture coordinate');
+								Console.warning('\t_parseObjFile : There is no texture coordinate');
 							}
 
 							if (j >= 4) {
-								faces[currentMaterial].push(firstFace);
-								faces[currentMaterial].push(lastFace);
+								face = new Types.Face();
+								face.vertexes[0] = firstFace;
+								face.vertexes[1] = lastFace;
+								face.vertexes[2] = vertex;
+							}
+							else {
+								face.vertexes[j - 1] = vertex;
+							}
+
+							if (j >= 3) {
+								faces[currentMaterial].push(face);
 							}
 
 							if (j === 1) {
-								firstFace = face;
+								firstFace = vertex;
 							}
-							lastFace = face;
-
-							faces[currentMaterial].push(face);
+							lastFace = vertex;
 						}
 						totalFaceCounter++;
 						if (j > 4) {
-							Console.warning('>>> _parseObjFile : ' + (j - 1) + ' vertexes in face');
+							Console.warning('\t_parseObjFile : ' + (j - 1) + ' vertexes in face');
 						}
 						break;
 

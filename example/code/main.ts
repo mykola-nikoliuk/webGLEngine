@@ -62,10 +62,12 @@ module Example {
 
 			this._meshes = {
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
-				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj'),
+				//plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj'),
 				//wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
-				cube: null,
-				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj')
+				//bus: this._engine.createMeshFromFile('./resources/bus/bus.obj'),
+				cube: this._engine.createMeshFromFile('./resources/cube/cube.obj'),
+				//house: this._engine.createMeshFromFile('./resources/house/OBJ/Farmhouse_OBJ.obj'),
+				//street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized2.obj')
 				//sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
 			};
 
@@ -80,9 +82,8 @@ module Example {
 			this._addListeners();
 			this._createLights();
 
-			this._createAnimation();
-			this._startAnimation();
-			//this._startAnimation2();
+			//this._createAnimation();
+			//this._startAnimation();
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
@@ -93,22 +94,22 @@ module Example {
 		private _configure() : void {
 			this._meshes.sky.scale.set(10000, 10000, 10000);
 
-			//this._meshes.sphere.scale.set(20, 20, 20);
+			this._meshes.cube.scale.set(20, 20, 20);
+			this._meshes.cube.position.set(0, 20, 0);
+
+			//this._meshes.bus.scale.set(20, 20, 20);
 
 			//this._meshes.wheel.scale.set(10, 10, 10);
 			//this._meshes.car.position.set(0, 1, 0);
 
-			this._camera.position.set(-176, 78, -64);
-			this._camera.rotation.set(-0.257, 4.173, 0);
+			//this._camera.position.set(-176, 78, -64);
+			//this._camera.rotation.set(-0.257, 4.173, 0);
 
-			this._meshes.sky.position.set(-this._camera.position.x,
-				-this._camera.position.y, -this._camera.position.z);
-
-			this._meshes.street.scale.set(5, 5, 5);
+			//this._meshes.street.scale.set(5, 5, 5);
 			//this._meshes.street.position.set(0, -20, 0);
 
-			this._meshes.plane.scale.set(0.3, 0.3, 0.3);
-			this._meshes.plane.position.set(70, -10, 0);
+			//this._meshes.plane.scale.set(0.3, 0.3, 0.3);
+			//this._meshes.plane.position.set(70, -10, 0);
 		}
 
 		private _addListeners() : void {
@@ -127,8 +128,8 @@ module Example {
 		private _createLights() {
 			this._engine.addLight(new WebGLEngine.Types.Light(
 				WebGLEngine.Types.Light.Types.DIRECTIONAL,
-				new WebGLEngine.Types.Vector3(0, 1, 1),
-				new WebGLEngine.Types.Vector3(0, 1, 0)
+				new WebGLEngine.Types.Vector3(0.5, 0.5, 0.5),
+				new WebGLEngine.Types.Vector3(0, -1, 0)
 			));
 		}
 
@@ -140,8 +141,10 @@ module Example {
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			engine.draw(this._meshes.plane);
-			engine.draw(this._meshes.street);
+			//engine.draw(this._meshes.plane);
+			//engine.draw(this._meshes.house);
+			//engine.draw(this._meshes.street);
+			engine.draw(this._meshes.cube);
 			engine.turnOnLight();
 			//this._meshes.car.draw(this._engine);
 			//engine.draw(this._meshes.sphere);

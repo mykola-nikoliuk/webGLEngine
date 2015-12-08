@@ -1,3 +1,6 @@
+///<reference path="./Vertex.ts"/>
+///<reference path="./Face.ts"/>
+
 module WebGLEngine.Types {
 
 	// TODO : refactor (Create material manager)
@@ -73,8 +76,11 @@ module WebGLEngine.Types {
 
 		public initBuffers(materials? : {[materialName:string] : Material}) : void {
 			var colors = [], indexes = [], textures = [], normals = [],
-				i, j, material, vertexIndexBuffer,
-				colorIndex;
+				vertex : Vertex,
+				itemSize : number,
+				vectorColors : number[],
+				i, j, k,
+				material, vertexIndexBuffer;
 
 			if (typeof materials !== 'undefined') {
 				for (material in this._materials) {
@@ -88,6 +94,11 @@ module WebGLEngine.Types {
 			}
 
 			// create empty color and texture buffer
+			var counter = 0;
+
+			var vertexes = this._vertexes;
+			this._vertexes = [];
+
 			for (material in this._faces) {
 				if (this._faces.hasOwnProperty(material)) {
 
@@ -95,21 +106,53 @@ module WebGLEngine.Types {
 
 					indexes = [];
 					for (i = 0; i < this._faces[material].length; i++) {
-						colorIndex = (this._faces[material][i].vertexIndex) * 4;
+						for (j = 0; j < this._faces[material][i].vertexes.length; j++) {
 
-						indexes.push(this._faces[material][i].vertexIndex);
-						textures[this._faces[material][i].vertexIndex * 2] = this._vertextTextures[this._faces[material][i].textureIndex * 2];
-						textures[this._faces[material][i].vertexIndex * 2 + 1] = this._vertextTextures[this._faces[material][i].textureIndex * 2 + 1];
+							vertex = this._faces[material][i].vertexes[j];
 
-						normals[this._faces[material][i].vertexIndex * 3] = this._vertexNormals[this._faces[material][i].normalIndex * 3];
-						normals[this._faces[material][i].vertexIndex * 3 + 1] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 1];
-						normals[this._faces[material][i].vertexIndex * 3 + 2] = this._vertexNormals[this._faces[material][i].normalIndex * 3 + 2];
+							indexes.push(counter);
 
-						colors.push(this._materials[material].diffuseColor.r);
-						colors.push(this._materials[material].diffuseColor.g);
-						colors.push(this._materials[material].diffuseColor.b);
+							// vertexes
+							for (k = 0, itemSize = 3; k < itemSize; k++) {
+								this._vertexes.push(vertexes[vertex.index * itemSize + k]);
+							}
+
+
+
+							counter++;
+
+							// texture coordinates
+							for (k = 0, itemSize = 2; k < itemSize; k++) {
+								textures.push(this._vertextTextures[vertex.textureIndex * itemSize + k]);
+							}
+
+							// normals
+							for (k = 0, itemSize = 3; k < itemSize; k++) {
+								if (vertex.normalIndex >= 0) {
+									normals.push(this._vertexNormals[vertex.normalIndex * itemSize + k]);
+								}
+								else {
+									normals.push(null);
+								}
+							}
+
+							//this._fixNormals(normals, this._faces[material][i]);
+
+							// colors
+							vectorColors = this._materials[material].diffuseColor.getArray();
+							for (k = 0, itemSize = 3; k < itemSize; k++) {
+								colors.push(vectorColors[k]);
+							}
+						}
+
 						//colors.push(1);
 					}
+
+					// create vertex index buffer
+					this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexPositionBuffer);
+					this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexes), this._webGL.STATIC_DRAW);
+					this._vertexPositionBuffer.itemSize = 3;
+					this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 
 					vertexIndexBuffer = this._webGL.createBuffer();
 					this._webGL.bindBuffer(this._webGL.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
@@ -203,6 +246,56 @@ module WebGLEngine.Types {
 
 		public getVertexTextureBuffer() : void {
 			return this._vertexTextureBuffer;
+		}
+
+		// TODO : finish implementation
+		private _fixNormals(normals : number[], face : Face) {
+			var i : number,
+				j : number,
+				p : number[],
+				point : Vector3[] = [],
+				normal : Vector3,
+				U : Vector3, V : Vector3,
+				vertexIndex : number,
+				itemSize = 3,
+				isFixNeeded = false;
+
+			for (i = 0; i < face.vertexes.length; i++) {
+				if (face.vertexes[i].normalIndex < 0) {
+					isFixNeeded = true;
+				}
+			}
+
+			if (isFixNeeded) {
+				for (i = 0; i < face.vertexes.length; i++) {
+					p = [];
+					for (j = 0; j < itemSize; j++) {
+						p.push(this._vertexes[face.vertexes[i].index * itemSize + j]);
+					}
+					point.push(new Vector3(p[0], p[1], p[2]));
+				}
+
+				U = point[1].clone().minus(point[0]);
+				V = point[2].clone().minus(point[0]);
+
+				normal = new Vector3(
+					U.y * V.z - U.z * V.y,
+					U.z * V.x - U.x * V.z,
+					U.x * V.y - U.y * V.x
+				);
+
+				var huynya = 1 / Math.sqrt(Math.pow(normal.x, 2) + Math.pow(normal.y, 2) + Math.pow(normal.z, 2));
+
+				normal.multiply(huynya);
+
+				//Console.log('x : ' + normal.x + ' | y : ' + normal.y + ' | z : ' + normal.z);
+
+				for (i = 0; i < face.vertexes.length; i++) {
+						normals[face.vertexes[i].index * itemSize] = normal.x;
+						normals[face.vertexes[i].index * itemSize + 1] = normal.y;
+						normals[face.vertexes[i].index * itemSize + 2] = normal.z;
+				}
+			}
 		}
 
 		private _materialIsReady() {
