@@ -10,7 +10,7 @@
 ##### Supported browsers:
 	- Chrome (webkit);
 	- Firefox (gecko).
------------------
+------------------
 #### Configuration
 ##### Build for windows:
 	Execute "./make.cmd".
@@ -40,7 +40,7 @@
 	Now you can use mouse to look around.
 	To release mouse press ESC.
 	Use WASD to fly.
-------------
+-------------
 #### Releases
 ##### v0.3.0
 	- linux based builder added;
