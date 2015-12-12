@@ -23,7 +23,7 @@ module WebGLEngine.Types {
 		private _callback : Utils.Callback;
 
 		constructor() {
-			this.diffuseColor = new Vector3(0, 0, 0);
+			this.diffuseColor = new Vector3(1, 0, 1);
 			this.specular = 0;
 			this.imageLink = '';
 			this.ready = true;

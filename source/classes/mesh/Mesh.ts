@@ -1,5 +1,6 @@
 ///<reference path="./Vertex.ts"/>
 ///<reference path="./Face.ts"/>
+///<reference path="./BuffersBox.ts"/>
 
 module WebGLEngine.Types {
 
@@ -18,12 +19,9 @@ module WebGLEngine.Types {
 		private _materialsLoaded : number;
 
 		private _isReady : boolean;
-		private _vertexIndexBuffers;
-		private _vertexPositionBuffer : any;
-		private _vertexNormalBuffer : any;
-		private _vertexColorBuffer : any;
-		private _vertexTextureBuffer : any;
 		private _materialCallback : Utils.Callback;
+
+		private _bufferBoxes : BuffersBox[];
 
 		private _transformationChildren : Mesh[];
 
@@ -43,16 +41,9 @@ module WebGLEngine.Types {
 			this._isReady = false;
 			this._createCallback = null;
 
-			this._vertexIndexBuffers = {};
-			this._vertexPositionBuffer = this._webGL.createBuffer();
-			this._vertexNormalBuffer = this._webGL.createBuffer();
-			this._vertexColorBuffer = this._webGL.createBuffer();
-			this._vertexTextureBuffer = this._webGL.createBuffer();
-
+			this._bufferBoxes = [];
 			this._transformationChildren = [];
-
 			this._createCallback = [];
-
 			this._materialCallback = new Utils.Callback(this._materialIsReady, this);
 		}
 
@@ -66,22 +57,24 @@ module WebGLEngine.Types {
 			this._faces = faces;
 			// TODO : check for dublicate
 			this._materials = materials;
-
-			// create vertex index buffer
-			this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexPositionBuffer);
-			this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexes), this._webGL.STATIC_DRAW);
-			this._vertexPositionBuffer.itemSize = 3;
-			this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
 		}
 
 		public initBuffers(materials? : {[materialName:string] : Material}) : void {
-			var colors = [], indexes = [], textures = [], normals = [],
+			var
+				indexes = {},
+				colors = [],
+				textures = [],
+				normals = [],
+				positions = [],
 				vertex : Vertex,
 				itemSize : number,
 				vectorColors : number[],
 				i, j, k,
-				material, vertexIndexBuffer;
+				counter,
+				material,
+				vertexIndexBuffer;
 
+			this._materials[Types.Mesh.defaultMaterialName].callback(this._materialCallback);
 			if (typeof materials !== 'undefined') {
 				for (material in this._materials) {
 					if (this._materials.hasOwnProperty(material)) {
@@ -93,33 +86,35 @@ module WebGLEngine.Types {
 				}
 			}
 
-			// create empty color and texture buffer
-			var counter = 0;
-
-			var vertexes = this._vertexes;
-			this._vertexes = [];
-
+			// create buffers
+			counter = 0;
 			for (material in this._faces) {
 				if (this._faces.hasOwnProperty(material)) {
-
 					if (this._faces[material].length === 0) continue;
 
-					indexes = [];
+					indexes[material] = [];
 					for (i = 0; i < this._faces[material].length; i++) {
 						for (j = 0; j < this._faces[material][i].vertexes.length; j++) {
 
-							vertex = this._faces[material][i].vertexes[j];
-
-							indexes.push(counter);
-
-							// vertexes
-							for (k = 0, itemSize = 3; k < itemSize; k++) {
-								this._vertexes.push(vertexes[vertex.index * itemSize + k]);
+							if (counter >= 21845) {
+								this._bufferBoxes.push(new BuffersBox(this._webGL, indexes, positions, normals, colors, textures));
+								indexes = {};
+								indexes[material] = [];
+								positions = [];
+								normals = [];
+								colors = [];
+								textures = [];
+								counter = 0;
+								continue;
 							}
 
+							vertex = this._faces[material][i].vertexes[j];
+							indexes[material].push(counter);
 
-
-							counter++;
+							// positions
+							for (k = 0, itemSize = 3; k < itemSize; k++) {
+								positions.push(this._vertexes[vertex.index * itemSize + k]);
+							}
 
 							// texture coordinates
 							for (k = 0, itemSize = 2; k < itemSize; k++) {
@@ -136,54 +131,31 @@ module WebGLEngine.Types {
 								}
 							}
 
-							//this._fixNormals(normals, this._faces[material][i]);
-
 							// colors
 							vectorColors = this._materials[material].diffuseColor.getArray();
 							for (k = 0, itemSize = 3; k < itemSize; k++) {
 								colors.push(vectorColors[k]);
 							}
+
+							counter++;
 						}
 
-						//colors.push(1);
+						WebGLEngine.Types.Mesh._fixNormals(normals, positions, this._faces[material][i], counter - 3);
 					}
-
-					// create vertex index buffer
-					this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexPositionBuffer);
-					this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(this._vertexes), this._webGL.STATIC_DRAW);
-					this._vertexPositionBuffer.itemSize = 3;
-					this._vertexPositionBuffer.numItems = this._vertexes.length / this._vertexPositionBuffer.itemSize;
-
-					vertexIndexBuffer = this._webGL.createBuffer();
-					this._webGL.bindBuffer(this._webGL.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
-					this._webGL.bufferData(this._webGL.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexes), this._webGL.STATIC_DRAW);
-					vertexIndexBuffer.itemSize = 1;
-					vertexIndexBuffer.numItems = indexes.length / vertexIndexBuffer.itemSize;
-
-					this._vertexIndexBuffers[material] = {
-						material: this._materials[material],
-						buffer  : vertexIndexBuffer
-					};
 				}
 			}
 
-			// create vertex normal buffer
-			this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexNormalBuffer);
-			this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(normals), this._webGL.STATIC_DRAW);
-			this._vertexNormalBuffer.itemSize = 3;
-			this._vertexNormalBuffer.numItems = normals.length / this._vertexNormalBuffer.itemSize;
+			if (counter > 0) {
+				this._bufferBoxes.push(new BuffersBox(this._webGL, indexes, positions, normals, colors, textures));
+			}
+		}
 
-			// create vertex color buffer
-			this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexColorBuffer);
-			this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(colors), this._webGL.STATIC_DRAW);
-			this._vertexColorBuffer.itemSize = 3;
-			this._vertexColorBuffer.numItems = colors.length / this._vertexColorBuffer.itemSize;
+		public getBufferBoxes() : BuffersBox[] {
+			return this._bufferBoxes;
+		}
 
-			// create vertex texture buffer
-			this._webGL.bindBuffer(this._webGL.ARRAY_BUFFER, this._vertexTextureBuffer);
-			this._webGL.bufferData(this._webGL.ARRAY_BUFFER, new Float32Array(textures), this._webGL.STATIC_DRAW);
-			this._vertexTextureBuffer.itemSize = 2;
-			this._vertexTextureBuffer.numItems = this._vertextTextures.length / this._vertexTextureBuffer.itemSize;
+		public getMaterials() : {[key : string] : Material} {
+			return this._materials;
 		}
 
 		public isReady() : boolean {
@@ -216,11 +188,8 @@ module WebGLEngine.Types {
 			mesh._materials = this._materials;
 			mesh._materialsLoaded = this._materialsLoaded;
 			mesh._isReady = this._isReady;
-			mesh._vertexIndexBuffers = this._vertexIndexBuffers;
-			mesh._vertexPositionBuffer = this._vertexPositionBuffer;
-			mesh._vertexNormalBuffer = this._vertexNormalBuffer;
-			mesh._vertexColorBuffer = this._vertexColorBuffer;
-			mesh._vertexTextureBuffer = this._vertexTextureBuffer;
+			// TODO : check is that copy works
+			mesh._bufferBoxes = this._bufferBoxes.slice(0);
 			mesh._materialCallback = this._materialCallback;
 			if (!this._isReady) {
 				this._transformationChildren.push(mesh);
@@ -228,36 +197,16 @@ module WebGLEngine.Types {
 			return mesh;
 		}
 
-		public getVertexIndexBuffers() : void {
-			return this._vertexIndexBuffers;
-		}
-
-		public getVertexPositionBuffer() : void {
-			return this._vertexPositionBuffer
-		}
-
-		public getVertexColorBuffer() : void {
-			return this._vertexColorBuffer;
-		}
-
-		public getVertexNormalBuffer() : void {
-			return this._vertexNormalBuffer;
-		}
-
-		public getVertexTextureBuffer() : void {
-			return this._vertexTextureBuffer;
-		}
-
 		// TODO : finish implementation
-		private _fixNormals(normals : number[], face : Face) {
+		private static _fixNormals(normals : number[], vertexes : number[], face : Face, counter) {
 			var i : number,
 				j : number,
 				p : number[],
 				point : Vector3[] = [],
 				normal : Vector3,
 				U : Vector3, V : Vector3,
-				vertexIndex : number,
 				itemSize = 3,
+				multiplier : number,
 				isFixNeeded = false;
 
 			for (i = 0; i < face.vertexes.length; i++) {
@@ -270,7 +219,7 @@ module WebGLEngine.Types {
 				for (i = 0; i < face.vertexes.length; i++) {
 					p = [];
 					for (j = 0; j < itemSize; j++) {
-						p.push(this._vertexes[face.vertexes[i].index * itemSize + j]);
+						p.push(vertexes[(counter + i) * itemSize + j]);
 					}
 					point.push(new Vector3(p[0], p[1], p[2]));
 				}
@@ -284,16 +233,13 @@ module WebGLEngine.Types {
 					U.x * V.y - U.y * V.x
 				);
 
-				var huynya = 1 / Math.sqrt(Math.pow(normal.x, 2) + Math.pow(normal.y, 2) + Math.pow(normal.z, 2));
-
-				normal.multiply(huynya);
-
-				//Console.log('x : ' + normal.x + ' | y : ' + normal.y + ' | z : ' + normal.z);
+				multiplier = 1 / Math.sqrt(Math.pow(normal.x, 2) + Math.pow(normal.y, 2) + Math.pow(normal.z, 2));
+				normal.multiply(multiplier);
 
 				for (i = 0; i < face.vertexes.length; i++) {
-						normals[face.vertexes[i].index * itemSize] = normal.x;
-						normals[face.vertexes[i].index * itemSize + 1] = normal.y;
-						normals[face.vertexes[i].index * itemSize + 2] = normal.z;
+						normals[(counter + i) * itemSize] = normal.x;
+						normals[(counter + i) * itemSize + 1] = normal.y;
+						normals[(counter + i) * itemSize + 2] = normal.z;
 				}
 			}
 		}

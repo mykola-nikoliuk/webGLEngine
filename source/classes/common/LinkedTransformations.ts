@@ -36,6 +36,22 @@ module WebGLEngine.Types {
 			return this._parent;
 		}
 
+		public getMatrix(invert? : boolean) : number[] {
+			var parent = this,
+				parents = [],
+				matrix = super.getMatrix();
+
+			while (parent = parent.getParent()) {
+				parents.push(parent);
+			}
+
+			while (parents.length) {
+				Utils.GLMatrix.mat4.multiply(matrix, parents.pop());
+			}
+
+			return matrix;
+		}
+
 		/** Adds dependent child
 		 * Returns true if child was added, otherwise false */
 		public addChild(child : LinkedTransformations) : boolean {

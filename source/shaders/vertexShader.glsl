@@ -8,7 +8,7 @@ uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 uniform mat3 uNMatrix;
 uniform bool uUseLighting;
-uniform vec3 uLightingDirection;
+uniform vec3 uLightDirection;
 uniform vec3 uDirectionalColor;
 uniform vec3 uAmbientColor;
 
@@ -42,7 +42,7 @@ void main(void) {
 			if (!uUseLighting) {
 					vLightWeighting = vec3(1.0, 1.0, 1.0);
 			} else {
-					vec3 LightingDirection = vec3(1.0, 0.0, 0.0);
+					vec3 LightingDirection = uLightDirection;
 					vec3 DirectionalColor = vec3(1.0, 1.0, 1.0);
 					vec3 transformedNormal = uNMatrix * aVertexNormal;
 					float directionalLightWeighting = max(dot(transformedNormal, LightingDirection), 0.0);

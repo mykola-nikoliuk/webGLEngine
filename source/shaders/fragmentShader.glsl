@@ -13,9 +13,9 @@ uniform bool uUseLighting;
 uniform bool uUseLight[10];
 uniform bool uUseTexture;
 
-uniform vec3 uLightDirection[10];
-uniform vec3 uLightColor[10];
-uniform float uLightDistance;
+//uniform vec3 uLightDirection[10];
+//uniform vec3 uLightColor[10];
+//uniform float uLightDistance;
 
 uniform sampler2D uSampler;
 
@@ -67,4 +67,7 @@ void main(void) {
 
 	vec4 textureColor = uUseTexture ? texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)) : vColor;
   gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
+  if (gl_FragColor.a < 0.8) {
+  	discard;
+  }
 }
