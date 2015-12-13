@@ -2,11 +2,11 @@ module WebGLEngine.Types {
 
 	export class BuffersBox {
 
-		private _vertexIndexBuffers : any;
-		private _vertexPositionBuffer : any;
-		private _vertexNormalBuffer : any;
-		private _vertexColorBuffer : any;
-		private _vertexTextureBuffer : any;
+		private _indexBuffers : any;
+		private _positionBuffer : any;
+		private _normalBuffer : any;
+		private _colorBuffer : any;
+		private _textureBuffer : any;
 		private _webGL;
 
 		constructor(webGL, indexes : {}, positions, normals, colors, textures) {
@@ -15,36 +15,36 @@ module WebGLEngine.Types {
 			this._createBuffers(positions, normals, colors, textures);
 		}
 
-		public getVertexIndexBuffers() : void {
-			return this._vertexIndexBuffers;
+		public getIndexBuffers() : void {
+			return this._indexBuffers;
 		}
 
-		public getVertexPositionBuffer() : void {
-			return this._vertexPositionBuffer
+		public getPositionBuffer() : void {
+			return this._positionBuffer
 		}
 
-		public getVertexColorBuffer() : void {
-			return this._vertexColorBuffer;
+		public getColorBuffer() : void {
+			return this._colorBuffer;
 		}
 
-		public getVertexNormalBuffer() : void {
-			return this._vertexNormalBuffer;
+		public getNormalBuffer() : void {
+			return this._normalBuffer;
 		}
 
-		public getVertexTextureBuffer() : void {
-			return this._vertexTextureBuffer;
+		public getTextureBuffer() : void {
+			return this._textureBuffer;
 		}
 
 		private _createIndexBuffers(indexes) : void {
 			var indexBuffer,
 				material : string;
 
-			this._vertexIndexBuffers = {};
+			this._indexBuffers = {};
 
 			for (material in indexes) {
 				if (indexes.hasOwnProperty(material)) {
 					indexBuffer = this._bindBuffer(indexes[material], this._webGL.ELEMENT_ARRAY_BUFFER, Uint16Array, 1);
-					this._vertexIndexBuffers[material] = {
+					this._indexBuffers[material] = {
 						material: material,
 						buffer  : indexBuffer
 					};
@@ -53,10 +53,10 @@ module WebGLEngine.Types {
 		}
 
 		private _createBuffers(positions, normals, colors, textures) : void {
-			this._vertexPositionBuffer = this._bindBuffer(positions, this._webGL.ARRAY_BUFFER, Float32Array, 3);
-			this._vertexNormalBuffer = this._bindBuffer(normals, this._webGL.ARRAY_BUFFER, Float32Array, 3);
-			this._vertexColorBuffer = this._bindBuffer(colors, this._webGL.ARRAY_BUFFER, Float32Array, 3);
-			this._vertexTextureBuffer = this._bindBuffer(textures, this._webGL.ARRAY_BUFFER, Float32Array, 2);
+			this._positionBuffer = this._bindBuffer(positions, this._webGL.ARRAY_BUFFER, Float32Array, 3);
+			this._normalBuffer = this._bindBuffer(normals, this._webGL.ARRAY_BUFFER, Float32Array, 3);
+			this._colorBuffer = this._bindBuffer(colors, this._webGL.ARRAY_BUFFER, Float32Array, 3);
+			this._textureBuffer = this._bindBuffer(textures, this._webGL.ARRAY_BUFFER, Float32Array, 2);
 		}
 
 		private _bindBuffer(array : number[], bufferType, constructor, itemSize : number) : any {

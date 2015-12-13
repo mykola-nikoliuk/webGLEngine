@@ -116,7 +116,7 @@ module WebGLEngine {
 		}
 
 		// TODO : add draw for LinkedTransformations
-
+		// TODO : optimize index buffers to one buffer with offset
 		public draw(mesh : Types.Mesh) : void {
 			var bufferBoxes,
 				vertexIndexBuffers,
@@ -143,11 +143,11 @@ module WebGLEngine {
 			bufferBoxes = mesh.getBufferBoxes();
 			for (j = 0; j < bufferBoxes.length; j++) {
 
-				vertexIndexBuffers = bufferBoxes[j].getVertexIndexBuffers();
-				vertexPositionBuffer = bufferBoxes[j].getVertexPositionBuffer();
-				vertexNormalBuffer = bufferBoxes[j].getVertexNormalBuffer();
-				vertexColorBuffer = bufferBoxes[j].getVertexColorBuffer();
-				vertexTextureBuffer = bufferBoxes[j].getVertexTextureBuffer();
+				vertexIndexBuffers = bufferBoxes[j].getIndexBuffers();
+				vertexPositionBuffer = bufferBoxes[j].getPositionBuffer();
+				vertexNormalBuffer = bufferBoxes[j].getNormalBuffer();
+				vertexColorBuffer = bufferBoxes[j].getColorBuffer();
+				vertexTextureBuffer = bufferBoxes[j].getTextureBuffer();
 
 				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
 				this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
@@ -452,14 +452,14 @@ module WebGLEngine {
 
 					case lineTypes.FACE:
 						var lastFace = null, firstFace = null,
-							faceArray : number[],
+							faceArray : string[],
 							vertex : Types.Vertex,
 							face = new Types.Face();
 
 						for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
 							faceArray = nodes[j].split('/');
 
-							if (isNaN(faceArray[0])) break;
+							if (isNaN(<number>faceArray[0])) break;
 
 							vertex = new Types.Vertex(
 								Number(faceArray[0]) - 1,

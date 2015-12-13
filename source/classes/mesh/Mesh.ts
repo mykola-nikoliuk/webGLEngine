@@ -8,6 +8,7 @@ module WebGLEngine.Types {
 	export class Mesh extends LinkedTransformations {
 
 		public static defaultMaterialName = 'noMaterial';
+		public static maxVertexIndexValue = 21845; // unsigned short
 
 		private _webGL : any;
 		private _vertexes : number[];
@@ -95,7 +96,7 @@ module WebGLEngine.Types {
 					for (i = 0; i < this._faces[material].length; i++) {
 						for (j = 0; j < this._faces[material][i].vertexes.length; j++) {
 
-							if (counter >= 21845) {
+							if (counter >= Mesh.maxVertexIndexValue) {
 								this._bufferBoxes.push(new BuffersBox(this._webGL, indexes, positions, normals, colors, textures));
 								indexes = {};
 								indexes[material] = [];
