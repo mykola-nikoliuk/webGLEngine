@@ -208,17 +208,11 @@ module WebGLEngine {
 						}
 
 						this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
-						// TODO : fix light by changing mesh matrix
-
-
 						this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
 						this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-
 						normalMatrix4 = mesh.getMatrix(Types.Matrix.transformToMatrixTypes.WITHOUT_SCALE);
 						normalMatrix3 = Utils.GLMatrix.mat4.toMat3(normalMatrix4, Utils.GLMatrix.mat3.create());
 						this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix3);
-
-
 						this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
 					}
 				}
@@ -459,12 +453,12 @@ module WebGLEngine {
 						for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
 							faceArray = nodes[j].split('/');
 
-							if (isNaN(<number>faceArray[0])) break;
+							if (isNaN(Number(faceArray[0]))) break;
 
 							vertex = new Types.Vertex(
 								Number(faceArray[0]) - 1,
-								faceArray.length > 1 && faceArray[1] !== '' ? Number(faceArray[1]) - 1 : null,
-								faceArray.length > 2 && faceArray[2] !== '' ? Number(faceArray[2]) - 1 : null
+								(faceArray.length > 1 && faceArray[1] !== '') ? Number(faceArray[1]) - 1 : null,
+								(faceArray.length > 2 && faceArray[2] !== '') ? Number(faceArray[2]) - 1 : null
 							);
 
 							if (faceArray.length < 2) {

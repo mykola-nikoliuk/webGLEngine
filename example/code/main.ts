@@ -91,7 +91,7 @@ module Example {
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
-				this._engine.Render.setFPS(Config.engine.FPS);
+				//this._engine.Render.setFPS(Config.engine.FPS);
 			}
 		}
 
