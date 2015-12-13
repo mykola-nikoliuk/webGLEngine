@@ -1,3 +1,5 @@
+///<reference path="./Matrix.ts"/>
+
 module WebGLEngine.Types {
 
 	export class LinkedTransformations extends Transformations {
@@ -36,17 +38,19 @@ module WebGLEngine.Types {
 			return this._parent;
 		}
 
-		public getMatrix(invert? : boolean) : number[] {
+		/** Returns matrix of mesh parent tree */
+		public getMatrix(type = Matrix.transformToMatrixTypes.USUAL) : number[] {
 			var parent = this,
 				parents = [],
-				matrix = super.getMatrix();
+				matrix = Matrix.transformationsToMatrix(this, type);
 
 			while (parent = parent.getParent()) {
 				parents.push(parent);
 			}
 
 			while (parents.length) {
-				Utils.GLMatrix.mat4.multiply(matrix, parents.pop());
+			//	 TODO : check this operation
+				Utils.GLMatrix.mat4.multiply(matrix, Matrix.transformationsToMatrix(parents.pop(), type));
 			}
 
 			return matrix;

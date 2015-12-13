@@ -71,8 +71,7 @@ module WebGLEngine.Types {
 				vectorColors : number[],
 				i, j, k,
 				counter,
-				material,
-				vertexIndexBuffer;
+				material;
 
 			this._materials[Types.Mesh.defaultMaterialName].callback(this._materialCallback);
 			if (typeof materials !== 'undefined') {

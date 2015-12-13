@@ -1,5 +1,6 @@
 ///<reference path="./classes/utils/Utils.ts"/>
 ///<reference path="./classes/common/Pool.ts"/>
+///<reference path="./classes/common/Matrix.ts"/>
 ///<reference path="./classes/common/Transformations.ts"/>
 ///<reference path="./classes/common/LinkedTransformations.ts"/>
 ///<reference path="./classes/mesh/Mesh.ts"/>
@@ -123,6 +124,8 @@ module WebGLEngine {
 				vertexNormalBuffer,
 				vertexColorBuffer,
 				vertexTextureBuffer,
+				normalMatrix3,
+				normalMatrix4,
 				bufferBoxes : Types.BuffersBox[],
 				meshMaterial : Types.Material,
 				i, j,
@@ -134,10 +137,8 @@ module WebGLEngine {
 
 			this._mvPushMatrix();
 
-			var objectMatrix = Utils.GLMatrix.mat4.identity(Utils.GLMatrix.mat4.create());
-
 			// apply matrix mesh
-			Utils.GLMatrix.mat4.multiply(this._camera.getMatrix(true), mesh.getMatrix(), this._mvMatrix);
+			Utils.GLMatrix.mat4.multiply(this._camera.getMatrix(), mesh.getMatrix(), this._mvMatrix);
 
 			bufferBoxes = mesh.getBufferBoxes();
 			for (j = 0; j < bufferBoxes.length; j++) {
@@ -208,7 +209,16 @@ module WebGLEngine {
 
 						this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
 						// TODO : fix light by changing mesh matrix
-						this._setMatrixUniforms(mesh.getMatrix());
+
+
+						this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
+						this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
+
+						normalMatrix4 = mesh.getMatrix(Types.Matrix.transformToMatrixTypes.WITHOUT_SCALE);
+						normalMatrix3 = Utils.GLMatrix.mat4.toMat3(normalMatrix4, Utils.GLMatrix.mat3.create());
+						this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix3);
+
+
 						this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
 					}
 				}
@@ -389,24 +399,6 @@ module WebGLEngine {
 			}
 			this._mvMatrix = this._mvMatrixStack.pop();
 		}
-
-		private _setMatrixUniforms(objectMatrix) : void {
-			//console.log(JSON.stringify(objectMatrix));
-			//asd
-			this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
-			this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-
-			var normalMatrix = Utils.GLMatrix.mat4.toMat3(objectMatrix, Utils.GLMatrix.mat3.create());
-
-			//Utils.GLMatrix.mat4.translate(normalMatrix, this._camera.position.clone().invertSign().getArray());
-			//Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
-			//Utils.GLMatrix.mat3.transpose(normalMatrix);
-			this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
-		}
-
-		//private _degToRad(degrees : number) : number {
-		//	return degrees * Math.PI / 180;
-		//}
 
 		private _parseObjFile(objFile : string, url : string, mesh : Types.Mesh, path : string, parameters : any) : void {
 			var i, j, nodes,

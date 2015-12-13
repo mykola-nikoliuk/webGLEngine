@@ -69,7 +69,7 @@ module Example {
 				//wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				//bus: this._engine.createMeshFromFile('./resources/bus/bus.obj'),
 				//car   : this._engine.createMeshFromFile('./resources/crown/crown_victoria.obj'),
-				car   : this._engine.createMeshFromFile('./resources/bmw/BMW_M3_GTR.obj'),
+				car   : this._engine.createMeshFromFile('./resources/BMW_M3/BMW_M3_GTR.obj'),
 				//cube  : this._engine.createMeshFromFile('./resources/cube/cube_opt.obj'),
 				//house: this._engine.createMeshFromFile('./resources/house/OBJ/Farmhouse_OBJ.obj'),
 				//sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
@@ -157,10 +157,9 @@ module Example {
 			//engine.draw(this._meshes.house);
 			//engine.draw(this._meshes.cube);
 			engine.turnOnLight();
-			engine.draw(this._meshes.car);
 			engine.draw(this._meshes.street);
+			engine.draw(this._meshes.car);
 			//engine.draw(this._meshes.castle);
-			//engine.draw(this._meshes.cube);
 			//this._meshes.car.draw(this._engine);
 			//engine.draw(this._meshes.sphere);
 			//engine.draw(this._meshes.wheel);
