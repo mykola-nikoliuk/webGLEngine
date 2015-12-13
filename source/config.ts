@@ -2,9 +2,10 @@ module WebGLEngine {
 
 	export var Config = {
 
-		version: '0.2',
+		version: '0.3',
 		html   : {
-			canvasID: 'webGLCanvas'
+			webGLNodeId : 'webGL',
+			canvasNodeId: 'canvas',
 		},
 
 		File: {

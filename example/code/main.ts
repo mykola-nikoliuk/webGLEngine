@@ -43,6 +43,7 @@ module Example {
 				Config.webGL.shaders.fragment,
 				Config.webGL.shaders.vertex
 			);
+			this._engine.createDebugger();
 
 			this._engine.Controller.subscribe(new WebGLEngine.Utils.Callback(this._controllerHandler, this));
 

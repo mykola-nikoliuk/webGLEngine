@@ -3,7 +3,9 @@
 ///<reference path="./classes/common/Matrix.ts"/>
 ///<reference path="./classes/common/Transformations.ts"/>
 ///<reference path="./classes/common/LinkedTransformations.ts"/>
+///<reference path="./classes/canvas/Text.ts"/>
 ///<reference path="./classes/mesh/Mesh.ts"/>
+///<reference path="./classes/Debugger.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
 ///<reference path="./classes/Camera.ts"/>
@@ -23,10 +25,12 @@ module WebGLEngine {
 
 	export class Engine {
 
-		private _gl : any;
+		private _gl : WebGLRenderingContext|any;
+		private _canvas : CanvasRenderingContext2D;
 		private _isReady : boolean;
 		private _shader;
 		private _inited : boolean;
+		private _webGLNode : HTMLCanvasElement;
 		private _canvasNode : HTMLCanvasElement;
 
 		private _mvMatrix : Float32Array;
@@ -55,14 +59,14 @@ module WebGLEngine {
 			this._isReady = false;
 			this._shader = null;
 			this._inited = false;
-			this._canvasNode = null;
+			this._webGLNode = null;
 
 			this._mvMatrix = Utils.GLMatrix.mat4.create(undefined);
 			this._pMatrix = Utils.GLMatrix.mat4.create(undefined);
 			this._mvMatrixStack = [];
 
 			this._camera = new Types.Camera();
-			this._render = new Types.Render(this);
+			this._render = new Types.Render(this, new Utils.Callback(this._internalDraw, this));
 			this._controller = new Types.Controller(this);
 
 			this._meshes = [];
@@ -75,6 +79,7 @@ module WebGLEngine {
 
 			this._createCanvas();
 			this._initGL();
+			this.onResize();
 			this._loadShaders(fragmentShaderPath, vertexShaderPath);
 		}
 
@@ -91,14 +96,7 @@ module WebGLEngine {
 			this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
 			Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix);
-
 			Utils.GLMatrix.mat4.identity(this._mvMatrix);
-
-			// set camera position
-			//Utils.GLMatrix.mat4.rotateX(this._mvMatrix, -this._camera.rotation.x);
-			//Utils.GLMatrix.mat4.rotateY(this._mvMatrix, -this._camera.rotation.y);
-			//Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, -this._camera.rotation.z);
-			//Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.clone().invertSign().getArray());
 
 			//noinspection ConstantIfStatementJS
 			if (false) {
@@ -245,6 +243,8 @@ module WebGLEngine {
 
 		public onResize() : void {
 			if (this._inited) {
+				this._webGLNode.setAttribute('width', window.innerWidth + 'px');
+				this._webGLNode.setAttribute('height', window.innerHeight + 'px');
 				this._canvasNode.setAttribute('width', window.innerWidth + 'px');
 				this._canvasNode.setAttribute('height', window.innerHeight + 'px');
 				this._gl.viewportWidth = window.innerWidth;
@@ -280,12 +280,24 @@ module WebGLEngine {
 			return mesh;
 		}
 
+		public createText() : Types.Text {
+			return new Types.Text(this._canvas);
+		}
+
+		public createDebugger() : Types.Debugger {
+			return new Types.Debugger(this);
+		}
+
 		public getCamera() : Types.Camera {
 			return this._camera;
 		}
 
-		public getGLInstance() : any {
+		public getGLInstance() : WebGLRenderingContext {
 			return this._gl;
+		}
+
+		public getCanvasInstance() : CanvasRenderingContext2D {
+			return this._canvas;
 		}
 
 		private _applyTransformations(matrix : Float32Array, object : Types.Transformations) {
@@ -299,6 +311,15 @@ module WebGLEngine {
 		}
 
 		private _createCanvas() : void {
+			this._webGLNode = <HTMLCanvasElement>document.getElementById(Config.html.webGLNodeId);
+			if (this._webGLNode === null) {
+				this._webGLNode = document.createElement('canvas');
+				this._webGLNode.id = Config.html.webGLNodeId;
+				this._webGLNode.style.position = 'fixed';
+				this._webGLNode.style.left = '0px';
+				this._webGLNode.style.top = '0px';
+				document.body.appendChild(this._webGLNode);
+			}
 			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasID);
 			if (this._canvasNode === null) {
 				this._canvasNode = document.createElement('canvas');
@@ -312,14 +333,20 @@ module WebGLEngine {
 
 		private _initGL() {
 			try {
-				this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
+				this._gl = this._webGLNode.getContext("webgl") || this._webGLNode.getContext("experimental-webgl");
+				this._canvas = this._canvasNode.getContext("2d");
 				this._inited = true;
-				this.onResize();
 			}
 			catch (e) {
 			}
 			if (!this._gl) {
 				Console.error("Could not initialise WebGL, sorry :-(");
+			}
+		}
+
+		private _internalDraw() : void {
+			if (Types.Debugger.currentDebugger) {
+				Types.Debugger.currentDebugger.draw();
 			}
 		}
 
