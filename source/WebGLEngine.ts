@@ -25,7 +25,7 @@ module WebGLEngine {
 
 	export class Engine {
 
-		private _gl : WebGLRenderingContext|any;
+		private _gl : any;
 		private _canvas : CanvasRenderingContext2D|any;
 		private _isReady : boolean;
 		private _shader;
@@ -116,13 +116,15 @@ module WebGLEngine {
 		// TODO : add draw for LinkedTransformations
 		// TODO : optimize index buffers to one buffer with offset
 		public draw(mesh : Types.Mesh) : void {
-			var vertexIndexBuffers,
-				vertexPositionBuffer,
-				vertexNormalBuffer,
-				vertexColorBuffer,
-				vertexTextureBuffer,
+			var indexBuffer,
+				positionBuffer,
+				normalBuffer,
+				colorBuffer,
+				indexesPerMaterial,
+				textureBuffer,
 				normalMatrix3,
 				normalMatrix4,
+				indexOffset : number,
 				bufferBoxes : Types.BuffersBox[],
 				meshMaterial : Types.Material,
 				i, j,
@@ -140,25 +142,36 @@ module WebGLEngine {
 			bufferBoxes = mesh.getBufferBoxes();
 			for (j = 0; j < bufferBoxes.length; j++) {
 
-				vertexIndexBuffers = bufferBoxes[j].getIndexBuffers();
-				vertexPositionBuffer = bufferBoxes[j].getPositionBuffer();
-				vertexNormalBuffer = bufferBoxes[j].getNormalBuffer();
-				vertexColorBuffer = bufferBoxes[j].getColorBuffer();
-				vertexTextureBuffer = bufferBoxes[j].getTextureBuffer();
+				indexOffset = 0;
 
-				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
-				this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				indexBuffer = bufferBoxes[j].getIndexBuffer();
+				positionBuffer = bufferBoxes[j].getPositionBuffer();
+				normalBuffer = bufferBoxes[j].getNormalBuffer();
+				colorBuffer = bufferBoxes[j].getColorBuffer();
+				textureBuffer = bufferBoxes[j].getTextureBuffer();
+				indexesPerMaterial = bufferBoxes[j].getIndexesPerMaterial();
 
-				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
-				this._gl.vertexAttribPointer(this._shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, positionBuffer);
+				this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, positionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexColorBuffer);
-				this._gl.vertexAttribPointer(this._shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, normalBuffer);
+				this._gl.vertexAttribPointer(this._shaderProgram.vertexNormalAttribute, normalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-				for (material in vertexIndexBuffers) {
-					if (vertexIndexBuffers.hasOwnProperty(material)) {
+				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, colorBuffer);
+				this._gl.vertexAttribPointer(this._shaderProgram.vertexColorAttribute, colorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-						meshMaterial = mesh.getMaterials()[vertexIndexBuffers[material].material];
+				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+				this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
+				this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
+				normalMatrix4 = mesh.getMatrix(Types.Matrix.transformToMatrixTypes.WITHOUT_SCALE);
+				normalMatrix3 = Utils.GLMatrix.mat4.toMat3(normalMatrix4, Utils.GLMatrix.mat3.create());
+				this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix3);
+
+				for (material in indexesPerMaterial) {
+					if (indexesPerMaterial.hasOwnProperty(material)) {
+
+						meshMaterial = mesh.getMaterials()[material];
 
 						if (!meshMaterial.ready) continue;
 
@@ -167,8 +180,8 @@ module WebGLEngine {
 							this._gl.enableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
 							this._gl.uniform1i(this._shaderProgram.textureEnabled, 1);
 
-							this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexTextureBuffer);
-							this._gl.vertexAttribPointer(this._shaderProgram.textureCoordAttribute, vertexTextureBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+							this._gl.bindBuffer(this._gl.ARRAY_BUFFER, textureBuffer);
+							this._gl.vertexAttribPointer(this._shaderProgram.textureCoordAttribute, textureBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
 							this._gl.activeTexture(this._gl.TEXTURE0);
 							this._gl.bindTexture(this._gl.TEXTURE_2D, meshMaterial.texture);
@@ -204,13 +217,9 @@ module WebGLEngine {
 							this._gl.uniform1f(this._shaderProgram.materialSpecular, meshMaterial.specular);
 						}
 
-						this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
-						this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
-						this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-						normalMatrix4 = mesh.getMatrix(Types.Matrix.transformToMatrixTypes.WITHOUT_SCALE);
-						normalMatrix3 = Utils.GLMatrix.mat4.toMat3(normalMatrix4, Utils.GLMatrix.mat3.create());
-						this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix3);
-						this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
+						this._gl.drawElements(this._gl.TRIANGLES, indexesPerMaterial[material], this._gl.UNSIGNED_SHORT, indexOffset * 2);
+
+						indexOffset += indexesPerMaterial[material];
 					}
 				}
 			}

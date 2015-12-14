@@ -2,54 +2,43 @@ module WebGLEngine.Types {
 
 	export class BuffersBox {
 
-		private _indexBuffers : any;
+		private _indexBuffer : any;
 		private _positionBuffer : any;
 		private _normalBuffer : any;
 		private _colorBuffer : any;
 		private _textureBuffer : any;
-		private _webGL;
+		private _indexesPerMaterial : any;
+		private _webGL : any;
 
-		constructor(webGL, indexes : {}, positions, normals, colors, textures) {
+		constructor(webGL, indexes, positions, normals, colors, textures, indexesPerMaterial) {
 			this._webGL = webGL;
-			this._createIndexBuffers(indexes);
+			this._indexesPerMaterial = indexesPerMaterial;
+			this._indexBuffer = this._bindBuffer(indexes, this._webGL.ELEMENT_ARRAY_BUFFER, Uint16Array, 1);
 			this._createBuffers(positions, normals, colors, textures);
 		}
 
-		public getIndexBuffers() : void {
-			return this._indexBuffers;
+		public getIndexBuffer() : any {
+			return this._indexBuffer;
 		}
 
-		public getPositionBuffer() : void {
+		public getPositionBuffer() : any {
 			return this._positionBuffer
 		}
 
-		public getColorBuffer() : void {
+		public getColorBuffer() : any {
 			return this._colorBuffer;
 		}
 
-		public getNormalBuffer() : void {
+		public getNormalBuffer() : any {
 			return this._normalBuffer;
 		}
 
-		public getTextureBuffer() : void {
+		public getTextureBuffer() : any {
 			return this._textureBuffer;
 		}
 
-		private _createIndexBuffers(indexes) : void {
-			var indexBuffer,
-				material : string;
-
-			this._indexBuffers = {};
-
-			for (material in indexes) {
-				if (indexes.hasOwnProperty(material)) {
-					indexBuffer = this._bindBuffer(indexes[material], this._webGL.ELEMENT_ARRAY_BUFFER, Uint16Array, 1);
-					this._indexBuffers[material] = {
-						material: material,
-						buffer  : indexBuffer
-					};
-				}
-			}
+		public getIndexesPerMaterial() : any {
+			return this._indexesPerMaterial;
 		}
 
 		private _createBuffers(positions, normals, colors, textures) : void {

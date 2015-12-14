@@ -10,7 +10,7 @@ module WebGLEngine.Types {
 		public static defaultMaterialName = 'noMaterial';
 		public static maxVertexIndexValue = 21845; // unsigned short
 
-		private _webGL : any;
+		private _webGL : WebGLRenderingContext|any;
 		private _vertexes : number[];
 		private _vertextTextures : number[];
 		private _vertexNormals : number[];
@@ -56,17 +56,17 @@ module WebGLEngine.Types {
 			this._vertextTextures = vertexTexture;
 			this._vertexNormals = vertexNormals;
 			this._faces = faces;
-			// TODO : check for dublicate
 			this._materials = materials;
 		}
 
 		public initBuffers(materials? : {[materialName:string] : Material}) : void {
 			var
-				indexes = {},
+				indexes = [],
 				colors = [],
 				textures = [],
 				normals = [],
 				positions = [],
+				indexesPerMaterial = {},
 				vertex : Vertex,
 				itemSize : number,
 				vectorColors : number[],
@@ -92,24 +92,26 @@ module WebGLEngine.Types {
 				if (this._faces.hasOwnProperty(material)) {
 					if (this._faces[material].length === 0) continue;
 
-					indexes[material] = [];
+					indexesPerMaterial[material] = 0;
+
 					for (i = 0; i < this._faces[material].length; i++) {
 						for (j = 0; j < this._faces[material][i].vertexes.length; j++) {
 
 							if (counter >= Mesh.maxVertexIndexValue) {
-								this._bufferBoxes.push(new BuffersBox(this._webGL, indexes, positions, normals, colors, textures));
-								indexes = {};
-								indexes[material] = [];
+								this._bufferBoxes.push(new BuffersBox(this._webGL, indexes, positions, normals, colors, textures, indexesPerMaterial));
+								indexes = [];
 								positions = [];
 								normals = [];
 								colors = [];
 								textures = [];
+								indexesPerMaterial = {};
+								indexesPerMaterial[material] = 0;
 								counter = 0;
 								continue;
 							}
 
 							vertex = this._faces[material][i].vertexes[j];
-							indexes[material].push(counter);
+							indexes.push(counter);
 
 							// positions
 							for (k = 0, itemSize = 3; k < itemSize; k++) {
@@ -138,6 +140,7 @@ module WebGLEngine.Types {
 							}
 
 							counter++;
+							indexesPerMaterial[material]++;
 						}
 
 						WebGLEngine.Types.Mesh._fixNormals(normals, positions, this._faces[material][i], counter - 3);
@@ -146,7 +149,7 @@ module WebGLEngine.Types {
 			}
 
 			if (counter > 0) {
-				this._bufferBoxes.push(new BuffersBox(this._webGL, indexes, positions, normals, colors, textures));
+				this._bufferBoxes.push(new BuffersBox(this._webGL, indexes, positions, normals, colors, textures, indexesPerMaterial));
 			}
 		}
 
