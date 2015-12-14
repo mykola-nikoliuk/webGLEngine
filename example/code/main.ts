@@ -76,7 +76,7 @@ module Example {
 				//sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
 			};
 
-			meshManager.add('simpleCarWheel', this._meshes.wheel);
+			meshManager.add('simpleCarWheel', this._meshes['wheel']);
 
 			//this._meshes.car = new Vehicle(Cars.SimpleVehicle);
 
@@ -112,8 +112,8 @@ module Example {
 			//this._meshes.wheel.scale.set(10, 10, 10);
 			//this._meshes.car.position.set(0, 1, 0);
 
-			this._camera.position.set(138, 83, -111);
-			this._camera.rotation.set(-0.49, 2.11, 0);
+			this._camera.position.set(28, -32, -29);
+			this._camera.rotation.set(0.628, 0.767, 0);
 
 			this._meshes.street.scale.set(5, 5, 5);
 			this._meshes.street.position.set(0, -20, 0);

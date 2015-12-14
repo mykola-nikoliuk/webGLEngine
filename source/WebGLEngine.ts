@@ -26,7 +26,7 @@ module WebGLEngine {
 	export class Engine {
 
 		private _gl : WebGLRenderingContext|any;
-		private _canvas : CanvasRenderingContext2D;
+		private _canvas : CanvasRenderingContext2D|any;
 		private _isReady : boolean;
 		private _shader;
 		private _inited : boolean;
@@ -48,7 +48,7 @@ module WebGLEngine {
 		private _isLightingEnable : boolean;
 
 		public static getCanvas() : HTMLElement {
-			return document.getElementById(Config.html.canvasID);
+			return document.getElementById(Config.html.canvasNodeId);
 		}
 
 		constructor(fragmentShaderPath : string, vertexShaderPath : string) {
@@ -116,8 +116,7 @@ module WebGLEngine {
 		// TODO : add draw for LinkedTransformations
 		// TODO : optimize index buffers to one buffer with offset
 		public draw(mesh : Types.Mesh) : void {
-			var bufferBoxes,
-				vertexIndexBuffers,
+			var vertexIndexBuffers,
 				vertexPositionBuffer,
 				vertexNormalBuffer,
 				vertexColorBuffer,
@@ -296,7 +295,7 @@ module WebGLEngine {
 			return this._gl;
 		}
 
-		public getCanvasInstance() : CanvasRenderingContext2D {
+		public getCanvasInstance() : CanvasRenderingContext2D|any {
 			return this._canvas;
 		}
 
@@ -320,10 +319,10 @@ module WebGLEngine {
 				this._webGLNode.style.top = '0px';
 				document.body.appendChild(this._webGLNode);
 			}
-			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasID);
+			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasNodeId);
 			if (this._canvasNode === null) {
 				this._canvasNode = document.createElement('canvas');
-				this._canvasNode.id = Config.html.canvasID;
+				this._canvasNode.id = Config.html.canvasNodeId;
 				this._canvasNode.style.position = 'fixed';
 				this._canvasNode.style.left = '0px';
 				this._canvasNode.style.top = '0px';

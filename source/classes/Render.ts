@@ -9,7 +9,7 @@ module WebGLEngine.Types {
 		private _FPSCounter : number;
 		private _FPS : number;
 
-		constructor(engine : Engine, lastDrawCallback? = null) {
+		constructor(engine : Engine, lastDrawCallback = null) {
 			super();
 			this._engine = engine;
 			this._renderCallback = Utils.bind(this._render, this);

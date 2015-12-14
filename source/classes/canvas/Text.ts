@@ -3,13 +3,13 @@
 module WebGLEngine.Types {
 
 	export class Text {
-		private _canvas : CanvasRenderingContext2D;
+		private _canvas : CanvasRenderingContext2D|any;
 		private _text : string;
 		private _size : number;
 		private _color : Vector3;
 		private _opacity : number;
 
-		constructor(canvas : CanvasRenderingContext2D) {
+		constructor(canvas : CanvasRenderingContext2D|any) {
 			this._canvas = canvas;
 			this._text = '';
 			this._size = 12;

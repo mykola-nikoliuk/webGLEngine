@@ -42,6 +42,9 @@
 	Use WASD to fly.
 -------------
 #### Releases
+##### v0.4.0
+	- render fixes;
+	- light implementation;
 ##### v0.3.0
 	- linux based builder added;
 	- render added;

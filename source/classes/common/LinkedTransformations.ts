@@ -16,8 +16,7 @@ module WebGLEngine.Types {
 		/** Sets parent and adds current child to parent */
 		public setParent(parent : LinkedTransformations) : boolean {
 			if (parent instanceof LinkedTransformations) {
-				this._parent = parent;
-				this._parent._children.push(this);
+				this._parent.addChild(this);
 				return true;
 			}
 			else {
@@ -30,7 +29,6 @@ module WebGLEngine.Types {
 		/** Clear parent and current child from it */
 		public clearParent() {
 			this._parent.removeChild(this);
-			this._parent = null;
 		}
 
 		/** Returns parent */
@@ -41,16 +39,16 @@ module WebGLEngine.Types {
 		/** Returns matrix of mesh parent tree */
 		public getMatrix(type = Matrix.transformToMatrixTypes.USUAL) : number[] {
 			var parent = this,
-				parents = [],
-				matrix = Matrix.transformationsToMatrix(this, type);
+				transformations = [this],
+				matrix = Utils.GLMatrix.mat4.identity(Utils.GLMatrix.mat4.create());
 
 			while (parent = parent.getParent()) {
-				parents.push(parent);
+				transformations.push(parent);
 			}
 
-			while (parents.length) {
-			//	 TODO : check this operation
-				Utils.GLMatrix.mat4.multiply(matrix, Matrix.transformationsToMatrix(parents.pop(), type));
+			while (transformations.length) {
+				// TODO : check this operation
+				Utils.GLMatrix.mat4.multiply(matrix, Matrix.transformationsToMatrix(transformations.pop(), type), matrix);
 			}
 
 			return matrix;
@@ -60,6 +58,7 @@ module WebGLEngine.Types {
 		 * Returns true if child was added, otherwise false */
 		public addChild(child : LinkedTransformations) : boolean {
 			if (child instanceof LinkedTransformations) {
+				child._parent = this;
 				this._children.push(child);
 				return true;
 			}
@@ -76,6 +75,7 @@ module WebGLEngine.Types {
 			if (child instanceof LinkedTransformations) {
 				if ((index = this._children.indexOf(child)) >= 0) {
 					this._children.splice(index, 1);
+					child._parent = null;
 					return true;
 				}
 				else {
