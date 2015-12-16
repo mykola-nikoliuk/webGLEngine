@@ -191,8 +191,7 @@ module WebGLEngine.Types {
 			mesh._materials = this._materials;
 			mesh._materialsLoaded = this._materialsLoaded;
 			mesh._isReady = this._isReady;
-			// TODO : check is that copy works
-			mesh._bufferBoxes = this._bufferBoxes.slice(0);
+			mesh._bufferBoxes = this._bufferBoxes;
 			mesh._materialCallback = this._materialCallback;
 			if (!this._isReady) {
 				this._transformationChildren.push(mesh);
@@ -249,7 +248,8 @@ module WebGLEngine.Types {
 
 		private _materialIsReady() {
 			var loaded = true,
-				material : string;
+				material : string,
+				child : Mesh;
 
 			for (material in this._materials) {
 				if (this._materials.hasOwnProperty(material) && !this._materials[material].ready) {
@@ -261,7 +261,9 @@ module WebGLEngine.Types {
 			if (loaded) {
 				while (this._transformationChildren.length) {
 					// TODO : fix that (ready callback may be missed)
-					this._transformationChildren.shift()._isReady = loaded;
+					child = this._transformationChildren.shift();
+					child._isReady = loaded;
+					child._materials = this._materials;
 				}
 			}
 

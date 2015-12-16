@@ -88,7 +88,7 @@ module WebGLEngine.Types {
 		get localMatrix() : Matrix4 {
 			if (this._isLocalMatrixTouched || this._position.touched || this._rotation.touched || this._scale.touched) {
 				this._localMatrix = (new Matrix4())
-					.clone(this.translateMatrix)
+					.copyFrom(this.translateMatrix)
 					.multiply(this.rotationMatrix)
 					.multiply(this.scaleMatrix);
 				this._isLocalMatrixTouched = false;
@@ -99,7 +99,7 @@ module WebGLEngine.Types {
 		get normalMatrix() : Matrix4 {
 			if (this._isNormalMatrixTouched || this._position.touched || this._rotation.touched) {
 				this._normalMatrix = (new Matrix4())
-					.clone(this.translateMatrix)
+					.copyFrom(this.translateMatrix)
 					.multiply(this.rotationMatrix);
 				this._isNormalMatrixTouched = false;
 			}

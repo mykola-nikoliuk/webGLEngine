@@ -4,6 +4,7 @@ module WebGLEngine.Types {
 
 		public diffuseColor : Vector3;
 		public specular : number;
+		public dissolved : number;
 		public imageLink : string;
 		public ready : boolean;
 		public texture : WebGLTexture = null;
@@ -25,6 +26,7 @@ module WebGLEngine.Types {
 		constructor() {
 			this.diffuseColor = new Vector3(1, 0, 1);
 			this.specular = 0;
+			this.dissolved = 1;
 			this.imageLink = '';
 			this.ready = true;
 			this.texture = null;

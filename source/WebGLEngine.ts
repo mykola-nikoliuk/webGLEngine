@@ -32,8 +32,8 @@ module WebGLEngine {
 		private _webGLNode : HTMLCanvasElement;
 		private _canvasNode : HTMLCanvasElement;
 
-		private _mvMatrix : Float32Array;
-		private _pMatrix : Float32Array;
+		private _mvMatrix : Types.Matrix4;
+		private _pMatrix : Types.Matrix4;
 		private _mvMatrixStack;
 
 		private _camera : Types.Camera;
@@ -60,8 +60,6 @@ module WebGLEngine {
 			this._inited = false;
 			this._webGLNode = null;
 
-			this._mvMatrix = Utils.GLMatrix.mat4.create(undefined);
-			this._pMatrix = Utils.GLMatrix.mat4.create(undefined);
 			this._mvMatrixStack = [];
 
 			this._camera = new Types.Camera();
@@ -94,14 +92,15 @@ module WebGLEngine {
 			this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
 			this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
-			Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix);
-			Utils.GLMatrix.mat4.identity(this._mvMatrix);
+			this._mvMatrix = new Types.Matrix4();
+			this._pMatrix = new Types.Matrix4();
+			Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix.matrixArray);
 
 			//noinspection ConstantIfStatementJS
-			if (false) {
+			if (true) {
 				this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
 				this._gl.enable(this._gl.BLEND);
-				this._gl.disable(this._gl.DEPTH_TEST);
+				//this._gl.disable(this._gl.DEPTH_TEST);
 			} else {
 				this._gl.disable(this._gl.BLEND);
 				this._gl.enable(this._gl.DEPTH_TEST);
@@ -135,13 +134,8 @@ module WebGLEngine {
 
 			this._mvPushMatrix();
 
-			Utils.GLMatrix.mat4.inverse(this._camera.getGlobalMatrix().matrixArray, this._mvMatrix);
-			Utils.GLMatrix.mat4.multiply(this._mvMatrix, mesh.getGlobalMatrix().matrixArray, this._mvMatrix);
-
-			// apply matrix mesh
-			//Utils.GLMatrix.mat4.multiply(this._camera.getGlobalMatrix(Types.Matrix.transformToMatrixTypes.CAMERA), mesh.getGlobalMatrix(), this._mvMatrix);
-
-			//this._mvMatrix = <any>mesh.getGlobalMatrix();
+			this._mvMatrix.copyFrom(this._camera.getGlobalMatrix()).inverse();
+			this._mvMatrix.multiply(mesh.getGlobalMatrix());
 
 			bufferBoxes = mesh.getBufferBoxes();
 			for (j = 0; j < bufferBoxes.length; j++) {
@@ -166,8 +160,8 @@ module WebGLEngine {
 
 				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-				this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
-				this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
+				this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix.matrixArray);
+				this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix.matrixArray);
 				normalMatrix4 = mesh.getGlobalNormalMatrix().matrixArray;
 				normalMatrix3 = Utils.GLMatrix.mat4.toMat3(normalMatrix4, Utils.GLMatrix.mat3.create());
 				this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix3);
@@ -221,6 +215,7 @@ module WebGLEngine {
 							this._gl.uniform1f(this._shaderProgram.materialSpecular, meshMaterial.specular);
 						}
 
+						this._gl.uniform1f(this._shaderProgram.materialDissolved, meshMaterial.dissolved);
 						this._gl.drawElements(this._gl.TRIANGLES, indexesPerMaterial[material], this._gl.UNSIGNED_SHORT, indexOffset * 2);
 
 						indexOffset += indexesPerMaterial[material];
@@ -310,16 +305,6 @@ module WebGLEngine {
 
 		public getCanvasInstance() : CanvasRenderingContext2D|any {
 			return this._canvas;
-		}
-
-		private _applyTransformations(matrix : Float32Array, object : Types.Transformations) {
-			Utils.GLMatrix.mat4.translate(matrix, object.position.getArray());
-			Utils.GLMatrix.mat4.rotateZ(matrix, object.rotation.z);
-			Utils.GLMatrix.mat4.rotateY(matrix, object.rotation.y);
-			Utils.GLMatrix.mat4.rotateX(matrix, object.rotation.x);
-			if (matrix === this._mvMatrix) {
-				Utils.GLMatrix.mat4.scale(matrix, object.scale.getArray());
-			}
 		}
 
 		private _createCanvas() : void {
@@ -414,6 +399,7 @@ module WebGLEngine {
 			this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
 			this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
 			this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
+			this._shaderProgram.materialDissolved = this._gl.getUniformLocation(this._shaderProgram, "uMaterialDissolved");
 
 			this._gl.enable(this._gl.DEPTH_TEST);
 
@@ -421,9 +407,7 @@ module WebGLEngine {
 		}
 
 		private _mvPushMatrix() : void {
-			var copy = Utils.GLMatrix.mat4.create(undefined);
-			Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
-			this._mvMatrixStack.push(copy);
+			this._mvMatrixStack.push((new Types.Matrix4()).copyFrom(this._mvMatrix));
 		}
 
 		private _mvPopMatrix() : void {
@@ -625,6 +609,18 @@ module WebGLEngine {
 									currentMaterial.specular = Number(nodes[j]);
 									break;
 								}
+							}
+							break;
+
+						case lineTypes.TRANSPARENCY:
+						case lineTypes.DISSOLVED:
+							var value;
+							if (!isNaN(nodes[1])) {
+								value = nodes[1];
+								if (nodes[0].toLowerCase() === lineTypes.TRANSPARENCY) {
+									value = 1 - value;
+								}
+								currentMaterial.dissolved = Number(value);
 							}
 							break;
 					}

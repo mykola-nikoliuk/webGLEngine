@@ -28,7 +28,9 @@ module WebGLEngine {
 					NEW_MATERIAL : 'newmtl',
 					MAP_TEXTURE  : 'map_kd',
 					DIFFUSE_COLOR: 'kd',
-					SPECULAR     : 'ns'
+					SPECULAR     : 'ns',
+					TRANSPARENCY : 'tr',
+					DISSOLVED    : 'd',
 				}
 			}
 		}

@@ -45,6 +45,9 @@
 ##### v0.4.0
 	- render fixes;
 	- light implementation;
+	- opacity property was added to material added;
+	- render functionality changed;
+	- matrix functional programming changed to object oriented;
 ##### v0.3.0
 	- linux based builder added;
 	- render added;

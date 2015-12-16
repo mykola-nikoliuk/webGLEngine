@@ -7,6 +7,7 @@ varying vec4 vPosition;
 varying vec3 vLighting;
 varying vec3 vLightWeighting;
 
+uniform float uMaterialDissolved;
 uniform float uMaterialSpecular;
 
 uniform bool uUseLighting;
@@ -66,8 +67,8 @@ void main(void) {
 	gl_FragColor = vec4(totalColor.rgb, totalColor.a);*/
 
 	vec4 textureColor = uUseTexture ? texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)) : vColor;
-  gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
-  if (gl_FragColor.a < 0.8) {
-  	discard;
-  }
+  gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a * uMaterialDissolved);
+//  if (gl_FragColor.a < 0.8) {
+//  	discard;
+//  }
 }

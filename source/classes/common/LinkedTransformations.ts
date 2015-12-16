@@ -14,7 +14,7 @@ module WebGLEngine.Types {
 		/** Sets parent and adds current child to parent */
 		public setParent(parent : LinkedTransformations) : boolean {
 			if (parent instanceof LinkedTransformations) {
-				this._parent.addChild(this);
+				parent.addChild(this);
 				return true;
 			}
 			else {

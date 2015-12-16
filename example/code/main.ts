@@ -67,18 +67,21 @@ module Example {
 				//castle: this._engine.createMeshFromFile('./resources/castle/castle01.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
 				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
-				//wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
+				wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				//bus: this._engine.createMeshFromFile('./resources/bus/bus.obj'),
 				//car   : this._engine.createMeshFromFile('./resources/crown/crown_victoria.obj'),
-				car   : this._engine.createMeshFromFile('./resources/BMW_M3/BMW_M3_GTR.obj'),
+				bmw   : this._engine.createMeshFromFile('./resources/BMW_M3/BMW_M3_GTR.obj'),
 				//cube  : this._engine.createMeshFromFile('./resources/cube/cube_opt.obj'),
 				//house: this._engine.createMeshFromFile('./resources/house/OBJ/Farmhouse_OBJ.obj'),
 				//sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
 			};
 
-			meshManager.add('simpleCarWheel', this._meshes['wheel']);
+			this._meshes.bmw2 = this._meshes.bmw.transformationClone();
 
-			//this._meshes.car = new Vehicle(Cars.SimpleVehicle);
+			//setTimeout(function () {
+			meshManager.add('simpleCarWheel', this._meshes['wheel']);
+			this._meshes.car = new Vehicle(Cars.SimpleVehicle);
+			//}, 5000);
 
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
 			this._mouseHandler = WebGLEngine.Utils.bind(this._updateCameraRotation, this);
@@ -87,8 +90,8 @@ module Example {
 			this._addListeners();
 			this._createLights();
 
-			this._createAnimation();
-			this._startAnimation();
+			//this._createAnimation();
+			//this._startAnimation();
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
@@ -106,8 +109,9 @@ module Example {
 
 			//this._meshes.castle.scale.set(0.01, 0.01, 0.01);
 
-			//this._meshes.car.scale.set(15, 15, 15);
-			this._meshes.car.scale.set(0.002, 0.002, 0.002);
+			//this._meshes.bmw.scale.set(15, 15, 15);
+			this._meshes.bmw.scale.set(0.002, 0.002, 0.002);
+			this._meshes.bmw2.scale.set(0.002, 0.002, 0.002);
 
 			//this._meshes.wheel.scale.set(10, 10, 10);
 			//this._meshes.car.position.set(0, 1, 0);
@@ -140,7 +144,7 @@ module Example {
 		private _createLights() {
 			this._engine.addLight(new WebGLEngine.Types.Light(
 				WebGLEngine.Types.Light.Types.DIRECTIONAL,
-				new WebGLEngine.Types.Vector3(0.5, 0.5, 0.5),
+				new WebGLEngine.Types.Vector3(1,1,1),
 				new WebGLEngine.Types.Vector3(1, 0.5, 0.25)
 			));
 		}
@@ -156,17 +160,25 @@ module Example {
 			//engine.draw(this._meshes.bus);
 			//engine.draw(this._meshes.house);
 			//engine.draw(this._meshes.cube);
-			engine.draw(this._meshes.plane);
+			//this._meshes.car.draw(this._engine);
 			engine.turnOnLight();
 			engine.draw(this._meshes.street);
-			engine.draw(this._meshes.car);
+			if (this._camera.position.getDistanceTo(this._meshes.bmw.position) > this._camera.position.getDistanceTo(this._meshes.bmw2.position)) {
+				engine.draw(this._meshes.bmw);
+				engine.draw(this._meshes.bmw2);
+			}
+			else {
+				engine.draw(this._meshes.bmw2);
+				engine.draw(this._meshes.bmw);
+			}
+			//engine.draw(this._meshes.plane);
+			//engine.draw(this._meshes.car);
 			//engine.draw(this._meshes.castle);
-			//this._meshes.car.draw(this._engine);
 			//engine.draw(this._meshes.sphere);
 			//engine.draw(this._meshes.wheel);
 
-			this._meshes.car.rotation.add(0, deltaTime / 1000 * 1.5, 0);
-			this._meshes.car.position.add(0, 0, -deltaTime / 1000 * 10);
+			this._meshes.bmw.rotation.add(0, deltaTime / 1000 * 1.5, 0);
+			this._meshes.bmw.position.add(0, 0, -deltaTime / 1000 * 10);
 		}
 
 		private _lockCursor() : void {
