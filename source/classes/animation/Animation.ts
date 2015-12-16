@@ -51,12 +51,12 @@ module WebGLEngine.Types {
 		}
 
 		/** Do updates before render */
-		public updateBeforeRender() {
-			this._update();
+		public updateBeforeRender(deltaTime : number) {
+			this._update(deltaTime);
 		}
 
 		/** Do updated after render */
-		public updateAfterRender() {
+		public updateAfterRender(deltaTime : number) {
 			var i : number;
 
 			if (this._type === Animation.Types.WITHOUT_CHANGES) {
@@ -130,7 +130,7 @@ module WebGLEngine.Types {
 			return Animation._pool.remove(this);
 		}
 
-		private _update() : void {
+		private _update(deltaTime : number) : void {
 			var elapsedTime : number,
 				frameIndex : number,
 				targetRemoved : boolean,
@@ -187,7 +187,7 @@ module WebGLEngine.Types {
 				//- previousFrame.getPosition()
 				vector.multiply(percents);
 				vector.plus(previousFrame.getPosition());
-				mesh.position = vector;
+				mesh.position.copyFrom(vector);
 			}
 			if (frame.getRotation()) {
 				vector = frame.getRotation().clone();
@@ -195,7 +195,7 @@ module WebGLEngine.Types {
 				//- previousFrame.getPosition()
 				vector.multiply(percents);
 				vector.plus(previousFrame.getRotation());
-				mesh.rotation = vector;
+				mesh.rotation.copyFrom(vector);
 			}
 		}
 	}

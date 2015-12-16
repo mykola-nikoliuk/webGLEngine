@@ -6,6 +6,7 @@ module WebGLEngine.Types {
 		private _renderCallback : Function;
 		private _lastDrawCallback : Utils.Callback;
 		private _lastFPSSecond : number;
+		private _lastRenderCall : number;
 		private _FPSCounter : number;
 		private _FPS : number;
 
@@ -14,7 +15,8 @@ module WebGLEngine.Types {
 			this._engine = engine;
 			this._renderCallback = Utils.bind(this._render, this);
 			this._lastDrawCallback = lastDrawCallback;
-			this._lastFPSSecond = Date.now() / 1000 | 0;
+			this._lastRenderCall = Date.now();
+			this._lastFPSSecond = this._lastRenderCall / 1000 | 0;
 			this._FPSCounter = 0;
 			this._FPS = 0;
 			this._render();
@@ -31,7 +33,12 @@ module WebGLEngine.Types {
 
 			var i : number,
 				canvas = this._engine.getCanvasInstance(),
-				currentFPSSecond = Date.now() / 1000 | 0;
+				currentTime = Date.now(),
+				deltaTime  = currentTime - this._lastRenderCall,
+				currentFPSSecond : number;
+
+			this._lastRenderCall = Date.now();
+			currentFPSSecond = this._lastRenderCall / 1000 | 0;
 
 			if (this._lastFPSSecond !== currentFPSSecond) {
 				this._FPS = this._FPSCounter;
@@ -49,26 +56,26 @@ module WebGLEngine.Types {
 
 				// updates before render
 				for (i = 0; i < Animation.pool.size(); i++) {
-					Animation.pool.get(i).updateBeforeRender();
+					Animation.pool.get(i).updateBeforeRender(deltaTime);
 				}
 
 				// updates cameras
 				for (i = 0; i < Camera.pool.size(); i++) {
-					Camera.pool.get(i).update();
+					Camera.pool.get(i).update(deltaTime);
 				}
 
 				// call subscribed functions for render
 				for (i = 0; i < this._subscribers.length; i++) {
-					this._subscribers[i].apply();
+					this._subscribers[i].apply(deltaTime);
 				}
 
 				if (this._lastDrawCallback) {
-					this._lastDrawCallback.apply();
+					this._lastDrawCallback.apply(deltaTime);
 				}
 
 				// update after render
 				for (i = 0; i < Animation.pool.size(); i++) {
-					Animation.pool.get(i).updateAfterRender();
+					Animation.pool.get(i).updateAfterRender(deltaTime);
 				}
 			}
 		}

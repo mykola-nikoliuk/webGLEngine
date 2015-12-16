@@ -658,6 +658,30 @@ module WebGLEngine.Utils {
 				return c
 			}
 
+			static rotateZYX(matrix, x, y, z) {
+				var te = matrix;
+
+				var a = Math.cos(x), b = Math.sin(x);
+				var c = Math.cos(y), d = Math.sin(y);
+				var e = Math.cos(z), f = Math.sin(z);
+
+				var ae = a * e, af = a * f, be = b * e, bf = b * f;
+
+				te[ 0 ] = c * e;
+				te[ 4 ] = be * d - af;
+				te[ 8 ] = ae * d + bf;
+
+				te[ 1 ] = c * f;
+				te[ 5 ] = bf * d + ae;
+				te[ 9 ] = af * d - be;
+
+				te[ 2 ] = - d;
+				te[ 6 ] = b * c;
+				te[ 10 ] = a * c;
+
+				return te;
+			}
+
 			static frustum(a, b, c, d, e, g, f) {
 				f || (f = mat4.create());
 				var h = b - a, i = d - c, j = g - e;

@@ -66,7 +66,7 @@ module Example {
 				//street: this._engine.createMeshFromFile('./resources/paris/Paris2010_0.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				//castle: this._engine.createMeshFromFile('./resources/castle/castle01.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
-				//plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj'),
+				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				//wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				//bus: this._engine.createMeshFromFile('./resources/bus/bus.obj'),
 				//car   : this._engine.createMeshFromFile('./resources/crown/crown_victoria.obj'),
@@ -87,8 +87,8 @@ module Example {
 			this._addListeners();
 			this._createLights();
 
-			//this._createAnimation();
-			//this._startAnimation();
+			this._createAnimation();
+			this._startAnimation();
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
@@ -112,16 +112,16 @@ module Example {
 			//this._meshes.wheel.scale.set(10, 10, 10);
 			//this._meshes.car.position.set(0, 1, 0);
 
-			this._camera.position.set(28, -32, -29);
-			this._camera.rotation.set(0.628, 0.767, 0);
+			//this._camera.position.set(28, -32, -29);
+			//this._camera.rotation.set(0.628, 0.767, 0);
 
 			this._meshes.street.scale.set(5, 5, 5);
 			this._meshes.street.position.set(0, -20, 0);
 
 			//this._meshes.street.scale.set(1, 1, 1);
 
-			//this._meshes.plane.scale.set(0.3, 0.3, 0.3);
-			//this._meshes.plane.position.set(70, -10, 0);
+			this._meshes.plane.scale.set(0.3, 0.3, 0.3);
+			this._meshes.plane.position.set(70, -10, 0);
 		}
 
 		private _addListeners() : void {
@@ -145,18 +145,18 @@ module Example {
 			));
 		}
 
-		private _mainProc() : void {
+		private _mainProc(deltaTime : number) : void {
 			var engine = this._engine;
 
 			this._keysHandler();
-			this._updateCameraPosition();
+			this._updateCameraPosition(deltaTime);
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			//engine.draw(this._meshes.plane);
 			//engine.draw(this._meshes.bus);
 			//engine.draw(this._meshes.house);
 			//engine.draw(this._meshes.cube);
+			engine.draw(this._meshes.plane);
 			engine.turnOnLight();
 			engine.draw(this._meshes.street);
 			engine.draw(this._meshes.car);
@@ -165,7 +165,8 @@ module Example {
 			//engine.draw(this._meshes.sphere);
 			//engine.draw(this._meshes.wheel);
 
-			this._meshes.car.rotation.add(0, 0.05, 0);
+			this._meshes.car.rotation.add(0, deltaTime / 1000 * 1.5, 0);
+			this._meshes.car.position.add(0, 0, -deltaTime / 1000 * 10);
 		}
 
 		private _lockCursor() : void {
@@ -200,49 +201,51 @@ module Example {
 				y = e.movementY || e.mozMovementY || e.webkitMovementY || 0,
 				sensitivity = Config.camera.mouse.sensitivity;
 
-			this._camera.rotation.add(y / sensitivity, x / sensitivity, 0);
+			var vec31 = [0, -x / sensitivity, 0],
+				vec32 = [-y / sensitivity, 0, 0];
+
+			this._camera.rotation.add(vec31[0], vec31[1], vec31[2]);
+			this._camera.rotation.add(vec32[0], vec32[1], vec32[2]);
+
 			// look limitation
-			if (this._camera.rotation.x > Math.PI / 2) {
-				this._camera.rotation.x = Math.PI / 2;
-			}
-			if (this._camera.rotation.x < -Math.PI / 2) {
-				this._camera.rotation.x = -Math.PI / 2;
-			}
+			//if (this._camera.rotation.x > Math.PI / 2) {
+			//	this._camera.rotation.x = Math.PI / 2;
+			//}
+			//if (this._camera.rotation.x < -Math.PI / 2) {
+			//	this._camera.rotation.x = -Math.PI / 2;
+			//}
 			// prevent overflow
-			this._camera.rotation.y %= Math.PI * 2;
+			//this._camera.rotation.y %= Math.PI * 2;
 		}
 
-		private _updateCameraPosition() : void {
-			var staticSpeed, speed, cosX, Y = 0, X = 0, Z = 0;
-			staticSpeed = 2;
-			cosX = Math.cos(-this._camera.rotation.x);
+		private _updateCameraPosition(deltaTime : number) : void {
+			var speed,
+				staticSpeed = 100,
+				offset = [];
 
-			speed = staticSpeed;
+			speed = deltaTime / 1000 * staticSpeed;
+
+			var direction = new WebGLEngine.Types.Vector3();
 
 			if (this._timers.key_w) {
-				Y -= Math.sin(-this._camera.rotation.x);
-				X += cosX * Math.sin(-this._camera.rotation.y);
-				Z += cosX * Math.cos(-this._camera.rotation.y);
+				direction.z = -1;
 			}
 
 			if (this._timers.key_s) {
-				Y += Math.sin(-this._camera.rotation.x);
-				X -= cosX * Math.sin(-this._camera.rotation.y);
-				Z -= cosX * Math.cos(-this._camera.rotation.y);
+				direction.z = 1;
 			}
 
 			if (this._timers.key_a) {
-				X -= Math.sin(-this._camera.rotation.y - Math.PI / 2);
-				Z -= Math.cos(-this._camera.rotation.y - Math.PI / 2);
+				direction.x = -1;
 			}
 
 			if (this._timers.key_d) {
-				X += Math.sin(-this._camera.rotation.y - Math.PI / 2);
-				Z += Math.cos(-this._camera.rotation.y - Math.PI / 2);
+				direction.x = 1;
 			}
 
-			this._camera.position.add(X * speed, Y * speed, Z * speed);
-			//this._meshes.sky.position.copyFrom(this._camera.position);
+			WebGLEngine.Utils.GLMatrix.mat4.multiplyVec3(this._camera.rotationMatrix.matrixArray, direction.getArray(), offset);
+
+			this._camera.position.add(offset[0] * speed, offset[1] * speed, offset[2] * speed);
 		}
 
 		private _createAnimation() : void {

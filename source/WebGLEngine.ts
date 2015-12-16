@@ -1,6 +1,5 @@
 ///<reference path="./classes/utils/Utils.ts"/>
 ///<reference path="./classes/common/Pool.ts"/>
-///<reference path="./classes/common/Matrix.ts"/>
 ///<reference path="./classes/common/Transformations.ts"/>
 ///<reference path="./classes/common/LinkedTransformations.ts"/>
 ///<reference path="./classes/canvas/Text.ts"/>
@@ -136,8 +135,13 @@ module WebGLEngine {
 
 			this._mvPushMatrix();
 
+			Utils.GLMatrix.mat4.inverse(this._camera.getGlobalMatrix().matrixArray, this._mvMatrix);
+			Utils.GLMatrix.mat4.multiply(this._mvMatrix, mesh.getGlobalMatrix().matrixArray, this._mvMatrix);
+
 			// apply matrix mesh
-			Utils.GLMatrix.mat4.multiply(this._camera.getMatrix(), mesh.getMatrix(), this._mvMatrix);
+			//Utils.GLMatrix.mat4.multiply(this._camera.getGlobalMatrix(Types.Matrix.transformToMatrixTypes.CAMERA), mesh.getGlobalMatrix(), this._mvMatrix);
+
+			//this._mvMatrix = <any>mesh.getGlobalMatrix();
 
 			bufferBoxes = mesh.getBufferBoxes();
 			for (j = 0; j < bufferBoxes.length; j++) {
@@ -164,7 +168,7 @@ module WebGLEngine {
 
 				this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
 				this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-				normalMatrix4 = mesh.getMatrix(Types.Matrix.transformToMatrixTypes.WITHOUT_SCALE);
+				normalMatrix4 = mesh.getGlobalNormalMatrix().matrixArray;
 				normalMatrix3 = Utils.GLMatrix.mat4.toMat3(normalMatrix4, Utils.GLMatrix.mat3.create());
 				this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix3);
 
