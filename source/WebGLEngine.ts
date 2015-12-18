@@ -96,15 +96,9 @@ module WebGLEngine {
 			this._pMatrix = new Types.Matrix4();
 			Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix.matrixArray);
 
-			//noinspection ConstantIfStatementJS
-			if (true) {
-				this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
-				this._gl.enable(this._gl.BLEND);
+			this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
+			this._gl.enable(this._gl.BLEND);
 				//this._gl.disable(this._gl.DEPTH_TEST);
-			} else {
-				this._gl.disable(this._gl.BLEND);
-				this._gl.enable(this._gl.DEPTH_TEST);
-			}
 		}
 
 		public isReady() : boolean {
@@ -330,7 +324,7 @@ module WebGLEngine {
 
 		private _initGL() {
 			try {
-				this._gl = this._webGLNode.getContext("webgl") || this._webGLNode.getContext("experimental-webgl");
+				this._gl = this._webGLNode.getContext("webgl", {alpha:false}) || this._webGLNode.getContext("experimental-webgl", {alpha:false});
 				this._canvas = this._canvasNode.getContext("2d");
 				this._inited = true;
 			}

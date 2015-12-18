@@ -66,8 +66,8 @@ module Example {
 				//street: this._engine.createMeshFromFile('./resources/paris/Paris2010_0.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				//castle: this._engine.createMeshFromFile('./resources/castle/castle01.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
-				plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
-				wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
+				//plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
+				//wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				//bus: this._engine.createMeshFromFile('./resources/bus/bus.obj'),
 				//car   : this._engine.createMeshFromFile('./resources/crown/crown_victoria.obj'),
 				bmw   : this._engine.createMeshFromFile('./resources/BMW_M3/BMW_M3_GTR.obj'),
@@ -79,8 +79,8 @@ module Example {
 			this._meshes.bmw2 = this._meshes.bmw.transformationClone();
 
 			//setTimeout(function () {
-			meshManager.add('simpleCarWheel', this._meshes['wheel']);
-			this._meshes.car = new Vehicle(Cars.SimpleVehicle);
+			//meshManager.add('simpleCarWheel', this._meshes['wheel']);
+			//this._meshes.car = new Vehicle(Cars.SimpleVehicle);
 			//}, 5000);
 
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
@@ -113,19 +113,22 @@ module Example {
 			this._meshes.bmw.scale.set(0.002, 0.002, 0.002);
 			this._meshes.bmw2.scale.set(0.002, 0.002, 0.002);
 
+			this._meshes.bmw.position.set(0, 0, 0);
+			this._meshes.bmw2.position.set(30, 0, 0);
+
 			//this._meshes.wheel.scale.set(10, 10, 10);
 			//this._meshes.car.position.set(0, 1, 0);
 
-			//this._camera.position.set(28, -32, -29);
-			//this._camera.rotation.set(0.628, 0.767, 0);
+			this._camera.position.set(59, 19, 48);
+			this._camera.rotation.set(-0.26, 0.78, 0);
 
 			this._meshes.street.scale.set(5, 5, 5);
-			this._meshes.street.position.set(0, -20, 0);
+			this._meshes.street.position.set(0, -2, 0);
 
 			//this._meshes.street.scale.set(1, 1, 1);
 
-			this._meshes.plane.scale.set(0.3, 0.3, 0.3);
-			this._meshes.plane.position.set(70, -10, 0);
+			//this._meshes.plane.scale.set(0.3, 0.3, 0.3);
+			//this._meshes.plane.position.set(70, -10, 0);
 		}
 
 		private _addListeners() : void {
@@ -178,8 +181,9 @@ module Example {
 			//engine.draw(this._meshes.wheel);
 
 			this._meshes.bmw.rotation.add(0, deltaTime / 1000 * 1.5, 0);
-			this._meshes.bmw.position.add(0, 0, -deltaTime / 1000 * 10);
-		}
+			//this._meshes.bmw.position.add(0, 0, -deltaTime / 1000 * 10);
+			this._meshes.bmw2.rotation.add(0, deltaTime / 1000 * 1, 0);
+		}www
 
 		private _lockCursor() : void {
 			document.addEventListener('mousemove', this._mouseHandler, false);

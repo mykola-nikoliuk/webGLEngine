@@ -4,9 +4,10 @@
 ##### Details:
 	The library that can simplify work with webGL
 
-	Version    : v0.3.0
-	Programmer : Mykola Nikoliuk
-	Repository : git@github.com:nick-nikoliuk/webGLEngine.git
+	Version        : v0.3.0
+	Programmer     : Mykola Nikoliuk
+	Special thanks : Sergey Bilyk
+	Repository     : git@github.com:nick-nikoliuk/webGLEngine.git
 ##### Supported browsers:
 	- Chrome (webkit);
 	- Firefox (gecko).
