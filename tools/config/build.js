@@ -132,62 +132,52 @@ var config = {
 		root        : path.join(path.dirname(process.argv[1]), '../..'),
 		project     : 'source',
 		build       : 'build',
-		release     : 'release',
 		shaders     : 'shaders',
 		projectName : 'webGLEngine',
 		tools       : 'tools',
 		example     : 'example',
 		resources   : 'resources'
 	},
+	formats: {
+		js: 'javascript',
+		ts: 'typescript'
+	},
 	main    : 'WebGLEngine.js',
 	mainDTS : 'WebGLEngine.d.ts'
 };
 
-var projectFolder = path.join(config.folders.root, config.folders.project),
-	releaseFolder = path.join(config.folders.root, config.folders.build, config.folders.release),
-	exampleFolder = path.join(config.folders.root, config.folders.example);
-
-//config.folders.release = path.join(config.folders.build, config.folders.release);
+var sourceFolder = path.join(config.folders.root, config.folders.project),
+	sourceShaders = path.join(sourceFolder, config.folders.shaders),
+	buildFolder = path.join(config.folders.root, config.folders.build),
+	buildShaders = path.join(buildFolder, config.folders.shaders),
+	buildJS = path.join(buildFolder, config.formats.js),
+	buildTS = path.join(buildFolder, config.formats.ts),
+	exampleFolder = path.join(config.folders.root, config.folders.example),
+	exampleShaders = path.join(exampleFolder, config.folders.resources, config.folders.shaders);
 
 process.chdir(config.folders.root);
-rmDir(config.folders.build);
-mkDir(config.folders.build);
-mkDir(releaseFolder);
-mkDir(path.join(releaseFolder, config.folders.shaders));
-rmDir(path.join(exampleFolder, config.folders.resources, config.folders.shaders));
-mkDir(path.join(exampleFolder, config.folders.resources, config.folders.shaders));
+rmDir(buildFolder);
+mkDir(buildFolder);
+mkDir(buildJS);
+// TODO: fix typescript version
+// mkDir(buildTS);
+mkDir(buildShaders);
+rmDir(exampleShaders);
+mkDir(exampleShaders);
 
 // copy shaders
-copyDir(
-	path.join(projectFolder, config.folders.shaders),
-	path.join(releaseFolder, config.folders.shaders)
-);
-copyDir(
-	path.join(projectFolder, config.folders.shaders),
-	path.join(exampleFolder, config.folders.resources, config.folders.shaders)
-);
+copyDir(sourceShaders, buildShaders);
+copyDir(sourceShaders, exampleShaders);
 
-// TODO: fix copy to release
-copyFile(path.join(projectFolder, config.main), (path.join(releaseFolder, config.main)));
-copyFile(path.join(projectFolder, config.mainDTS), (path.join(releaseFolder, config.mainDTS)));
+// copy javascript version
+copyFile(path.join(sourceFolder, config.main), path.join(buildJS, config.main));
+copyFile(path.join(sourceFolder, config.mainDTS), path.join(buildJS, config.mainDTS));
 
-process.chdir(releaseFolder);
+// copy typescript version
+// TODO: fix typescript version
+// copyDir(sourceFolder, path.join(buildTS, config.main), '!.ts');
+// copyDir(sourceFolder, path.join(buildTS, config.main), '!.glsl');
+
+process.chdir(buildFolder);
 
 console.log('DONE');
-
-// copy release
-//copyDir(
-//	path.join(releaseFolder),
-//	path.join(exampleProjectFolder)
-//);
-
-//copyFile('webGLEngine.js', '../sample/js/webGLEngine.js');
-//rmDir('../build/release');
-//copyDir('../source/shaders', '../build/release/');
-//copyFile('webGLEngine.js.map', '../sample/js/webGLEngine.js.map');
-
-/*
- console.dir(getFilesRecursive('D://media', function(fileName) {
- return fileName.indexOf('.jpg') < 0;
- }));
- */
