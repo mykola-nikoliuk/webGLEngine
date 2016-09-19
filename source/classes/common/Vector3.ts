@@ -2,9 +2,10 @@ module WebGLEngine.Types {
 
 	export class Vector3 {
 
-		private _x = 0;
-		private _y = 0;
-		private _z = 0;
+		private _x : number;
+		private _y : number;
+		private _z : number;
+		private _touched : boolean;
 
 		constructor(x?, y?, z?) {
 			this.set(x, y, z);
@@ -14,19 +15,23 @@ module WebGLEngine.Types {
 			this._x = typeof x === 'number' ? x : 0;
 			this._y = typeof y === 'number' ? y : 0;
 			this._z = typeof z === 'number' ? z : 0;
+			this._touched = true;
 			return this;
 		}
 
-		public add(x, y, z) : void {
+		public add(x, y, z) : Vector3 {
 			this._x += typeof x === 'number' ? x : 0;
 			this._y += typeof y === 'number' ? y : 0;
 			this._z += typeof z === 'number' ? z : 0;
+			this._touched = true;
+			return this;
 		}
 
 		public minus(vector : Vector3) : Vector3 {
 			this._x -= vector._x;
 			this._y -= vector._y;
 			this._z -= vector._z;
+			this._touched = true;
 			return this;
 		}
 
@@ -34,6 +39,7 @@ module WebGLEngine.Types {
 			this._x += vector._x;
 			this._y += vector._y;
 			this._z += vector._z;
+			this._touched = true;
 			return this;
 		}
 
@@ -41,6 +47,7 @@ module WebGLEngine.Types {
 			this._x *= multiplier;
 			this._y *= multiplier;
 			this._z *= multiplier;
+			this._touched = true;
 			return this;
 		}
 
@@ -48,6 +55,7 @@ module WebGLEngine.Types {
 			this._x /= divider;
 			this._y /= divider;
 			this._z /= divider;
+			this._touched = true;
 			return this;
 		}
 
@@ -59,6 +67,7 @@ module WebGLEngine.Types {
 			this._x *= -1;
 			this._y *= -1;
 			this._z *= -1;
+			this._touched = true;
 			return this;
 		}
 
@@ -66,6 +75,7 @@ module WebGLEngine.Types {
 			this._x = vector._x;
 			this._y = vector._y;
 			this._z = vector._z;
+			this._touched = true;
 		}
 
 		public getArray() : any[] {
@@ -78,6 +88,16 @@ module WebGLEngine.Types {
 				Math.pow(this._y - point._y, 2) +
 				Math.pow(this._z - point._z, 2)
 			));
+		}
+
+		get touched() : boolean {
+			return this._touched;
+		}
+
+		set touched(value : boolean) {
+			if (typeof value === 'boolean') {
+				this._touched = value;
+			}
 		}
 
 		get x() {
@@ -93,15 +113,24 @@ module WebGLEngine.Types {
 		}
 
 		set x(value) {
-			if (typeof value === 'number') this._x = value;
+			if (typeof value === 'number') {
+				this._x = value;
+				this._touched = true;
+			}
 		}
 
 		set y(value) {
-			if (typeof value === 'number') this._y = value;
+			if (typeof value === 'number') {
+				this._y = value;
+				this._touched = true;
+			}
 		}
 
 		set z(value) {
-			if (typeof value === 'number') this._z = value;
+			if (typeof value === 'number') {
+				this._z = value;
+				this._touched = true;
+			}
 		}
 
 		get r() {
@@ -117,15 +146,15 @@ module WebGLEngine.Types {
 		}
 
 		set r(value) {
-			if (typeof value === 'number') this._x = value;
+			this.x = value;
 		}
 
 		set g(value) {
-			if (typeof value === 'number') this._y = value;
+			this.y = value;
 		}
 
 		set b(value) {
-			if (typeof value === 'number') this._z = value;
+			this.z = value;
 		}
 	}
 }

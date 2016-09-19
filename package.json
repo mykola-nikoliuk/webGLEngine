@@ -1,0 +1,20 @@
+{
+  "name": "webGLEngine",
+  "description": "The library that can simplify work with webGL",
+  "version": "0.4.0",
+  "author": {
+    "name": "Nick Nickoliuk"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nick-nikoliuk/webGLEngine.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.13.0.pre"
+  },
+  "dependencies": {
+    "typescript": ">=1.5.4",
+    "colors": ">=1.0.3"
+  }
+}

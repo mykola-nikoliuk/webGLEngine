@@ -14,8 +14,7 @@ module WebGLEngine.Types {
 		/** Sets parent and adds current child to parent */
 		public setParent(parent : LinkedTransformations) : boolean {
 			if (parent instanceof LinkedTransformations) {
-				this._parent = parent;
-				this._parent._children.push(this);
+				parent.addChild(this);
 				return true;
 			}
 			else {
@@ -28,7 +27,6 @@ module WebGLEngine.Types {
 		/** Clear parent and current child from it */
 		public clearParent() {
 			this._parent.removeChild(this);
-			this._parent = null;
 		}
 
 		/** Returns parent */
@@ -36,10 +34,49 @@ module WebGLEngine.Types {
 			return this._parent;
 		}
 
+		/** Returns global matrix of mesh parent tree */
+		public getGlobalMatrix() : any {
+			var parent : LinkedTransformations = this,
+				transformations : LinkedTransformations[] = [this],
+				matrix : Matrix4;
+
+			while (parent = parent.getParent()) {
+				transformations.push(parent);
+			}
+
+			matrix  = (new Matrix4()).multiply(transformations.pop().localMatrix);
+			while (transformations.length) {
+				// TODO : check this operation
+				matrix.multiply(transformations.pop().localMatrix);
+			}
+
+			return matrix;
+		}
+
+		/** Returns normal matrix of mesh parent tree */
+		public getGlobalNormalMatrix() : any {
+			var parent : LinkedTransformations = this,
+				transformations : LinkedTransformations[] = [this],
+				matrix : Matrix4;
+
+			while (parent = parent.getParent()) {
+				transformations.push(parent);
+			}
+
+			matrix  = (new Matrix4()).multiply(transformations.pop().normalMatrix);
+			while (transformations.length) {
+				// TODO : check this operation
+				matrix.multiply(transformations.pop().normalMatrix);
+			}
+
+			return matrix;
+		}
+
 		/** Adds dependent child
 		 * Returns true if child was added, otherwise false */
 		public addChild(child : LinkedTransformations) : boolean {
 			if (child instanceof LinkedTransformations) {
+				child._parent = this;
 				this._children.push(child);
 				return true;
 			}
@@ -56,6 +93,7 @@ module WebGLEngine.Types {
 			if (child instanceof LinkedTransformations) {
 				if ((index = this._children.indexOf(child)) >= 0) {
 					this._children.splice(index, 1);
+					child._parent = null;
 					return true;
 				}
 				else {

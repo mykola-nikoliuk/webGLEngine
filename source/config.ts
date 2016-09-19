@@ -2,9 +2,10 @@ module WebGLEngine {
 
 	export var Config = {
 
-		version: '0.2',
+		version: '0.4.0',
 		html   : {
-			canvasID: 'webGLCanvas'
+			webGLNodeId : 'webGL',
+			canvasNodeId: 'canvas',
 		},
 
 		File: {
@@ -27,7 +28,9 @@ module WebGLEngine {
 					NEW_MATERIAL : 'newmtl',
 					MAP_TEXTURE  : 'map_kd',
 					DIFFUSE_COLOR: 'kd',
-					SPECULAR     : 'ns'
+					SPECULAR     : 'ns',
+					TRANSPARENCY : 'tr',
+					DISSOLVED    : 'd',
 				}
 			}
 		}

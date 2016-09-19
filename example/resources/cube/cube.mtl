@@ -1,0 +1,17 @@
+newmtl red
+Kd 1 0 0
+
+newmtl green
+Kd 0 1 0
+
+newmtl blue
+Kd 0 0 1
+
+newmtl yellow
+Kd 1 1 0
+
+newmtl cyan
+Kd 0 1 1
+
+newmtl violet
+Kd 1 0 1

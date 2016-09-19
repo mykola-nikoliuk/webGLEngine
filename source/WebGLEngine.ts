@@ -2,8 +2,9 @@
 ///<reference path="./classes/common/Pool.ts"/>
 ///<reference path="./classes/common/Transformations.ts"/>
 ///<reference path="./classes/common/LinkedTransformations.ts"/>
-///<reference path="./classes/mesh/Face.ts"/>
+///<reference path="./classes/canvas/Text.ts"/>
 ///<reference path="./classes/mesh/Mesh.ts"/>
+///<reference path="./classes/Debugger.ts"/>
 ///<reference path="./classes/Light.ts"/>
 ///<reference path="./classes/Shader.ts"/>
 ///<reference path="./classes/Camera.ts"/>
@@ -24,13 +25,15 @@ module WebGLEngine {
 	export class Engine {
 
 		private _gl : any;
+		private _canvas : CanvasRenderingContext2D|any;
 		private _isReady : boolean;
 		private _shader;
 		private _inited : boolean;
+		private _webGLNode : HTMLCanvasElement;
 		private _canvasNode : HTMLCanvasElement;
 
-		private _mvMatrix : Float32Array;
-		private _pMatrix : Float32Array;
+		private _mvMatrix : Types.Matrix4;
+		private _pMatrix : Types.Matrix4;
 		private _mvMatrixStack;
 
 		private _camera : Types.Camera;
@@ -44,7 +47,7 @@ module WebGLEngine {
 		private _isLightingEnable : boolean;
 
 		public static getCanvas() : HTMLElement {
-			return document.getElementById(Config.html.canvasID);
+			return document.getElementById(Config.html.canvasNodeId);
 		}
 
 		constructor(fragmentShaderPath : string, vertexShaderPath : string) {
@@ -55,14 +58,12 @@ module WebGLEngine {
 			this._isReady = false;
 			this._shader = null;
 			this._inited = false;
-			this._canvasNode = null;
+			this._webGLNode = null;
 
-			this._mvMatrix = Utils.GLMatrix.mat4.create(undefined);
-			this._pMatrix = Utils.GLMatrix.mat4.create(undefined);
 			this._mvMatrixStack = [];
 
 			this._camera = new Types.Camera();
-			this._render = new Types.Render(this);
+			this._render = new Types.Render(this, new Utils.Callback(this._internalDraw, this));
 			this._controller = new Types.Controller(this);
 
 			this._meshes = [];
@@ -75,6 +76,7 @@ module WebGLEngine {
 
 			this._createCanvas();
 			this._initGL();
+			this.onResize();
 			this._loadShaders(fragmentShaderPath, vertexShaderPath);
 		}
 
@@ -90,25 +92,13 @@ module WebGLEngine {
 			this._gl.viewport(0, 0, this._gl.viewportWidth, this._gl.viewportHeight);
 			this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
 
-			Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix);
+			this._mvMatrix = new Types.Matrix4();
+			this._pMatrix = new Types.Matrix4();
+			Utils.GLMatrix.mat4.perspective(45, this._gl.viewportWidth / this._gl.viewportHeight, 1, 1000000.0, this._pMatrix.matrixArray);
 
-			Utils.GLMatrix.mat4.identity(this._mvMatrix);
-
-			// set camera position
-			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, -this._camera.rotation.x);
-			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, -this._camera.rotation.y);
-			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, -this._camera.rotation.z);
-			Utils.GLMatrix.mat4.translate(this._mvMatrix, this._camera.position.clone().invertSign().getArray());
-
-			//noinspection ConstantIfStatementJS
-			if (false) {
-				this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
-				this._gl.enable(this._gl.BLEND);
-				this._gl.disable(this._gl.DEPTH_TEST);
-			} else {
-				this._gl.disable(this._gl.BLEND);
-				this._gl.enable(this._gl.DEPTH_TEST);
-			}
+			this._gl.blendFunc(this._gl.SRC_ALPHA, this._gl.ONE_MINUS_SRC_ALPHA);
+			this._gl.enable(this._gl.BLEND);
+				//this._gl.disable(this._gl.DEPTH_TEST);
 		}
 
 		public isReady() : boolean {
@@ -116,16 +106,21 @@ module WebGLEngine {
 		}
 
 		// TODO : add draw for LinkedTransformations
-
+		// TODO : optimize index buffers to one buffer with offset
 		public draw(mesh : Types.Mesh) : void {
-			var vertexIndexBuffers,
-				vertexPositionBuffer,
-				vertexNormalBuffer,
-				vertexColorBuffer,
-				vertexTextureBuffer,
-				parent : Types.LinkedTransformations,
-				parents : Types.LinkedTransformations[],
-				i, material;
+			var indexBuffer,
+				positionBuffer,
+				normalBuffer,
+				colorBuffer,
+				indexesPerMaterial,
+				textureBuffer,
+				normalMatrix3,
+				normalMatrix4,
+				indexOffset : number,
+				bufferBoxes : Types.BuffersBox[],
+				meshMaterial : Types.Material,
+				i, j,
+				material;
 
 			if (!(mesh instanceof Types.Mesh) || !mesh.isReady()) {
 				return;
@@ -133,94 +128,95 @@ module WebGLEngine {
 
 			this._mvPushMatrix();
 
-			vertexIndexBuffers = mesh.getVertexIndexBuffers();
-			vertexPositionBuffer = mesh.getVertexPositionBuffer();
-			vertexNormalBuffer = mesh.getVertexNormalBuffer();
-			vertexColorBuffer = mesh.getVertexColorBuffer();
-			vertexTextureBuffer = mesh.getVertexTextureBuffer();
+			this._mvMatrix.copyFrom(this._camera.getGlobalMatrix()).inverse();
+			this._mvMatrix.multiply(mesh.getGlobalMatrix());
 
-			// apply matrix mesh
-			parent = mesh;
-			parents = [parent];
-			while (parent = parent.getParent()) {
-				parents.push(parent);
-			}
-			while (parents.length) {
-				this._applyTransformations(this._mvMatrix, parents.pop());
-			}
+			bufferBoxes = mesh.getBufferBoxes();
+			for (j = 0; j < bufferBoxes.length; j++) {
 
-			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexPositionBuffer);
-			this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				indexOffset = 0;
 
-			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexNormalBuffer);
-			this._gl.vertexAttribPointer(this._shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				indexBuffer = bufferBoxes[j].getIndexBuffer();
+				positionBuffer = bufferBoxes[j].getPositionBuffer();
+				normalBuffer = bufferBoxes[j].getNormalBuffer();
+				colorBuffer = bufferBoxes[j].getColorBuffer();
+				textureBuffer = bufferBoxes[j].getTextureBuffer();
+				indexesPerMaterial = bufferBoxes[j].getIndexesPerMaterial();
 
-			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexColorBuffer);
-			this._gl.vertexAttribPointer(this._shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, positionBuffer);
+				this._gl.vertexAttribPointer(this._shaderProgram.vertexPositionAttribute, positionBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-			for (material in vertexIndexBuffers) {
-				if (vertexIndexBuffers.hasOwnProperty(material)) {
+				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, normalBuffer);
+				this._gl.vertexAttribPointer(this._shaderProgram.vertexNormalAttribute, normalBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-					if (!vertexIndexBuffers[material].material.ready) continue;
+				this._gl.bindBuffer(this._gl.ARRAY_BUFFER, colorBuffer);
+				this._gl.vertexAttribPointer(this._shaderProgram.vertexColorAttribute, colorBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
 
-					// set texture if it has material, texture and texture already loaded
-					if (material !== 'noMaterial' && vertexIndexBuffers[material].material.texture) {
-						this._gl.enableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
-						this._gl.uniform1i(this._shaderProgram.textureEnabled, 1);
+				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-						this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexTextureBuffer);
-						this._gl.vertexAttribPointer(this._shaderProgram.textureCoordAttribute, vertexTextureBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+				this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix.matrixArray);
+				this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix.matrixArray);
+				normalMatrix4 = mesh.getGlobalNormalMatrix().matrixArray;
+				normalMatrix3 = Utils.GLMatrix.mat4.toMat3(normalMatrix4, Utils.GLMatrix.mat3.create());
+				this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix3);
 
-						this._gl.activeTexture(this._gl.TEXTURE0);
-						this._gl.bindTexture(this._gl.TEXTURE_2D, vertexIndexBuffers[material].material.texture);
-						this._gl.uniform1i(this._shaderProgram.samplerUniform, 0);
-					}
-					else {
-						this._gl.disableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
-						this._gl.uniform1i(this._shaderProgram.textureEnabled, 0);
-					}
+				for (material in indexesPerMaterial) {
+					if (indexesPerMaterial.hasOwnProperty(material)) {
 
-					this._gl.uniform1i(this._shaderProgram.useLightingUniform, Number(this._isLightingEnable));
+						meshMaterial = mesh.getMaterials()[material];
 
+						if (!meshMaterial.ready) continue;
 
-					if (this._isLightingEnable) {
-						var lightEnables = [], directions = [], colors = [], distances = [],
-							direction, color;
+						// set texture if it has material, texture and texture already loaded
+						if (material !== Types.Mesh.defaultMaterialName && meshMaterial.texture) {
+							this._gl.enableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
+							this._gl.uniform1i(this._shaderProgram.textureEnabled, 1);
 
-						for (i = 0; i < this._lights.length; i++) {
-							direction = this._lights[i].direction;
-							color = this._lights[i].color;
-							lightEnables.push(this._lights[i].isEnabled());
-							directions.push(direction.x + this._mvMatrix[0]);
-							directions.push(direction.y + this._mvMatrix[1]);
-							directions.push(direction.z + this._mvMatrix[2]);
-							colors.push(color.r);
-							colors.push(color.g);
-							colors.push(color.b);
-							distances.push(this._lights[i].distance)
+							this._gl.bindBuffer(this._gl.ARRAY_BUFFER, textureBuffer);
+							this._gl.vertexAttribPointer(this._shaderProgram.textureCoordAttribute, textureBuffer.itemSize, this._gl.FLOAT, false, 0, 0);
+
+							this._gl.activeTexture(this._gl.TEXTURE0);
+							this._gl.bindTexture(this._gl.TEXTURE_2D, meshMaterial.texture);
+							this._gl.uniform1i(this._shaderProgram.samplerUniform, 0);
+						}
+						else {
+							this._gl.disableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
+							this._gl.uniform1i(this._shaderProgram.textureEnabled, 0);
 						}
 
-						this._gl.uniform1iv(this._shaderProgram.useLightUniform, lightEnables);
-						this._gl.uniform1fv(this._shaderProgram.lightingDistanceUniform, distances);
-						this._gl.uniform3fv(this._shaderProgram.lightColorUniform, colors);
-						this._gl.uniform3fv(this._shaderProgram.lightingDirectionUniform, directions);
-						this._gl.uniform1f(this._shaderProgram.materialSpecular, vertexIndexBuffers[material].material.specular);
+						this._gl.uniform1i(this._shaderProgram.useLightingUniform, Number(this._isLightingEnable));
 
-						//						this._gl.uniform3f(this._shaderProgram.ambientColorUniform, 0.2, 0.2, 0.2);
-						//						var lightingDirection = [0.0, 0.0, 0.0];
-						//
-						//						var adjustedLD = glMatrix.vec3.create();
-						//						glMatrix.vec3.normalize(lightingDirection, adjustedLD);
-						//						glMatrix.vec3.scale(adjustedLD, -1);
+						if (this._isLightingEnable) {
+							var lightEnables = [], directions = [], colors = [], distances = [],
+								direction, color;
+
+							for (i = 0; i < this._lights.length; i++) {
+								direction = this._lights[i].direction;
+								color = this._lights[i].color;
+								lightEnables.push(this._lights[i].isEnabled());
+								directions.push(direction.x);
+								directions.push(direction.y);
+								directions.push(direction.z);
+								colors.push(color.r);
+								colors.push(color.g);
+								colors.push(color.b);
+								distances.push(this._lights[i].distance)
+							}
+
+							this._gl.uniform1fv(this._shaderProgram.lightingDistanceUniform, distances);
+							this._gl.uniform3fv(this._shaderProgram.lightColorUniform, colors);
+							this._gl.uniform3fv(this._shaderProgram.lightingDirectionUniform, directions);
+							this._gl.uniform1f(this._shaderProgram.materialSpecular, meshMaterial.specular);
+						}
+
+						this._gl.uniform1f(this._shaderProgram.materialDissolved, meshMaterial.dissolved);
+						this._gl.drawElements(this._gl.TRIANGLES, indexesPerMaterial[material], this._gl.UNSIGNED_SHORT, indexOffset * 2);
+
+						indexOffset += indexesPerMaterial[material];
 					}
-
-					//					this._gl.disableVertexAttribArray(this._shaderProgram.textureCoordAttribute);
-
-					this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffers[material].buffer);
-					this._setMatrixUniforms();
-					this._gl.drawElements(this._gl.TRIANGLES, vertexIndexBuffers[material].buffer.numItems, this._gl.UNSIGNED_SHORT, 0);
 				}
 			}
+
 			this._mvPopMatrix();
 		}
 
@@ -248,6 +244,8 @@ module WebGLEngine {
 
 		public onResize() : void {
 			if (this._inited) {
+				this._webGLNode.setAttribute('width', window.innerWidth + 'px');
+				this._webGLNode.setAttribute('height', window.innerHeight + 'px');
 				this._canvasNode.setAttribute('width', window.innerWidth + 'px');
 				this._canvasNode.setAttribute('height', window.innerHeight + 'px');
 				this._gl.viewportWidth = window.innerWidth;
@@ -283,27 +281,40 @@ module WebGLEngine {
 			return mesh;
 		}
 
+		public createText() : Types.Text {
+			return new Types.Text(this._canvas);
+		}
+
+		public createDebugger() : Types.Debugger {
+			return new Types.Debugger(this);
+		}
+
 		public getCamera() : Types.Camera {
 			return this._camera;
 		}
 
-		public getGLInstance() : any {
+		public getGLInstance() : WebGLRenderingContext {
 			return this._gl;
 		}
 
-		private _applyTransformations(matrix : Float32Array, object : Types.Transformations) {
-			Utils.GLMatrix.mat4.translate(this._mvMatrix, object.position.getArray());
-			Utils.GLMatrix.mat4.rotateZ(this._mvMatrix, object.rotation.z);
-			Utils.GLMatrix.mat4.rotateY(this._mvMatrix, object.rotation.y);
-			Utils.GLMatrix.mat4.rotateX(this._mvMatrix, object.rotation.x);
-			Utils.GLMatrix.mat4.scale(this._mvMatrix, object.scale.getArray());
+		public getCanvasInstance() : CanvasRenderingContext2D|any {
+			return this._canvas;
 		}
 
 		private _createCanvas() : void {
-			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasID);
+			this._webGLNode = <HTMLCanvasElement>document.getElementById(Config.html.webGLNodeId);
+			if (this._webGLNode === null) {
+				this._webGLNode = document.createElement('canvas');
+				this._webGLNode.id = Config.html.webGLNodeId;
+				this._webGLNode.style.position = 'fixed';
+				this._webGLNode.style.left = '0px';
+				this._webGLNode.style.top = '0px';
+				document.body.appendChild(this._webGLNode);
+			}
+			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasNodeId);
 			if (this._canvasNode === null) {
 				this._canvasNode = document.createElement('canvas');
-				this._canvasNode.id = Config.html.canvasID;
+				this._canvasNode.id = Config.html.canvasNodeId;
 				this._canvasNode.style.position = 'fixed';
 				this._canvasNode.style.left = '0px';
 				this._canvasNode.style.top = '0px';
@@ -313,14 +324,20 @@ module WebGLEngine {
 
 		private _initGL() {
 			try {
-				this._gl = this._canvasNode.getContext("webgl") || this._canvasNode.getContext("experimental-webgl");
+				this._gl = this._webGLNode.getContext("webgl", {alpha:false}) || this._webGLNode.getContext("experimental-webgl", {alpha:false});
+				this._canvas = this._canvasNode.getContext("2d");
 				this._inited = true;
-				this.onResize();
 			}
 			catch (e) {
 			}
 			if (!this._gl) {
 				Console.error("Could not initialise WebGL, sorry :-(");
+			}
+		}
+
+		private _internalDraw() : void {
+			if (Types.Debugger.currentDebugger) {
+				Types.Debugger.currentDebugger.draw();
 			}
 		}
 
@@ -376,6 +393,7 @@ module WebGLEngine {
 			this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
 			this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
 			this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
+			this._shaderProgram.materialDissolved = this._gl.getUniformLocation(this._shaderProgram, "uMaterialDissolved");
 
 			this._gl.enable(this._gl.DEPTH_TEST);
 
@@ -383,9 +401,7 @@ module WebGLEngine {
 		}
 
 		private _mvPushMatrix() : void {
-			var copy = Utils.GLMatrix.mat4.create(undefined);
-			Utils.GLMatrix.mat4.set(this._mvMatrix, copy);
-			this._mvMatrixStack.push(copy);
+			this._mvMatrixStack.push((new Types.Matrix4()).copyFrom(this._mvMatrix));
 		}
 
 		private _mvPopMatrix() : void {
@@ -395,23 +411,10 @@ module WebGLEngine {
 			this._mvMatrix = this._mvMatrixStack.pop();
 		}
 
-		private _setMatrixUniforms() : void {
-			this._gl.uniformMatrix4fv(this._shaderProgram.pMatrixUniform, false, this._pMatrix);
-			this._gl.uniformMatrix4fv(this._shaderProgram.mvMatrixUniform, false, this._mvMatrix);
-
-			var normalMatrix = Utils.GLMatrix.mat3.create(undefined);
-			Utils.GLMatrix.mat4.toInverseMat3(this._mvMatrix, normalMatrix);
-			Utils.GLMatrix.mat3.transpose(normalMatrix);
-			this._gl.uniformMatrix3fv(this._shaderProgram.nMatrixUniform, false, normalMatrix);
-		}
-
-		//private _degToRad(degrees : number) : number {
-		//	return degrees * Math.PI / 180;
-		//}
-
-		private _parseObjFile(objFile : string, url: string, mesh : Types.Mesh, path : string, parameters : any) : void {
+		private _parseObjFile(objFile : string, url : string, mesh : Types.Mesh, path : string, parameters : any) : void {
 			var i, j, nodes,
-				vertexes = [], textures = [], normals = [], faces = [],
+				vertexes = [], textures = [], normals = [],
+				faces : Types.Face[][] = [],
 				materials : {[materialName:string] : Types.Material} = {},
 				currentMaterial = Types.Mesh.defaultMaterialName,
 				objConfig = Config.File.obj,
@@ -436,14 +439,11 @@ module WebGLEngine {
 				nodes = objList[i].split(objConfig.nodeSeparator);
 				switch (nodes[0].toLowerCase()) {
 					case lineTypes.VERTEX:
-						vertexCounter = 0;
-						for (j = 1; j < nodes.length && vertexCounter < 3; j++) {
-							if (nodes[j] === '') continue;
-							vertexCounter++;
+						for (j = 1; j < 4; j++) {
 							vertexes.push(Number(nodes[j]));
 						}
-						if (vertexCounter !== 3) {
-							Console.error('>>> _parseObjFile() : ' + vertexCounter + ' parameter(s) in vertex, should be 3');
+						if (nodes.length !== 4) {
+							Console.error('\t_parseObjFile() : wrong parameters amount in vertex, should be 3');
 						}
 						break;
 
@@ -462,38 +462,48 @@ module WebGLEngine {
 						break;
 
 					case lineTypes.FACE:
-						var lastFace = null, firstFace = null;
+						var lastFace = null, firstFace = null,
+							faceArray : string[],
+							vertex : Types.Vertex,
+							face = new Types.Face();
+
 						for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
-							var faceArray = nodes[j].split('/'),
-								face : Types.Face;
+							faceArray = nodes[j].split('/');
 
-							if (isNaN(faceArray[0])) break;
+							if (isNaN(Number(faceArray[0]))) break;
 
-							face = new Types.Face(
+							vertex = new Types.Vertex(
 								Number(faceArray[0]) - 1,
-								faceArray.length > 1 ? Number(faceArray[1]) - 1 : 0,
-								faceArray.length > 2 ? Number(faceArray[2]) - 1 : 0
+								(faceArray.length > 1 && faceArray[1] !== '') ? Number(faceArray[1]) - 1 : null,
+								(faceArray.length > 2 && faceArray[2] !== '') ? Number(faceArray[2]) - 1 : null
 							);
 
 							if (faceArray.length < 2) {
-								Console.warning('>>> _parseObjFile : There is no texture coordinate');
+								Console.warning('\t_parseObjFile : There is no texture coordinate');
 							}
 
 							if (j >= 4) {
-								faces[currentMaterial].push(firstFace);
-								faces[currentMaterial].push(lastFace);
+								face = new Types.Face();
+								face.vertexes[0] = firstFace;
+								face.vertexes[1] = lastFace;
+								face.vertexes[2] = vertex;
+							}
+							else {
+								face.vertexes[j - 1] = vertex;
+							}
+
+							if (j >= 3) {
+								faces[currentMaterial].push(face);
 							}
 
 							if (j === 1) {
-								firstFace = face;
+								firstFace = vertex;
 							}
-							lastFace = face;
-
-							faces[currentMaterial].push(face);
+							lastFace = vertex;
 						}
 						totalFaceCounter++;
 						if (j > 4) {
-							Console.warning('>>> _parseObjFile : ' + (j - 1) + ' vertexes in face');
+							//Console.warning('\t_parseObjFile : ' + (j - 1) + ' vertexes in face. ' + 'Material : ' + currentMaterial);
 						}
 						break;
 
@@ -525,7 +535,7 @@ module WebGLEngine {
 			}
 		}
 
-		private _parseMaterial(mtlFile : string, url: string, path : string, mesh : Types.Mesh, parameters : any) : void {
+		private _parseMaterial(mtlFile : string, url : string, path : string, mesh : Types.Mesh, parameters : any) : void {
 			var mtlList, i, j, nodes, material,
 				mtlConfig = Config.File.mtl,
 				lineTypes = mtlConfig.lineTypes,
@@ -539,48 +549,75 @@ module WebGLEngine {
 			for (i = 0; i < mtlList.length; i++) {
 				mtlConfig.nodeSeparator.lastIndex = 0;
 				nodes = mtlList[i].split(mtlConfig.nodeSeparator);
-				switch (nodes[0].toLowerCase()) {
-					case lineTypes.NEW_MATERIAL:
-						material = new Types.Material();
-						allMaterials[nodes[1]] = material;
-						currentMaterial = material;
-						break;
 
-					case lineTypes.MAP_TEXTURE:
-						if (currentMaterial) {
-							currentMaterial.loadTexture(
-								this._gl,
-								(path.substring(0, path.lastIndexOf("/") + 1) + nodes[1]),
-								parameters.textureRepeat
-							);
-						}
+				// remove leading spaces and tabs
+				for (j = 0; j < nodes.length; j++) {
+					if (nodes[j] === '' || nodes[j] === '\t') {
+						nodes.shift();
+						j--;
+					}
+					else {
 						break;
+					}
+				}
 
-					case lineTypes.DIFFUSE_COLOR:
-						var color = new Types.Vector3(),
-							colors = [];
-						for (j = 1; j < nodes.length && colors.length < 3; j++) {
-							if (nodes[j] === '') continue;
-							colors.push(Number(nodes[j]));
-							if (colors.length === 3) {
-								currentMaterial.diffuseColor = color.set(colors[0], colors[1], colors[2]);
-								break;
+				if (nodes.length > 0) {
+					switch (nodes[0].toLowerCase()) {
+						case lineTypes.NEW_MATERIAL:
+							material = new Types.Material();
+							allMaterials[nodes[1]] = material;
+							currentMaterial = material;
+							break;
+
+						case lineTypes.MAP_TEXTURE:
+							if (currentMaterial) {
+								//path = path.replace(/\\/g, '/');
+								currentMaterial.loadTexture(
+									this._gl,
+									(path.substring(0, path.lastIndexOf("/") + 1) + nodes[1]),
+									parameters.textureRepeat
+								);
 							}
-						}
-						if (colors.length !== 3) {
-							Console.error('>>> _parseMaterial() : color.length !== 3');
-						}
-						break;
+							break;
 
-					case lineTypes.SPECULAR:
-						//				case 'Tr':
-						for (j = 1; j < nodes.length; j++) {
-							if (!isNaN(nodes[j])) {
-								currentMaterial.specular = Number(nodes[j]);
-								break;
+						case lineTypes.DIFFUSE_COLOR:
+							var color = new Types.Vector3(),
+								colors = [];
+							for (j = 1; j < nodes.length && colors.length < 3; j++) {
+								if (nodes[j] === '') continue;
+								colors.push(Number(nodes[j]));
+								if (colors.length === 3) {
+									currentMaterial.diffuseColor = color.set(colors[0], colors[1], colors[2]);
+									break;
+								}
 							}
-						}
-						break;
+							if (colors.length !== 3) {
+								Console.error('>>> _parseMaterial() : color.length !== 3');
+							}
+							break;
+
+						case lineTypes.SPECULAR:
+							//				case 'Tr':
+							for (j = 1; j < nodes.length; j++) {
+								if (!isNaN(nodes[j])) {
+									currentMaterial.specular = Number(nodes[j]);
+									break;
+								}
+							}
+							break;
+
+						case lineTypes.TRANSPARENCY:
+						case lineTypes.DISSOLVED:
+							var value;
+							if (!isNaN(nodes[1])) {
+								value = nodes[1];
+								if (nodes[0].toLowerCase() === lineTypes.TRANSPARENCY) {
+									value = 1 - value;
+								}
+								currentMaterial.dissolved = Number(value);
+							}
+							break;
+					}
 				}
 			}
 

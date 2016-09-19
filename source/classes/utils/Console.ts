@@ -6,11 +6,17 @@ module WebGLEngine.Utils {
 		private _isCreated : boolean;
 		private _freeLinesLeft : number;
 		private _maxHeight : number;
+
+		private _previousMessage : string;
+		private _previousLine : HTMLDivElement;
+		private _sameMassagesCounter : number;
+
 		private static _colors = {
 			ERROR  : 'red',
 			WARNING: 'orange',
 			INFO   : 'white'
 		};
+
 		private static _config = {
 			zIndex        : 9999,
 			consolePadding: 8,
@@ -24,6 +30,8 @@ module WebGLEngine.Utils {
 
 		constructor() {
 			this._isCreated = false;
+			this._previousMessage = '';
+			this._sameMassagesCounter = 0;
 		}
 
 		/** creates console and show on screen */
@@ -75,23 +83,35 @@ module WebGLEngine.Utils {
 		/** adds line to log */
 		private _addLine(msg : string, color : string) : void {
 			var lineDiv = document.createElement('div');
-			lineDiv.style.color = color;
-			lineDiv.style.fontSize = Console._config.fontSize + 'px';
-			lineDiv.style.margin = Console._config.lineMargin + 'px';
-			lineDiv.style.marginLeft = Console._config.lineMargin +
-				(Console._config.lineIndent * (msg.split('\t').length - 1)) +
-				'px';
-			lineDiv.style.padding = Console._config.linePadding + 'px';
-			lineDiv.style.backgroundColor = Console._config.lineColor;
-			lineDiv.innerText = msg;
-			this._consoleView.appendChild(lineDiv);
-			this._consoleView.scrollTop = this._maxHeight;
 
-			if (this._freeLinesLeft - 1 < 0) {
-				this._consoleView.removeChild(this._consoleView.firstChild);
+			if (msg === this._previousMessage) {
+				this._sameMassagesCounter++;
+				this._previousLine.innerText = msg + ' (' + (this._sameMassagesCounter + 1) + ' times)';
 			}
 			else {
-				this._freeLinesLeft--;
+				lineDiv.style.color = color;
+				lineDiv.style.fontSize = Console._config.fontSize + 'px';
+				lineDiv.style.margin = Console._config.lineMargin + 'px';
+				lineDiv.style.marginLeft = Console._config.lineMargin +
+					(Console._config.lineIndent * (msg.split('\t').length - 1)) +
+					'px';
+				lineDiv.style.padding = Console._config.linePadding + 'px';
+				lineDiv.style.backgroundColor = Console._config.lineColor;
+				lineDiv.innerText = msg;
+				this._consoleView.appendChild(lineDiv);
+				this._consoleView.scrollTop = this._maxHeight;
+
+				// save
+				this._previousLine = lineDiv;
+				this._previousMessage = msg;
+				this._sameMassagesCounter = 0;
+
+				if (this._freeLinesLeft - 1 < 0) {
+					this._consoleView.removeChild(this._consoleView.firstChild);
+				}
+				else {
+					this._freeLinesLeft--;
+				}
 			}
 		}
 	}

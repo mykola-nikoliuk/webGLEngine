@@ -32,7 +32,7 @@ module WebGLEngine.Types {
 				this._followTarget = null;
 			}
 
-			public update() {
+			public update(deltaTime : number) {
 				var hypotenuse2D : number,
 					distance : number,
 					ratio : number,
@@ -65,7 +65,7 @@ module WebGLEngine.Types {
 							distance = this.position.getDistanceTo(this._followTarget.position);
 							ratio = this._distance / distance;
 							position.multiply(ratio);
-							this.position = this._followTarget.position.clone().minus(position);
+							this.position.copyFrom(this._followTarget.position.clone().minus(position));
 						}
 					}
 				}

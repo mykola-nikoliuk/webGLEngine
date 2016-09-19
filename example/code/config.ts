@@ -13,8 +13,8 @@ module Example {
 
 		webGL: {
 			shaders: {
-				fragment: '../source/shaders/fragmentShader.glsl',
-				vertex  : '../source/shaders/vertexShader.glsl',
+				fragment: 'resources/shaders/fragmentShader.glsl',
+				vertex  : 'resources/shaders/vertexShader.glsl',
 			}
 		}
 	};

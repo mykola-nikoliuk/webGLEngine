@@ -3,57 +3,79 @@ module WebGLEngine.Types {
 	export class Render extends Subscribe {
 
 		private _engine : Engine;
-		private _renderTimer : Utils.Timer = new Utils.Timer();
+		private _renderCallback : Function;
+		private _lastDrawCallback : Utils.Callback;
+		private _lastFPSSecond : number;
+		private _lastRenderCall : number;
+		private _FPSCounter : number;
+		private _FPS : number;
 
-		constructor(engine : Engine) {
+		constructor(engine : Engine, lastDrawCallback = null) {
 			super();
 			this._engine = engine;
-			this._renderTimer = new Utils.Timer();
-		}
-
-		/** set render frequency per second
-		 * @param framePerSecond frames per second
-		 * @returns is set successful
-		 */
-		public setFPS(framePerSecond : number) : boolean {
-			if (typeof framePerSecond === 'number') {
-				if (this._renderTimer.isTimerEnabled()) {
-					this._renderTimer.stop();
-				}
-				this._renderTimer.start(new Utils.Callback(this._render, this), 1000 / framePerSecond);
-				return true;
-			}
-			return false;
-		}
-
-		/** render the scene
-		 * if you want to use your own uneven render */
-		public render() {
+			this._renderCallback = Utils.bind(this._render, this);
+			this._lastDrawCallback = lastDrawCallback;
+			this._lastRenderCall = Date.now();
+			this._lastFPSSecond = this._lastRenderCall / 1000 | 0;
+			this._FPSCounter = 0;
+			this._FPS = 0;
 			this._render();
 		}
 
+		public getFPS() : number {
+			return this._FPS;
+		}
+
+		// TODO : add custom render
+
 		private _render() {
-			var i : number;
+			window.requestAnimationFrame(<FrameRequestCallback>this._renderCallback);
+
+			var i : number,
+				canvas = this._engine.getCanvasInstance(),
+				currentTime = Date.now(),
+				deltaTime  = currentTime - this._lastRenderCall,
+				currentFPSSecond : number;
+
+			this._lastRenderCall = Date.now();
+			currentFPSSecond = this._lastRenderCall / 1000 | 0;
+
+			if (this._lastFPSSecond !== currentFPSSecond) {
+				this._FPS = this._FPSCounter;
+				this._lastFPSSecond = currentFPSSecond;
+				this._FPSCounter = 0;
+			}
+			else {
+				this._FPSCounter++;
+			}
+
 			if (this._engine.isReady()) {
+				if (canvas) {
+					canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
+				}
 
 				// updates before render
 				for (i = 0; i < Animation.pool.size(); i++) {
-					Animation.pool.get(i).updateBeforeRender();
+					Animation.pool.get(i).updateBeforeRender(deltaTime);
 				}
 
 				// updates cameras
 				for (i = 0; i < Camera.pool.size(); i++) {
-					Camera.pool.get(i).update();
+					Camera.pool.get(i).update(deltaTime);
 				}
 
 				// call subscribed functions for render
 				for (i = 0; i < this._subscribers.length; i++) {
-					this._subscribers[i].apply();
+					this._subscribers[i].apply(deltaTime);
+				}
+
+				if (this._lastDrawCallback) {
+					this._lastDrawCallback.apply(deltaTime);
 				}
 
 				// update after render
 				for (i = 0; i < Animation.pool.size(); i++) {
-					Animation.pool.get(i).updateAfterRender();
+					Animation.pool.get(i).updateAfterRender(deltaTime);
 				}
 			}
 		}

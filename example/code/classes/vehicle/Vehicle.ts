@@ -27,7 +27,7 @@ module Example {
 
 			//this._configuration = configuration;
 
-			this._wheelAngleCoefficient = 0
+			this._wheelAngleCoefficient = 0;
 			this._wheelAngleCoefficientPerStep = configuration.wheelAngleCoefficientPerStep;
 			this._maxControlWheelAngle = configuration.maxControlWheelAngle;
 
