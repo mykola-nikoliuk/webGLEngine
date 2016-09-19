@@ -23,7 +23,7 @@ var kickTimeout = 3000;
 
 http.createServer(function (req, res) {
 	var uri = url.parse(req.url).pathname;
-	var filename = path.join(process.cwd(), '..', uri);
+	var filename = path.join(process.cwd(), uri);
 	console.log('---' + process.cwd());
 	if (req.method === 'GET') {
 

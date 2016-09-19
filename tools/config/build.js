@@ -135,14 +135,17 @@ var config = {
 		release     : 'release',
 		shaders     : 'shaders',
 		projectName : 'webGLEngine',
-		tools       : 'tools'
+		tools       : 'tools',
+		example     : 'example',
+		resources   : 'resources'
 	},
 	main    : 'WebGLEngine.js',
 	mainDTS : 'WebGLEngine.d.ts'
 };
 
 var projectFolder = path.join(config.folders.root, config.folders.project),
-	releaseFolder = path.join(config.folders.root, config.folders.build, config.folders.release);
+	releaseFolder = path.join(config.folders.root, config.folders.build, config.folders.release),
+	exampleFolder = path.join(config.folders.root, config.folders.example);
 
 //config.folders.release = path.join(config.folders.build, config.folders.release);
 
@@ -151,11 +154,17 @@ rmDir(config.folders.build);
 mkDir(config.folders.build);
 mkDir(releaseFolder);
 mkDir(path.join(releaseFolder, config.folders.shaders));
+rmDir(path.join(exampleFolder, config.folders.resources, config.folders.shaders));
+mkDir(path.join(exampleFolder, config.folders.resources, config.folders.shaders));
 
 // copy shaders
 copyDir(
 	path.join(projectFolder, config.folders.shaders),
 	path.join(releaseFolder, config.folders.shaders)
+);
+copyDir(
+	path.join(projectFolder, config.folders.shaders),
+	path.join(exampleFolder, config.folders.resources, config.folders.shaders)
 );
 
 // TODO: fix copy to release

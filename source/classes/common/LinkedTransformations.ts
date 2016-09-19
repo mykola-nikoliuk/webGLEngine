@@ -36,7 +36,7 @@ module WebGLEngine.Types {
 
 		/** Returns global matrix of mesh parent tree */
 		public getGlobalMatrix() : any {
-			var parent = this,
+			var parent : LinkedTransformations = this,
 				transformations : LinkedTransformations[] = [this],
 				matrix : Matrix4;
 
@@ -55,7 +55,7 @@ module WebGLEngine.Types {
 
 		/** Returns normal matrix of mesh parent tree */
 		public getGlobalNormalMatrix() : any {
-			var parent = this,
+			var parent : LinkedTransformations = this,
 				transformations : LinkedTransformations[] = [this],
 				matrix : Matrix4;
 

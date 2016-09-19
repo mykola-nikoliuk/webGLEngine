@@ -2,7 +2,7 @@ module WebGLEngine {
 
 	export var Config = {
 
-		version: '0.3',
+		version: '0.4.0',
 		html   : {
 			webGLNodeId : 'webGL',
 			canvasNodeId: 'canvas',

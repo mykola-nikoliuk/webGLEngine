@@ -4,8 +4,8 @@
 ##### Details:
 	The library that can simplify work with webGL
 
-	Version        : v0.3.0
-	Programmer     : Mykola Nikoliuk
+	Version        : v0.4.0
+	Programmer     : Nick Nikoliuk
 	Special thanks : Sergey Bilyk
 	Repository     : git@github.com:nick-nikoliuk/webGLEngine.git
 ##### Supported browsers:
@@ -14,15 +14,11 @@
 ------------------
 #### Configuration
 ##### Build for windows:
-	Execute "./make.cmd".
-	Build will be created in root as "./build" folder.
-	Example also will be updated.
+	Execute "npm install && ./make.cmd"
 ##### Build for unix-based:
-	You should to install:
-	- nodejs >= 0.13.0.pre;
-	- typescript >= 1.5.4;
-		* npm install -g typescript@1.5.4;
-	After that to build the project just execute "make.bash".
+	You should to install: "nodejs >= 0.13.0.pre"
+	Then run "npm install && ./make.bash"
+##### Results
 	Build will be created in root as "./build" folder.
 	Example also will be updated.
 ------------
