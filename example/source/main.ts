@@ -37,19 +37,26 @@ module Example {
 		private _cameraMode : number;
 
 		constructor() {
+			// create console
 			WebGLEngine.Console.create(16, 16, 600, 800, 30);
 
+			// create WebGLEngine instance
 			this._engine = new WebGLEngine.Engine(
 				Config.webGL.shaders.fragment,
 				Config.webGL.shaders.vertex
 			);
 			this._engine.createDebugger();
 
+			// subscribe for webGLEngine events
 			this._engine.Controller.subscribe(new WebGLEngine.Utils.Callback(this._controllerHandler, this));
 
+			// get camera instance
+			// TODO : create constructors for custom camera
 			this._camera = this._engine.getCamera();
+			// TODO : move camera modes to camera class
 			this._cameraMode = Game._cameraModes.FLY;
 
+			// TODO : create input class
 			this._timers = {
 				key_a    : false,
 				key_d    : false,
@@ -63,31 +70,18 @@ module Example {
 
 			this._meshes = {
 				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj'),
-				//street: this._engine.createMeshFromFile('./resources/paris/Paris2010_0.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
-				//castle: this._engine.createMeshFromFile('./resources/castle/castle01.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
-				//plane : this._engine.createMeshFromFile('./resources/F14A/F-14A_Tomcat.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
-				//wheel : this._engine.createMeshFromFile('./resources/wheel/disk_g.obj', {textureRepeat: WebGLEngine.Types.Material.RepeatTypes.REPEAT}),
-				//bus: this._engine.createMeshFromFile('./resources/bus/bus.obj'),
-				//car   : this._engine.createMeshFromFile('./resources/crown/crown_victoria.obj'),
-				bmw   : this._engine.createMeshFromFile('./resources/BMW_M3/BMW_M3_GTR.obj'),
-				//cube  : this._engine.createMeshFromFile('./resources/cube/cube_opt.obj'),
-				//house: this._engine.createMeshFromFile('./resources/house/OBJ/Farmhouse_OBJ.obj'),
-				//sphere: this._engine.createMeshFromFile('./resources/sphere/sphere.obj')
 			};
 
-			this._meshes.bmw2 = this._meshes.bmw.transformationClone();
-
-			//setTimeout(function () {
-			//meshManager.add('simpleCarWheel', this._meshes['wheel']);
-			//this._meshes.car = new Vehicle(Cars.SimpleVehicle);
-			//}, 5000);
-
+			// get canvas instance
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
-			this._mouseHandler = WebGLEngine.Utils.bind(this._updateCameraRotation, this);
+			this._mouseHandler = this._updateCameraRotation.bind(this);
 
+			// configure game objects
 			this._configure();
+			// TODO : add listeners to library
 			this._addListeners();
+			// create scene lights
 			this._createLights();
 
 			//this._createAnimation();
@@ -95,6 +89,7 @@ module Example {
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
+				// TODO : what about setFPS? Probably better to use requestAnimationFrame before setFPS wasn't called
 				//this._engine.Render.setFPS(Config.engine.FPS);
 			}
 		}
@@ -102,33 +97,11 @@ module Example {
 		private _configure() : void {
 			this._meshes.sky.scale.set(10000, 10000, 10000);
 
-			//this._meshes.cube.scale.set(20, 20, 20);
-			//this._meshes.cube.position.set(0, 20, 0);
-
-			//this._meshes.bus.scale.set(20, 20, 20);
-
-			//this._meshes.castle.scale.set(0.01, 0.01, 0.01);
-
-			//this._meshes.bmw.scale.set(15, 15, 15);
-			this._meshes.bmw.scale.set(0.002, 0.002, 0.002);
-			this._meshes.bmw2.scale.set(0.002, 0.002, 0.002);
-
-			this._meshes.bmw.position.set(0, 0, 0);
-			this._meshes.bmw2.position.set(30, 0, 0);
-
-			//this._meshes.wheel.scale.set(10, 10, 10);
-			//this._meshes.car.position.set(0, 1, 0);
-
 			this._camera.position.set(59, 19, 48);
 			this._camera.rotation.set(-0.26, 0.78, 0);
 
 			this._meshes.street.scale.set(5, 5, 5);
 			this._meshes.street.position.set(0, -2, 0);
-
-			//this._meshes.street.scale.set(1, 1, 1);
-
-			//this._meshes.plane.scale.set(0.3, 0.3, 0.3);
-			//this._meshes.plane.position.set(70, -10, 0);
 		}
 
 		private _addListeners() : void {
@@ -145,6 +118,7 @@ module Example {
 		}
 
 		private _createLights() {
+			// TODO : fix multiple lights
 			this._engine.addLight(new WebGLEngine.Types.Light(
 				WebGLEngine.Types.Light.Types.DIRECTIONAL,
 				new WebGLEngine.Types.Vector3(1,1,1),
@@ -157,34 +131,15 @@ module Example {
 
 			this._keysHandler();
 			this._updateCameraPosition(deltaTime);
+			// TODO : probably better to add chaining?
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			//engine.draw(this._meshes.bus);
-			//engine.draw(this._meshes.house);
-			//engine.draw(this._meshes.cube);
-			//this._meshes.car.draw(this._engine);
 			engine.turnOnLight();
 			engine.draw(this._meshes.street);
-			if (this._camera.position.getDistanceTo(this._meshes.bmw.position) > this._camera.position.getDistanceTo(this._meshes.bmw2.position)) {
-				engine.draw(this._meshes.bmw);
-				engine.draw(this._meshes.bmw2);
-			}
-			else {
-				engine.draw(this._meshes.bmw2);
-				engine.draw(this._meshes.bmw);
-			}
-			//engine.draw(this._meshes.plane);
-			//engine.draw(this._meshes.car);
-			//engine.draw(this._meshes.castle);
-			//engine.draw(this._meshes.sphere);
-			//engine.draw(this._meshes.wheel);
+		}
 
-			this._meshes.bmw.rotation.add(0, deltaTime / 1000 * 1.5, 0);
-			//this._meshes.bmw.position.add(0, 0, -deltaTime / 1000 * 10);
-			this._meshes.bmw2.rotation.add(0, deltaTime / 1000 * 1, 0);
-		}www
-
+		// TODO : move handler to library
 		private _lockCursor() : void {
 			document.addEventListener('mousemove', this._mouseHandler, false);
 			var canvas = <any>this._canvas;
@@ -194,6 +149,7 @@ module Example {
 			canvas.requestPointerLock();
 		}
 
+		// TODO : move handler to library
 		private _releaseCursor() : void {
 			var doc = <any>document;
 			if (doc.pointerLockElement !== this._canvas &&
@@ -212,6 +168,7 @@ module Example {
 			}
 		}
 
+		// TODO : should be moved to library as some mode but left this functionality for user
 		private _updateCameraRotation(e) : void {
 			var x = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
 				y = e.movementY || e.mozMovementY || e.webkitMovementY || 0,
@@ -222,18 +179,9 @@ module Example {
 
 			this._camera.rotation.add(vec31[0], vec31[1], vec31[2]);
 			this._camera.rotation.add(vec32[0], vec32[1], vec32[2]);
-
-			// look limitation
-			//if (this._camera.rotation.x > Math.PI / 2) {
-			//	this._camera.rotation.x = Math.PI / 2;
-			//}
-			//if (this._camera.rotation.x < -Math.PI / 2) {
-			//	this._camera.rotation.x = -Math.PI / 2;
-			//}
-			// prevent overflow
-			//this._camera.rotation.y %= Math.PI * 2;
 		}
 
+		// TODO : should be moved to library as some mode but left this functionality for user
 		private _updateCameraPosition(deltaTime : number) : void {
 			var speed,
 				staticSpeed = 100,
@@ -264,6 +212,7 @@ module Example {
 			this._camera.position.add(offset[0] * speed, offset[1] * speed, offset[2] * speed);
 		}
 
+		// TODO : make animation work with separate types of animation
 		private _createAnimation() : void {
 			// test animation
 			this._animation = new WebGLEngine.Types.Animation(
@@ -334,16 +283,7 @@ module Example {
 			this._animation.start(this._meshes.plane, new WebGLEngine.Utils.Callback(this._startAnimation, this));
 		}
 
-		private _startAnimation2() : void {
-			this._animation2.start(this._meshes.wheel, new WebGLEngine.Utils.Callback(this._startAnimation2, this));
-		}
-
-		private _showTransformations() : void {
-			console.log('--');
-			console.log('' + this._camera.position.x + ', ' + this._camera.position.y + ', ' + this._camera.position.z);
-			console.log('' + this._camera.rotation.x + ', ' + this._camera.rotation.y + ', ' + this._camera.rotation.z);
-		}
-
+		// TODO : move handler to library
 		private _keyDown(e) : void {
 			switch (e.keyCode) {
 				case 65:
@@ -388,6 +328,7 @@ module Example {
 			}
 		}
 
+		// TODO : move handler to library
 		private _keyUp(e) : void {
 			switch (e.keyCode) {
 				case 65:
@@ -408,10 +349,6 @@ module Example {
 
 				case 13:
 					//this._startAnimation();
-					break;
-
-				case 32:
-					this._showTransformations();
 					break;
 
 				case 67: // C
@@ -440,6 +377,7 @@ module Example {
 			}
 		}
 
+		// TODO : move camera modes to Camera class
 		private _changeCameraMode() : void {
 			switch (this._cameraMode) {
 				case Game._cameraModes.FLY:

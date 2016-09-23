@@ -55,7 +55,7 @@ module WebGLEngine.Types {
 			this._update(deltaTime);
 		}
 
-		/** Do updated after render */
+		/** Do updates after render */
 		public updateAfterRender(deltaTime : number) {
 			var i : number;
 

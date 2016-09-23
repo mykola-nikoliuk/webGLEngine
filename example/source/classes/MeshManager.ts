@@ -1,3 +1,4 @@
+// TODO : probably better to use this manager in library?
 module Example {
 	export class MeshManager {
 

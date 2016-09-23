@@ -261,6 +261,7 @@ module WebGLEngine {
 			return mesh;
 		}
 
+		// TODO : create importer as plugin
 		public createMeshFromFile(path : string, params? : any) : Types.Mesh {
 			var mesh = new Types.Mesh(this._gl),
 				parameters = {
@@ -281,22 +282,27 @@ module WebGLEngine {
 			return mesh;
 		}
 
+		// TODO : is it works?
 		public createText() : Types.Text {
 			return new Types.Text(this._canvas);
 		}
 
+		// TODO : whats this? Can it be combined with Console?
 		public createDebugger() : Types.Debugger {
 			return new Types.Debugger(this);
 		}
 
+		// TODO : add method to create/change/remove cameras
 		public getCamera() : Types.Camera {
 			return this._camera;
 		}
 
+		// TODO : is it using?
 		public getGLInstance() : WebGLRenderingContext {
 			return this._gl;
 		}
 
+		// TODO : implement all functionality to decrease direct using of this element
 		public getCanvasInstance() : CanvasRenderingContext2D|any {
 			return this._canvas;
 		}
@@ -306,11 +312,13 @@ module WebGLEngine {
 			if (this._webGLNode === null) {
 				this._webGLNode = document.createElement('canvas');
 				this._webGLNode.id = Config.html.webGLNodeId;
+				// TODO : what about using app in frame?
 				this._webGLNode.style.position = 'fixed';
 				this._webGLNode.style.left = '0px';
 				this._webGLNode.style.top = '0px';
 				document.body.appendChild(this._webGLNode);
 			}
+			// TODO find possibility to use only one canvas element
 			this._canvasNode = <HTMLCanvasElement>document.getElementById(Config.html.canvasNodeId);
 			if (this._canvasNode === null) {
 				this._canvasNode = document.createElement('canvas');
@@ -335,6 +343,7 @@ module WebGLEngine {
 			}
 		}
 
+		// TODO : what this method should to do?
 		private _internalDraw() : void {
 			if (Types.Debugger.currentDebugger) {
 				Types.Debugger.currentDebugger.draw();
@@ -358,7 +367,6 @@ module WebGLEngine {
 
 			this._shaderProgram = this._gl.createProgram();
 
-			//		console.log('test: ' + typeof this._shader);
 			this._gl.attachShader(this._shaderProgram, vertexShader);
 			this._gl.attachShader(this._shaderProgram, fragmentShader);
 			this._gl.linkProgram(this._shaderProgram);
@@ -411,6 +419,7 @@ module WebGLEngine {
 			this._mvMatrix = this._mvMatrixStack.pop();
 		}
 
+		// TODO : move to OBJ plugin
 		private _parseObjFile(objFile : string, url : string, mesh : Types.Mesh, path : string, parameters : any) : void {
 			var i, j, nodes,
 				vertexes = [], textures = [], normals = [],
@@ -421,7 +430,6 @@ module WebGLEngine {
 				lineTypes = objConfig.lineTypes,
 				startParsingTime = Date.now(),
 				totalFaceCounter = 0,
-				vertexCounter : number,
 				hasMaterial = false,
 				objList, materialPath;
 
@@ -450,8 +458,6 @@ module WebGLEngine {
 					case lineTypes.VERTEX_TEXTURE:
 						textures.push(Number(nodes[1]));
 						textures.push(Number(nodes[2]));
-						//textures.push(Number(Math.random());
-						//textures.push(Number(Math.random());
 						break;
 
 					case lineTypes.VERTEX_NORMAL:
@@ -502,9 +508,9 @@ module WebGLEngine {
 							lastFace = vertex;
 						}
 						totalFaceCounter++;
-						if (j > 4) {
-							//Console.warning('\t_parseObjFile : ' + (j - 1) + ' vertexes in face. ' + 'Material : ' + currentMaterial);
-						}
+						// if (j > 4) {
+						// 	Console.warning('\t_parseObjFile : ' + (j - 1) + ' vertexes in face. ' + 'Material : ' + currentMaterial);
+						// }
 						break;
 
 					case lineTypes.MATERIAL_LIBRARY:
@@ -535,6 +541,7 @@ module WebGLEngine {
 			}
 		}
 
+		// TODO : move to OBJ plugin
 		private _parseMaterial(mtlFile : string, url : string, path : string, mesh : Types.Mesh, parameters : any) : void {
 			var mtlList, i, j, nodes, material,
 				mtlConfig = Config.File.mtl,
@@ -626,6 +633,7 @@ module WebGLEngine {
 			mesh.initBuffers(allMaterials);
 		}
 
+		// TODO : probably better to move this method to Mesh manager
 		private _checkMeshes() : void {
 			var i : number,
 				allMeshesLoaded = true;

@@ -8,6 +8,7 @@ module WebGLEngine.Utils {
 
 	export var requestManager = new RequestManager();
 
+	// TODO : probably there is no reason to use this function. Should be replaced by Object.bind()
 	export function bind(callBackFunc : Function, thisArg, ...arg) {
 		var args = Array.prototype.slice.call(arguments, 2);
 		return function () {
