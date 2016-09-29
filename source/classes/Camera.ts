@@ -150,72 +150,46 @@ module WebGLEngine.Types {
 
             var positionType = this._positionType,
                 focusType = this._focusType,
-                parentPosition = positionType.parent.position;
-            
+                parentPosition = positionType.parent,
+                parentFocus = focusType.parent;
+
             switch (positionType.type) {
                 case Camera.FOLLOW:
-                    position = parentPosition.clone().minus(this.position);
-                    hypotenuse2D = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2));
-                    yAngle = Math.asin(position.x / hypotenuse2D);
-
-                    if (position.z > 0) {
-                        if (position.x < 0) {
-                            yAngle = -Math.PI - yAngle;
-                        }
-                        else {
-                            yAngle = Math.PI - yAngle;
-                        }
-                    }
-
-                    // this.rotation.y = -yAngle;
-                    // this.rotation.x = Math.atan(position.y / hypotenuse2D);
-
-                    distance = this.position.getDistanceTo(parentPosition);
+                    position = parentPosition.position.clone().minus(this.position);
+                    distance = this.position.getDistanceTo(parentPosition.position);
                     ratio = this._positionType.distance / distance;
                     position.multiply(ratio);
-                    this.position.copyFrom(parentPosition).plus(positionType.offset).minus(position);
+                    this.position.copyFrom(parentPosition.position).plus(positionType.offset).minus(position);
                     break;
                 case Camera.ATTACHED:
-                    this.position.copyFrom(parentPosition).plus(positionType.offset);
+                    this.position.copyFrom(parentPosition.position).plus(positionType.offset);
                     break;
             }
 
             switch (focusType.type) {
                 case Camera.FOLLOW:
-                    // TODO : implement
+                    position = parentFocus.position.clone().plus(focusType.offset).minus(this.position);
+                    hypotenuse2D = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2));
+                    if (hypotenuse2D === 0) {
+                        this.rotation.x = Math.PI / 2;
+                        if (position.y < 0) {
+                            this.rotation.x *= -1;
+                        }
+                    }
+                    else {
+                        yAngle = Math.asin(position.x / hypotenuse2D);
+                        if (position.z > 0) {
+                            if (position.x < 0) {
+                                yAngle = -Math.PI - yAngle;
+                            }
+                            else {
+                                yAngle = Math.PI - yAngle;
+                            }
+                        }
+                        this.rotation.set(Math.atan(position.y / hypotenuse2D), -yAngle);
+                    }
                     break;
             }
-
-            // if (this._followTarget) {
-            //     if (this._distance === 0) {
-            //         this.position.copyFrom(this._followTarget.position);
-            //         this.rotation.y = this._followTarget.rotation.y;
-            //     }
-            //     else {
-            //         position = this._followTarget.position.clone().minus(this.position);
-            //         hypotenuse2D = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2));
-            //         yAngle = Math.asin(position.x / hypotenuse2D);
-            //
-            //         if (position.z > 0) {
-            //             if (position.x < 0) {
-            //                 yAngle = -Math.PI - yAngle;
-            //             }
-            //             else {
-            //                 yAngle = Math.PI - yAngle;
-            //             }
-            //         }
-            //
-            //         this.rotation.y = -yAngle;
-            //         this.rotation.x = Math.atan(position.y / hypotenuse2D);
-            //
-            //         if (this._distance > 0) {
-            //             distance = this.position.getDistanceTo(this._followTarget.position);
-            //             ratio = this._positionType.distance / distance;
-            //             position.multiply(ratio);
-            //             this.position.copyFrom(this._followTarget.position.clone().minus(position));
-            //         }
-            //     }
-            // }
         }
 
         /** Adds camera to cameras pool

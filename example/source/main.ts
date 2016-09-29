@@ -74,9 +74,8 @@ module Example {
 				cube2  : this._engine.createMeshFromFile('./resources/cube/cube.obj')
 			};
 
-			// this._meshes.cube2 = this._meshes.cube.cloneTransformations();
-
-			this._camera.setPositionRule(WebGLEngine.Types.Camera.FOLLOW, new WebGLEngine.Types.Vector3(), this._meshes.cube2, 10);
+			this._camera.setPositionRule(WebGLEngine.Types.Camera.ATTACHED, new WebGLEngine.Types.Vector3(0,200,0), this._meshes.cube2);
+			this._camera.setFocusRule(WebGLEngine.Types.Camera.FOLLOW, new WebGLEngine.Types.Vector3(), this._meshes.cube);
 
 			// get canvas instance
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
@@ -107,8 +106,6 @@ module Example {
 
 			this._meshes.street.scale.set(5, 5, 5);
 			this._meshes.street.position.set(0, -2, 0);
-
-			// this._meshes.cube2.position(2,2,2);
 		}
 
 		private _addListeners() : void {
@@ -146,7 +143,6 @@ module Example {
 			engine.draw(this._meshes.cube2);
 			engine.draw(this._meshes.street);
 			engine.turnOnLight();
-			// engine.draw(this._meshes.street);
 		}
 
 		// TODO : move handler to library
@@ -235,14 +231,22 @@ module Example {
 					new WebGLEngine.Types.Frame()
 						.setPosition(new WebGLEngine.Types.Vector3(40, 0, 0))
 						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 2, Math.PI / 4, 0))
-						.setTime(4000),
+						.setTime(1000),
 					new WebGLEngine.Types.Frame()
 						.setPosition(new WebGLEngine.Types.Vector3(40, 0, 40))
 						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 4, 0, 0))
-						.setTime(4000),
+						.setTime(1000),
 					new WebGLEngine.Types.Frame()
 						.setPosition(new WebGLEngine.Types.Vector3(0, 0, 40))
 						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 2, 0, 0))
+						.setTime(1000),
+					new WebGLEngine.Types.Frame()
+						.setPosition(new WebGLEngine.Types.Vector3(0, 40, 40))
+						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 4, 0, 0))
+						.setTime(1000),
+					new WebGLEngine.Types.Frame()
+						.setPosition(new WebGLEngine.Types.Vector3(0, 40, 0))
+						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 4, 0, 0))
 						.setTime(4000),
 					new WebGLEngine.Types.Frame()
 						.setPosition(new WebGLEngine.Types.Vector3(0, 0, 0))

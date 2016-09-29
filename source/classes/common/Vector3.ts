@@ -11,7 +11,7 @@ module WebGLEngine.Types {
 			this.set(x, y, z);
 		}
 
-		public set(x, y, z) : Vector3 {
+		public set(x?, y?, z?) : Vector3 {
 			this._x = typeof x === 'number' ? x : 0;
 			this._y = typeof y === 'number' ? y : 0;
 			this._z = typeof z === 'number' ? z : 0;
@@ -19,7 +19,7 @@ module WebGLEngine.Types {
 			return this;
 		}
 
-		public add(x, y, z) : Vector3 {
+		public add(x?, y?, z?) : Vector3 {
 			this._x += typeof x === 'number' ? x : 0;
 			this._y += typeof y === 'number' ? y : 0;
 			this._z += typeof z === 'number' ? z : 0;
