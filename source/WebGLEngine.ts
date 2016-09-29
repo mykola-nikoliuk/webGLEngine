@@ -20,6 +20,7 @@
 
 module WebGLEngine {
 
+	import Camera = WebGLEngine.Types.Camera;
 	export var Console = new Utils.Console();
 
 	export class Engine {
@@ -36,7 +37,6 @@ module WebGLEngine {
 		private _pMatrix : Types.Matrix4;
 		private _mvMatrixStack;
 
-		private _camera : Types.Camera;
 		private _meshes : Types.Mesh[];
 		private _lights : Types.Light[];
 
@@ -62,7 +62,6 @@ module WebGLEngine {
 
 			this._mvMatrixStack = [];
 
-			this._camera = new Types.Camera();
 			this._render = new Types.Render(this, new Utils.Callback(this._internalDraw, this));
 			this._controller = new Types.Controller(this);
 
@@ -128,7 +127,7 @@ module WebGLEngine {
 
 			this._mvPushMatrix();
 
-			this._mvMatrix.copyFrom(this._camera.getGlobalMatrix()).inverse();
+			this._mvMatrix.copyFrom(Types.Camera.current.getGlobalMatrix()).inverse();
 			this._mvMatrix.multiply(mesh.getGlobalMatrix());
 
 			bufferBoxes = mesh.getBufferBoxes();
@@ -290,11 +289,6 @@ module WebGLEngine {
 		// TODO : whats this? Can it be combined with Console?
 		public createDebugger() : Types.Debugger {
 			return new Types.Debugger(this);
-		}
-
-		// TODO : add method to create/change/remove cameras
-		public getCamera() : Types.Camera {
-			return this._camera;
 		}
 
 		public createCamera() : Types.Camera {

@@ -62,10 +62,10 @@ module WebGLEngine.Types {
         public static FOLLOW = 2;	// position: keeps distance to its position parent, focus: always on its focus parent
         public static ATTACHED = 4;	// position: updates position accordingly its position parent
 
-        private _positionType : CameraPositionType;
-        private _focusType : CameraType;
         private static _current : Camera = null;
         private static _pool = new Pool<Camera>();
+        private _positionType : CameraPositionType;
+        private _focusType : CameraType;
 
         // TODO : remove when camera types were implemented
         private _followTarget : Transformations;
@@ -82,6 +82,14 @@ module WebGLEngine.Types {
 
         public static get pool() : Pool<Camera> {
             return this._pool;
+        }
+
+        public static get current() : Camera {
+            return Camera._current;
+        }
+
+        public setActive() : Camera {
+            return Camera._current = this;
         }
 
         public setPositionRule(type : number, offset : Vector3, parent : LinkedTransformations = null, distance : number = 0) : Camera {
@@ -133,22 +141,6 @@ module WebGLEngine.Types {
             return this;
         }
 
-        /** Sets follow state for camera */
-        public follow(transformations : Transformations, distance? : number) : void {
-            if (transformations instanceof Transformations) {
-                this._followTarget = transformations;
-                this._distance = typeof distance === 'number' ? distance : -1;
-            }
-            else {
-                Console.error('Camera:follow() : first parameter should be instance of Transformations');
-            }
-        }
-
-        /** Removes follow state */
-        public unfollow() : void {
-            this._followTarget = null;
-        }
-
         public update(deltaTime : number) {
             var hypotenuse2D : number,
                 distance : number,
@@ -156,13 +148,13 @@ module WebGLEngine.Types {
                 yAngle : number,
                 position : Vector3;
 
-            if (this._followTarget) {
-                if (this._distance === 0) {
-                    this.position.copyFrom(this._followTarget.position);
-                    this.rotation.y = this._followTarget.rotation.y;
-                }
-                else {
-                    position = this._followTarget.position.clone().minus(this.position);
+            var positionType = this._positionType,
+                focusType = this._focusType,
+                parentPosition = positionType.parent.position;
+            
+            switch (positionType.type) {
+                case Camera.FOLLOW:
+                    position = parentPosition.clone().minus(this.position);
                     hypotenuse2D = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2));
                     yAngle = Math.asin(position.x / hypotenuse2D);
 
@@ -175,26 +167,55 @@ module WebGLEngine.Types {
                         }
                     }
 
-                    this.rotation.y = -yAngle;
-                    this.rotation.x = Math.atan(position.y / hypotenuse2D);
+                    // this.rotation.y = -yAngle;
+                    // this.rotation.x = Math.atan(position.y / hypotenuse2D);
 
-                    if (this._distance > 0) {
-                        distance = this.position.getDistanceTo(this._followTarget.position);
-                        ratio = this._distance / distance;
-                        position.multiply(ratio);
-                        this.position.copyFrom(this._followTarget.position.clone().minus(position));
-                    }
-                }
+                    distance = this.position.getDistanceTo(parentPosition);
+                    ratio = this._positionType.distance / distance;
+                    position.multiply(ratio);
+                    this.position.copyFrom(parentPosition).plus(positionType.offset).minus(position);
+                    break;
+                case Camera.ATTACHED:
+                    this.position.copyFrom(parentPosition).plus(positionType.offset);
+                    break;
             }
-        }
 
-        private _setPositionParent(parent : LinkedTransformations) : void {
-            if (parent instanceof LinkedTransformations) {
-                this._positionParent = parent;
+            switch (focusType.type) {
+                case Camera.FOLLOW:
+                    // TODO : implement
+                    break;
             }
-            else {
-                Console.error('Camera._setPositionParent() : parent should be instance of LinkedTransformations');
-            }
+
+            // if (this._followTarget) {
+            //     if (this._distance === 0) {
+            //         this.position.copyFrom(this._followTarget.position);
+            //         this.rotation.y = this._followTarget.rotation.y;
+            //     }
+            //     else {
+            //         position = this._followTarget.position.clone().minus(this.position);
+            //         hypotenuse2D = Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2));
+            //         yAngle = Math.asin(position.x / hypotenuse2D);
+            //
+            //         if (position.z > 0) {
+            //             if (position.x < 0) {
+            //                 yAngle = -Math.PI - yAngle;
+            //             }
+            //             else {
+            //                 yAngle = Math.PI - yAngle;
+            //             }
+            //         }
+            //
+            //         this.rotation.y = -yAngle;
+            //         this.rotation.x = Math.atan(position.y / hypotenuse2D);
+            //
+            //         if (this._distance > 0) {
+            //             distance = this.position.getDistanceTo(this._followTarget.position);
+            //             ratio = this._positionType.distance / distance;
+            //             position.multiply(ratio);
+            //             this.position.copyFrom(this._followTarget.position.clone().minus(position));
+            //         }
+            //     }
+            // }
         }
 
         /** Adds camera to cameras pool

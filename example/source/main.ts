@@ -51,8 +51,7 @@ module Example {
 			this._engine.Controller.subscribe(new WebGLEngine.Utils.Callback(this._controllerHandler, this));
 
 			// get camera instance
-			// TODO : create constructors for custom camera
-			this._camera = this._engine.getCamera();
+			this._camera = this._engine.createCamera();
 			// TODO : move camera modes to camera class
 			this._cameraMode = Game._cameraModes.FLY;
 
@@ -71,7 +70,13 @@ module Example {
 			this._meshes = {
 				street: this._engine.createMeshFromFile('./resources/environment/street_deoptimized.obj'),
 				sky   : this._engine.createMeshFromFile('./resources/world/cubemap.obj'),
+				cube  : this._engine.createMeshFromFile('./resources/cube/cube.obj'),
+				cube2  : this._engine.createMeshFromFile('./resources/cube/cube.obj')
 			};
+
+			// this._meshes.cube2 = this._meshes.cube.cloneTransformations();
+
+			this._camera.setPositionRule(WebGLEngine.Types.Camera.FOLLOW, new WebGLEngine.Types.Vector3(), this._meshes.cube2, 10);
 
 			// get canvas instance
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
@@ -84,8 +89,8 @@ module Example {
 			// create scene lights
 			this._createLights();
 
-			//this._createAnimation();
-			//this._startAnimation();
+			this._createAnimation();
+			this._startAnimation();
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
@@ -102,6 +107,8 @@ module Example {
 
 			this._meshes.street.scale.set(5, 5, 5);
 			this._meshes.street.position.set(0, -2, 0);
+
+			// this._meshes.cube2.position(2,2,2);
 		}
 
 		private _addListeners() : void {
@@ -135,8 +142,11 @@ module Example {
 			engine.beginDraw();
 			engine.turnOffLight();
 			engine.draw(this._meshes.sky);
-			engine.turnOnLight();
+			engine.draw(this._meshes.cube);
+			engine.draw(this._meshes.cube2);
 			engine.draw(this._meshes.street);
+			engine.turnOnLight();
+			// engine.draw(this._meshes.street);
 		}
 
 		// TODO : move handler to library
@@ -214,73 +224,99 @@ module Example {
 
 		// TODO : make animation work with separate types of animation
 		private _createAnimation() : void {
-			// test animation
+
 			this._animation = new WebGLEngine.Types.Animation(
 				WebGLEngine.Types.Animation.Types.WITH_CHANGES,
 
 				new WebGLEngine.Types.Frame()
-					.setPosition(new WebGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
-					.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, -1.610796326794911, 0)),
-
-				[
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(136.40451406685602, 5.415755109754397, 133.30897309960255))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.04249999999999963, -1.5382963267949123, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(166.92537377876405, 13.87551154649805, 135.66199169524546))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.059999999999999554, -1.158296326794911, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(176.56004296081076, 22.734961602354524, 125.54120391044728))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.07249999999999955, -0.7057963267949127, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(179.28899592498212, 24.84508806214609, 107.87830239480094))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.039999999999999515, -0.07079632679491238, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(182.96241814113472, 26.42981155369769, 54.02852808470881))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.01999999999999952, -0.06329632679491237, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(135.45437959461776, 16.6388461574058, -4.666124544685863))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.1850000000000006, 1.3692036732050852, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(79.6288098713936, 14.491545215427712, -7.243745352305449))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.012500000000000497, 1.551703673205082, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(18.47103498247786, 11.988485530725889, 4.17309100277266))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000052, 2.1142036732050804, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(-11.839525845439713, 9.859977467817682, 37.74541925333037))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.0200000000000005, 2.6217036732050745, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(-19.272998573951327, 9.71999955068464, 97.612877613702))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.004999999999999498, 3.3042036732050626, 0)),
-					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
-						.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, Math.PI + 1.610796326794911, 0))
-				]
-			);
-			this._animation.setTimeByDistance(10000);
-
-			this._animation2 = new WebGLEngine.Types.Animation(
-				WebGLEngine.Types.Animation.Types.WITH_CHANGES,
-
-				new WebGLEngine.Types.Frame()
-					.setPosition(new WebGLEngine.Types.Vector3(0, 10.0001, 0))
+					.setPosition(new WebGLEngine.Types.Vector3(0, 0, 0))
 					.setRotation(new WebGLEngine.Types.Vector3(0, 0, 0)),
 				[
 					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(0, 10.0002, 0))
+						.setPosition(new WebGLEngine.Types.Vector3(40, 0, 0))
 						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 2, Math.PI / 4, 0))
-						.setTime(2000),
+						.setTime(4000),
 					new WebGLEngine.Types.Frame()
-						.setPosition(new WebGLEngine.Types.Vector3(0, 10.0001, 0))
+						.setPosition(new WebGLEngine.Types.Vector3(40, 0, 40))
 						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 4, 0, 0))
-						.setTime(2000),
+						.setTime(4000),
+					new WebGLEngine.Types.Frame()
+						.setPosition(new WebGLEngine.Types.Vector3(0, 0, 40))
+						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 2, 0, 0))
+						.setTime(4000),
+					new WebGLEngine.Types.Frame()
+						.setPosition(new WebGLEngine.Types.Vector3(0, 0, 0))
+						.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 4, 0, 0))
+						.setTime(4000)
 				]
 			);
+			// test animation
+			// this._animation = new WebGLEngine.Types.Animation(
+			// 	WebGLEngine.Types.Animation.Types.WITH_CHANGES,
+            //
+			// 	new WebGLEngine.Types.Frame()
+			// 		.setPosition(new WebGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
+			// 		.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, -1.610796326794911, 0)),
+            //
+			// 	[
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(136.40451406685602, 5.415755109754397, 133.30897309960255))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.04249999999999963, -1.5382963267949123, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(166.92537377876405, 13.87551154649805, 135.66199169524546))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.059999999999999554, -1.158296326794911, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(176.56004296081076, 22.734961602354524, 125.54120391044728))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.07249999999999955, -0.7057963267949127, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(179.28899592498212, 24.84508806214609, 107.87830239480094))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.039999999999999515, -0.07079632679491238, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(182.96241814113472, 26.42981155369769, 54.02852808470881))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.01999999999999952, -0.06329632679491237, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(135.45437959461776, 16.6388461574058, -4.666124544685863))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.1850000000000006, 1.3692036732050852, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(79.6288098713936, 14.491545215427712, -7.243745352305449))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.012500000000000497, 1.551703673205082, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(18.47103498247786, 11.988485530725889, 4.17309100277266))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000052, 2.1142036732050804, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(-11.839525845439713, 9.859977467817682, 37.74541925333037))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.0200000000000005, 2.6217036732050745, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(-19.272998573951327, 9.71999955068464, 97.612877613702))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + 0.004999999999999498, 3.3042036732050626, 0)),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(-16.85797848025723, 12.674998062742992, 135.3757210551033))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(-Math.PI / 2 + -0.08250000000000035, Math.PI + 1.610796326794911, 0))
+			// 	]
+			// );
+			// this._animation.setTimeByDistance(10000);
+            //
+			// this._animation2 = new WebGLEngine.Types.Animation(
+			// 	WebGLEngine.Types.Animation.Types.WITH_CHANGES,
+            //
+			// 	new WebGLEngine.Types.Frame()
+			// 		.setPosition(new WebGLEngine.Types.Vector3(0, 10.0001, 0))
+			// 		.setRotation(new WebGLEngine.Types.Vector3(0, 0, 0)),
+			// 	[
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(0, 10.0002, 0))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 2, Math.PI / 4, 0))
+			// 			.setTime(2000),
+			// 		new WebGLEngine.Types.Frame()
+			// 			.setPosition(new WebGLEngine.Types.Vector3(0, 10.0001, 0))
+			// 			.setRotation(new WebGLEngine.Types.Vector3(Math.PI * 4, 0, 0))
+			// 			.setTime(2000),
+			// 	]
+			// );
 		}
 
 		private _startAnimation() : void {
-			this._animation.start(this._meshes.plane, new WebGLEngine.Utils.Callback(this._startAnimation, this));
+			this._animation.start(this._meshes.cube2, new WebGLEngine.Utils.Callback(this._startAnimation, this));
 		}
 
 		// TODO : move handler to library
@@ -379,22 +415,22 @@ module Example {
 
 		// TODO : move camera modes to Camera class
 		private _changeCameraMode() : void {
-			switch (this._cameraMode) {
-				case Game._cameraModes.FLY:
-					this._camera.follow(this._meshes.plane);
-					this._cameraMode = Game._cameraModes.FOLLOW;
-					break;
-
-				case Game._cameraModes.FOLLOW:
-					this._camera.follow(this._meshes.plane, 10);
-					this._cameraMode = Game._cameraModes.FOLLOW_CLOSE;
-					break;
-
-				case Game._cameraModes.FOLLOW_CLOSE:
-					this._camera.unfollow();
-					this._cameraMode = Game._cameraModes.FLY;
-					break;
-			}
+			// switch (this._cameraMode) {
+			// 	case Game._cameraModes.FLY:
+			// 		this._camera.follow(this._meshes.plane);
+			// 		this._cameraMode = Game._cameraModes.FOLLOW;
+			// 		break;
+            //
+			// 	case Game._cameraModes.FOLLOW:
+			// 		this._camera.follow(this._meshes.plane, 10);
+			// 		this._cameraMode = Game._cameraModes.FOLLOW_CLOSE;
+			// 		break;
+            //
+			// 	case Game._cameraModes.FOLLOW_CLOSE:
+			// 		this._camera.unfollow();
+			// 		this._cameraMode = Game._cameraModes.FLY;
+			// 		break;
+			// }
 		}
 
 		private _controllerHandler(event : string) : void {
