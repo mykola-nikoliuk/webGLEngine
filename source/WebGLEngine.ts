@@ -297,6 +297,10 @@ module WebGLEngine {
 			return this._camera;
 		}
 
+		public createCamera() : Types.Camera {
+			return new Types.Camera();
+		}
+
 		// TODO : is it using?
 		public getGLInstance() : WebGLRenderingContext {
 			return this._gl;
