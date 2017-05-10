@@ -1,6 +1,6 @@
 module Example {
 
-	export var Config = {
+	export let Config = {
 		engine: {
 			FPS: 30
 		},

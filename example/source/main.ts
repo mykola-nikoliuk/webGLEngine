@@ -1,12 +1,13 @@
 ///<reference path="config.ts"/>
 ///<reference path="../../source/WebGLEngine.ts"/>
-///<reference path="./classes/vehicle/configurations/SimpleVehicle.ts"/>
-///<reference path="./classes/vehicle/VehicleConfiguration.ts"/>
-///<reference path="./classes/vehicle/VehicleBridge.ts"/>
-///<reference path="./classes/vehicle/Vehicle.ts"/>
+/* // /<reference path="./classes/vehicle/configurations/SimpleVehicle.ts"/>
+// /<reference path="./classes/vehicle/VehicleConfiguration.ts"/>
+// /<reference path="./classes/vehicle/VehicleBridge.ts"/>
+// /<reference path="./classes/vehicle/Vehicle.ts"/> */
 ///<reference path="./classes/MeshManager.ts"/>
+///<reference path="./classes/Terrain.ts"/>
 
-var game = null;
+let game = null;
 
 module Example {
 
@@ -14,7 +15,7 @@ module Example {
 		game = new Game();
 	}, false);
 
-	export var meshManager = new MeshManager();
+	export let meshManager = new MeshManager();
 
 	export class Game {
 		private static _cameraModes = {
@@ -74,8 +75,102 @@ module Example {
 				cube2  : this._engine.createMeshFromFile('./resources/cube/cube.obj')
 			};
 
-			this._camera.setPositionRule(WebGLEngine.Types.Camera.ATTACHED, new WebGLEngine.Types.Vector3(0,200,0), this._meshes.cube2);
-			this._camera.setFocusRule(WebGLEngine.Types.Camera.FOLLOW, new WebGLEngine.Types.Vector3(), this._meshes.cube);
+
+
+
+
+
+			let terrainMaterial = {},
+				terrainFaces = [],
+				terrainNormals = [],
+				terrainVertexes = [],
+				terrainMatrix = [/*
+					[0, 0, 0, 0],
+					[0, -5, 0, 0]
+				*/],
+                terrain = new Terrain(9, 0.5),
+				matrixSize = terrain.size,
+				matrixStep = 10,
+				heightRange = 10,
+				facesPerColumn = 2,
+				facesPerRow = matrixSize;
+
+			// for (let x = 0; x < matrixSize; x++) {
+			// 	let row = [];
+			// 	for (let y = 0; y < matrixSize; y++) {
+			// 		row.push(Math.random()*heightRange);
+			// 	}
+			// 	terrainMatrix.push(row);
+			// }
+
+			terrainMatrix = terrain.getMap();
+
+			// create default material
+			terrainMaterial[WebGLEngine.Types.Mesh.defaultMaterialName] = new WebGLEngine.Types.Material();
+			terrainFaces[WebGLEngine.Types.Mesh.defaultMaterialName] = [];
+
+			for (let row = 0; row < terrainMatrix.length - 1; row++) {
+				for (let column = 0; column < terrainMatrix[0].length - 1; column++) {
+					let positionVector = new WebGLEngine.Types.Vector3(column, row),
+						vertexOffsetVectors = [
+							new WebGLEngine.Types.Vector3(0, 1),
+							new WebGLEngine.Types.Vector3(1, 0),
+							new WebGLEngine.Types.Vector3(0, 0),
+							new WebGLEngine.Types.Vector3(1, 1)
+						],
+						faceIndexes = [[0, 1, 2], [0, 3, 1]];
+
+					vertexOffsetVectors.forEach(vector => {
+						vector.plus(positionVector);
+					});
+
+					faceIndexes.forEach((vertexIds, faceId) => {
+						let face = new WebGLEngine.Types.Face(),
+							faceIndex = row * facesPerRow + column * facesPerColumn + faceId,
+							vertexVectors = [];
+
+						vertexIds.forEach((vertexId, index) => {
+							let vector = vertexOffsetVectors[vertexId],
+								startVertexIndex = faceIndex * 3,
+								vertex = new WebGLEngine.Types.Vector3(
+									vector.x * matrixStep,
+									terrainMatrix[vector.y][vector.x],
+									vector.y * matrixStep
+								);
+							vertexVectors.push(vertex);
+
+							// set vertexes
+							terrainVertexes.push(...vertex.getArray());
+
+							// set faces
+							face.vertexes.push(new WebGLEngine.Types.Vertex(startVertexIndex + index, 0, faceIndex));
+						});
+
+						// calculate normals
+						let a = vertexVectors[1].clone().minus(vertexVectors[0]);
+						let b = vertexVectors[2].clone().minus(vertexVectors[0]);
+						let res = a.cross(b).normalize().getArray();
+						terrainNormals.push(...res);
+
+						terrainFaces[WebGLEngine.Types.Mesh.defaultMaterialName].push(face);
+					});
+				}
+			}
+
+			let terrainMesh = this._engine.createMesh(
+				terrainVertexes, //vertexes
+				[], // texture
+				terrainNormals,
+				terrainFaces, // faces
+				terrainMaterial // materials
+			);
+			terrainMesh.position.set(0, 10, 0);
+			this._meshes.terrain = terrainMesh;
+
+			// this._camera.setPositionRule(WebGLEngine.Types.Camera.ATTACHED, new WebGLEngine.Types.Vector3(0,200,0), this._meshes.cube2);
+			// this._camera.setFocusRule(WebGLEngine.Types.Camera.FOLLOW, new WebGLEngine.Types.Vector3(), this._meshes.cube);
+			// this._camera.setPositionRule(WebGLEngine.Types.Camera.FREE, new WebGLEngine.Types.Vector3(0,200,0), this._meshes.cube2);
+			this._camera.setFocusRule(WebGLEngine.Types.Camera.FREE, new WebGLEngine.Types.Vector3());
 
 			// get canvas instance
 			this._canvas = <HTMLCanvasElement>WebGLEngine.Engine.getCanvas();
@@ -88,8 +183,8 @@ module Example {
 			// create scene lights
 			this._createLights();
 
-			this._createAnimation();
-			this._startAnimation();
+			// this._createAnimation();
+			// this._startAnimation();
 
 			if (this._engine) {
 				this._engine.Render.subscribe(new WebGLEngine.Utils.Callback(this._mainProc, this));
@@ -126,29 +221,31 @@ module Example {
 			this._engine.addLight(new WebGLEngine.Types.Light(
 				WebGLEngine.Types.Light.Types.DIRECTIONAL,
 				new WebGLEngine.Types.Vector3(1,1,1),
-				new WebGLEngine.Types.Vector3(1, 0.5, 0.25)
+				new WebGLEngine.Types.Vector3(0, 1, 0)
 			));
 		}
 
 		private _mainProc(deltaTime : number) : void {
-			var engine = this._engine;
+			let engine = this._engine;
 
 			this._keysHandler();
 			this._updateCameraPosition(deltaTime);
 			// TODO : probably better to add chaining?
 			engine.beginDraw();
 			engine.turnOffLight();
+			// engine.draw(this._meshes.cube);
+			// engine.draw(this._meshes.cube2);
 			engine.draw(this._meshes.sky);
-			engine.draw(this._meshes.cube);
-			engine.draw(this._meshes.cube2);
-			engine.draw(this._meshes.street);
+			// engine.draw(this._meshes.street);
 			engine.turnOnLight();
+			engine.draw(this._meshes.terrain);
+			// this._meshes.terrain.rotation.x += 0.01;
 		}
 
 		// TODO : move handler to library
 		private _lockCursor() : void {
 			document.addEventListener('mousemove', this._mouseHandler, false);
-			var canvas = <any>this._canvas;
+			let canvas = <any>this._canvas;
 			canvas.requestPointerLock = canvas.requestPointerLock ||
 				canvas.mozRequestPointerLock ||
 				canvas.webkitRequestPointerLock;
@@ -157,7 +254,7 @@ module Example {
 
 		// TODO : move handler to library
 		private _releaseCursor() : void {
-			var doc = <any>document;
+			let doc = <any>document;
 			if (doc.pointerLockElement !== this._canvas &&
 				doc.mozPointerLockElement !== this._canvas &&
 				doc.webkitPointerLockElement !== this._canvas) {
@@ -176,11 +273,11 @@ module Example {
 
 		// TODO : should be moved to library as some mode but left this functionality for user
 		private _updateCameraRotation(e) : void {
-			var x = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
+			let x = e.movementX || e.mozMovementX || e.webkitMovementX || 0,
 				y = e.movementY || e.mozMovementY || e.webkitMovementY || 0,
 				sensitivity = Config.camera.mouse.sensitivity;
 
-			var vec31 = [0, -x / sensitivity, 0],
+			let vec31 = [0, -x / sensitivity, 0],
 				vec32 = [-y / sensitivity, 0, 0];
 
 			this._camera.rotation.add(vec31[0], vec31[1], vec31[2]);
@@ -189,13 +286,13 @@ module Example {
 
 		// TODO : should be moved to library as some mode but left this functionality for user
 		private _updateCameraPosition(deltaTime : number) : void {
-			var speed,
+			let speed,
 				staticSpeed = 100,
 				offset = [];
 
 			speed = deltaTime / 1000 * staticSpeed;
 
-			var direction = new WebGLEngine.Types.Vector3();
+			let direction = new WebGLEngine.Types.Vector3();
 
 			if (this._timers.key_w) {
 				direction.z = -1;
@@ -438,7 +535,7 @@ module Example {
 		}
 
 		private _controllerHandler(event : string) : void {
-			var events = WebGLEngine.Types.Controller.Events;
+			let events = WebGLEngine.Types.Controller.Events;
 
 			switch (event) {
 				case events.ALL_MESHES_LOADED:

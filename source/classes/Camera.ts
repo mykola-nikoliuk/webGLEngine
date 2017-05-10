@@ -123,28 +123,28 @@ export default class Camera extends LinkedTransformations {
         return this;
     }
 
-    public setFocusRule(type: number, offset: Vector3, parent: LinkedTransformations): Camera {
-        let newType = new CameraType(),
-            success = true;
-        switch (type) {
-            case Camera.FREE:
-                success = newType.set(type, offset);
-                break;
-            case Camera.FOLLOW:
-                success = parent !== null && newType.set(type, offset, parent);
-                break;
-            default:
-                error('Camera:setFocusRule() : unknown type: "' + type + '"');
-                break;
+        public setFocusRule(type : number, offset : Vector3, parent ?: LinkedTransformations) : Camera {
+            let newType = new CameraType(),
+                success = true;
+            switch (type) {
+                case Camera.FREE:
+                    success = newType.set(type, offset);
+                    break;
+                case Camera.FOLLOW:
+                    success = parent !== null && newType.set(type, offset, parent);
+                    break;
+                default:
+                    error('Camera:setFocusRule() : unknown type: "' + type + '"');
+                    break;
+            }
+            if (success) {
+                this._focusType = newType;
+            }
+            else {
+                error('Camera:setFocusRule() : wrong parameters type');
+            }
+            return this;
         }
-        if (success) {
-            this._focusType = newType;
-        }
-        else {
-            error('Camera:setFocusRule() : wrong parameters type');
-        }
-        return this;
-    }
 
     public update(deltaTime: number) {
         let hypotenuse2D: number,

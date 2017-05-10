@@ -1,6 +1,6 @@
 module Example.Cars {
 
-	export var SimpleVehicle : VehicleConfiguration = {
+	export let SimpleVehicle : VehicleConfiguration = {
 		size                : new WebGLEngine.Types.Vector3(4, 4, 12),
 		maxControlWheelAngle: Math.PI / 4,
 		wheelAngleCoefficientPerStep : 1 / Config.engine.FPS,

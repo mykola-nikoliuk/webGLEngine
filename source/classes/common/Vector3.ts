@@ -57,9 +57,23 @@ export default class Vector3 {
         return this;
     }
 
-    public clone(): Vector3 {
-        return new Vector3(this._x, this._y, this._z);
-    }
+		public normalize() {
+			let lenght = Math.sqrt(Math.pow(this._x, 2) + Math.pow(this._y, 2) + Math.pow(this._z, 2));
+			this.divide(lenght);
+			return this;
+		}
+
+		public cross(vector : Vector3) : Vector3 {
+			this.set(
+				this._y * vector._z - this._z * vector._y,
+				this._z * vector._x - this._x * vector._z,
+				this._x * vector._y - this._y * vector._x
+			);
+			this._touched = true;
+			return this;
+		}public clone() : Vector3 {
+			return new Vector3(this._x, this._y, this._z);
+		}
 
     public invertSign(): Vector3 {
         this._x *= -1;
