@@ -1,10 +1,10 @@
-module WebGLEngine.Types {
+import Vertex from "./Vertex";
 
-	export class Face {
-		public vertexes : Vertex[];
+export default class Face {
+    public vertexes: Vertex[];
 
-		constructor() {
-			this.vertexes = [];
-		}
-	}
+    constructor() {
+        this.vertexes = [];
+    }
+
 }

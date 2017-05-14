@@ -1,37 +1,36 @@
-module WebGLEngine.Types {
+import Callback from "./utils/Callback";
 
-	export class Subscribe {
+export default class Subscribe {
 
-		protected _subscribers : Utils.Callback[];
+    protected _subscribers: Callback[];
 
-		constructor() {
-			this._subscribers = [];
-		}
+    constructor() {
+        this._subscribers = [];
+    }
 
-		/** Add subscriber
-		 * @param callback
-		 * @return is callback Was added
-		 */
-		public subscribe(callback : Utils.Callback) : boolean {
-			if (this._subscribers.indexOf(callback) < 0) {
-				this._subscribers.push(callback);
-				return true;
-			}
-			return false;
-		}
+    /** Add subscriber
+     * @param callback
+     * @return is callback Was added
+     */
+    public subscribe(callback: Callback): boolean {
+        if (this._subscribers.indexOf(callback) < 0) {
+            this._subscribers.push(callback);
+            return true;
+        }
+        return false;
+    }
 
-		/** Removes subscriber
-		 * @param callback
-		 * @return is callback Was deleted
-		 */
-		public unsubscribe(callback : Utils.Callback) : boolean {
-			var index : number;
-			if ((index = this._subscribers.indexOf(callback)) > 0) {
-				this._subscribers.splice(index, 1);
-				return true;
-			}
-			return false;
-		}
+    /** Removes subscriber
+     * @param callback
+     * @return is callback Was deleted
+     */
+    public unsubscribe(callback: Callback): boolean {
+        var index: number;
+        if ((index = this._subscribers.indexOf(callback)) > 0) {
+            this._subscribers.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
 
-	}
 }

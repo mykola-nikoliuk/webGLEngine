@@ -1,6 +1,10 @@
-module WebGLEngine.Types {
+import Vector3 from "../common/Vector3";
+import Pool from "../common/Pool";
+import Callback from "../utils/Callback";
+import console from "../utils/Console";
+const {error} = console;
 
-	export class Material {
+export default class Material {
 
 		public diffuseColor : Vector3;
 		public specular : number;
@@ -21,7 +25,7 @@ module WebGLEngine.Types {
 		private static _pool = new Pool<Material>();
 
 		private _loadingImage;
-		private _callback : Utils.Callback;
+		private _callback : Callback;
 
 		constructor() {
 			this.diffuseColor = new Vector3(1, 0, 1);
@@ -40,7 +44,7 @@ module WebGLEngine.Types {
 			return this._pool;
 		}
 
-		public callback(callback : Utils.Callback) : void {
+		public callback(callback : Callback) : void {
 			this._callback = callback;
 			if (this.ready) {
 				callback.apply();
@@ -49,11 +53,11 @@ module WebGLEngine.Types {
 
 		public loadTexture(gl, path : string, textureRepeat : string) {
 			if (typeof gl !== 'object') {
-				Console.error('GL parameter is not a object');
+				error('GL parameter is not a object');
 				return;
 			}
 			if (typeof path !== 'string') {
-				Console.error('Texture path parameter is not a string');
+				error('Texture path parameter is not a string');
 				return;
 			}
 			if (typeof textureRepeat === 'string') {
@@ -66,7 +70,7 @@ module WebGLEngine.Types {
 
 			this.imageLink = path;
 			this._loadingImage = new Image();
-			this._loadingImage.onload = Utils.bind(this._createTexture, this, gl);
+			this._loadingImage.onload = this._createTexture.bind(this, gl);
 			this._loadingImage.src = path;
 		}
 
@@ -90,5 +94,4 @@ module WebGLEngine.Types {
 				this._callback.apply();
 			}
 		}
-	}
 }

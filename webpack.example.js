@@ -1,10 +1,10 @@
 var path = require('path');
 
 module.exports = {
-  entry: './source/WebGLEngine.ts',
+  entry: './example/source/main.ts',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'example_dist')
   },
   devtool: 'source-map',
   resolve: {

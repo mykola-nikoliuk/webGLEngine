@@ -1,38 +1,39 @@
-module WebGLEngine.Types {
+import Subscribe from "./Subscribe";
+import Mesh from './mesh/Mesh';
+import Engine from "../WebGLEngine";
 
-	export class Controller extends Subscribe {
+export default class Controller extends Subscribe {
 
-		public static Events = {
-			MESH_LOADED: 'mesh_loaded',
-			ALL_MESHES_LOADED : 'all_meshes_loaded'
-		};
+    public static Events = {
+        MESH_LOADED: 'mesh_loaded',
+        ALL_MESHES_LOADED: 'all_meshes_loaded'
+    };
 
-		private _engine : Engine;
-		private _lastLoadedMesh : Mesh;
+    private _engine: Engine;
+    private _lastLoadedMesh: Mesh;
 
-		constructor(engine : Engine) {
-			super();
-			this._engine = engine;
-			this._lastLoadedMesh = null;
-		}
+    constructor(engine: Engine) {
+        super();
+        this._engine = engine;
+        this._lastLoadedMesh = null;
+    }
 
-		public sendEvent(event : string) : void {
-			this._handler.call(this, arguments);
-			for (var i = 0; i < this._subscribers.length; i++) {
-				this._subscribers[i].apply(event);
-			}
-		}
+    public sendEvent(event: string): void {
+        this._handler.call(this, arguments);
+        for (var i = 0; i < this._subscribers.length; i++) {
+            this._subscribers[i].apply(event);
+        }
+    }
 
-		public getLastLoadedMesh() : Mesh {
-			return this._lastLoadedMesh;
-		}
+    public getLastLoadedMesh(): Mesh {
+        return this._lastLoadedMesh;
+    }
 
-		private _handler(event : string, parameter : any) {
-			switch (event) {
-				case Controller.Events.MESH_LOADED:
-					this._lastLoadedMesh = parameter;
-					break;
-			}
-		}
-	}
+    private _handler(event: string, parameter: any) {
+        switch (event) {
+            case Controller.Events.MESH_LOADED:
+                this._lastLoadedMesh = parameter;
+                break;
+        }
+    }
 }
