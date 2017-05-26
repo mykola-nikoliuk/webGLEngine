@@ -59,15 +59,8 @@ export default class Timer {
 
     public resume(): void {
         if (this._timerEnabled && !this._timerInterval) {
-
-            var func = function (func, thisArg) {
-                return function () {
-                    return func.apply(thisArg, arguments);
-                };
-            }.call(this, this.resumeInterval, this);
-
             this._startTime = Date.now();
-            this._timerInterval = setTimeout(func, this._pauseTimeout);
+            this._timerInterval = setTimeout(this.resumeInterval.bind(this), this._pauseTimeout);
         }
     }
 
@@ -90,14 +83,8 @@ export default class Timer {
     }
 
     private _createTimer(): void {
-        var func = function (func, thisArg) {
-            return function () {
-                return func.apply(thisArg, arguments);
-            };
-        }.call(this, this._nativeFunction, this);
-
         this._startTime = Date.now();
-        this._timerInterval = setInterval(func, this._timeout);
+        this._timerInterval = setInterval(this._nativeFunction.bind(this), this._timeout);
     }
 
     private _nativeFunction() {

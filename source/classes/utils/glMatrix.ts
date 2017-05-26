@@ -1,11 +1,11 @@
-declare let glMatrixArrayType;
-declare let WebGLFloatArray;
+declare let glMatrixArrayType: any;
+declare let WebGLFloatArray: any;
 
 glMatrixArrayType = typeof Float32Array != "undefined" ?
     Float32Array : typeof WebGLFloatArray != "undefined" ? WebGLFloatArray : Array;
 
 export class vec3 {
-    static create(a) {
+    static create(a: any[]) {
         let b = new glMatrixArrayType(3);
         if (a) {
             b[0] = a[0];
@@ -15,14 +15,14 @@ export class vec3 {
         return b
     }
 
-    static set(a, b) {
+    static set(a: any[], b: any[]) {
         b[0] = a[0];
         b[1] = a[1];
         b[2] = a[2];
         return b
     }
 
-    static add(a, b, c) {
+    static add(a: any[], b: any[], c: any[]) {
         if (!c || a == c) {
             a[0] += b[0];
             a[1] += b[1];
@@ -35,7 +35,7 @@ export class vec3 {
         return c
     }
 
-    static subtract(a, b, c) {
+    static subtract(a: any[], b: any[], c: any[]) {
         if (!c || a == c) {
             a[0] -= b[0];
             a[1] -= b[1];
@@ -48,7 +48,7 @@ export class vec3 {
         return c
     }
 
-    static negate(a, b) {
+    static negate(a: any[], b: any[]) {
         b || (b = a);
         b[0] = -a[0];
         b[1] = -a[1];
@@ -56,7 +56,7 @@ export class vec3 {
         return b
     }
 
-    static scale(a, b, c) {
+    static scale(a: any, b: any, c: any) {
         if (!c || a == c) {
             a[0] *= b;
             a[1] *= b;
@@ -69,7 +69,7 @@ export class vec3 {
         return c
     }
 
-    static normalize(a, b) {
+    static normalize(a: any, b: any) {
         b || (b = a);
         let c = a[0], d = a[1], e = a[2], g = Math.sqrt(c * c + d * d + e * e);
         if (g) {
@@ -92,7 +92,7 @@ export class vec3 {
         return b
     }
 
-    static cross(a, b, c) {
+    static cross(a: any, b: any, c: any) {
         c || (c = a);
         let d = a[0], e = a[1];
         a = a[2];
@@ -104,17 +104,17 @@ export class vec3 {
         return c
     }
 
-    static len(a) {
+    static len(a: any) {
         let b = a[0], c = a[1];
         a = a[2];
         return Math.sqrt(b * b + c * c + a * a)
     }
 
-    static dot(a, b) {
+    static dot(a: any, b: any) {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
     }
 
-    static direction(a, b, c) {
+    static direction(a: any, b: any, c: any) {
         c || (c = a);
         let d = a[0] - b[0], e = a[1] - b[1];
         a = a[2] - b[2];
@@ -132,7 +132,7 @@ export class vec3 {
         return c
     }
 
-    static lerp(a, b, c, d) {
+    static lerp(a: any, b: any, c: any, d: any) {
         d || (d = a);
         d[0] = a[0] + c * (b[0] - a[0]);
         d[1] = a[1] + c * (b[1] - a[1]);
@@ -140,13 +140,13 @@ export class vec3 {
         return d
     }
 
-    static str(a) {
+    static str(a: any) {
         return "[" + a[0] + ", " + a[1] + ", " + a[2] + "]"
     }
 }
 
 export class mat3 {
-    static create(a?) {
+    static create(a?: any) {
         let b = new glMatrixArrayType(9);
         if (a) {
             b[0] = a[0];
@@ -163,7 +163,7 @@ export class mat3 {
         return b
     }
 
-    static set(a, b) {
+    static set(a: any, b: any) {
         b[0] = a[0];
         b[1] = a[1];
         b[2] = a[2];
@@ -176,7 +176,7 @@ export class mat3 {
         return b
     }
 
-    static identity(a) {
+    static identity(a: any) {
         a[0] = 1;
         a[1] = 0;
         a[2] = 0;
@@ -189,7 +189,7 @@ export class mat3 {
         return a
     }
 
-    static transpose(a, b?) {
+    static transpose(a: any, b?: any) {
         if (!b || a == b) {
             let c = a[1], d = a[2], e = a[5];
             a[1] = a[3];
@@ -212,7 +212,7 @@ export class mat3 {
         return b
     }
 
-    static toMat4(a, b) {
+    static toMat4(a: any, b: any) {
         b || (b = mat4.create());
         b[0] = a[0];
         b[1] = a[1];
@@ -233,13 +233,13 @@ export class mat3 {
         return b
     }
 
-    static str(a) {
+    static str(a: any) {
         return "[" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ", " + a[4] + ", " + a[5] + ", " + a[6] + ", " + a[7] + ", " + a[8] + "]"
     }
 }
 
 export class mat4 {
-    static create(a?) {
+    static create(a?: any) {
         let b = new glMatrixArrayType(16);
         if (a) {
             b[0] = a[0];
@@ -262,7 +262,7 @@ export class mat4 {
         return b
     }
 
-    static set(a, b) {
+    static set(a: any, b: any) {
         b[0] = a[0];
         b[1] = a[1];
         b[2] = a[2];
@@ -282,7 +282,7 @@ export class mat4 {
         return b
     }
 
-    static identity(a) {
+    static identity(a: any) {
         a[0] = 1;
         a[1] = 0;
         a[2] = 0;
@@ -302,7 +302,7 @@ export class mat4 {
         return a
     }
 
-    static transpose(a, b) {
+    static transpose(a: any, b: any) {
         if (!b || a == b) {
             let c = a[1], d = a[2], e = a[3], g = a[6], f = a[7], h = a[11];
             a[1] = a[4];
@@ -338,14 +338,14 @@ export class mat4 {
         return b
     }
 
-    static determinant(a) {
+    static determinant(a: any) {
         let b = a[0], c = a[1], d = a[2], e = a[3], g = a[4], f = a[5], h = a[6], i = a[7], j = a[8], k = a[9],
             l = a[10], o = a[11], m = a[12], n = a[13], p = a[14];
         a = a[15];
         return m * k * h * e - j * n * h * e - m * f * l * e + g * n * l * e + j * f * p * e - g * k * p * e - m * k * d * i + j * n * d * i + m * c * l * i - b * n * l * i - j * c * p * i + b * k * p * i + m * f * d * o - g * n * d * o - m * c * h * o + b * n * h * o + g * c * p * o - b * f * p * o - j * f * d * a + g * k * d * a + j * c * h * a - b * k * h * a - g * c * l * a + b * f * l * a
     }
 
-    static inverse(a, b) {
+    static inverse(a: any, b: any) {
         b || (b = a);
         let c = a[0], d = a[1], e = a[2], g = a[3], f = a[4], h = a[5], i = a[6], j = a[7], k = a[8], l = a[9],
             o = a[10], m = a[11], n = a[12], p = a[13], r = a[14], s = a[15], A = c * h - d * f, B = c * i - e * f,
@@ -371,7 +371,7 @@ export class mat4 {
         return b
     }
 
-    static toRotationMat(a, b) {
+    static toRotationMat(a: any, b: any) {
         b || (b = mat4.create());
         b[0] = a[0];
         b[1] = a[1];
@@ -392,7 +392,7 @@ export class mat4 {
         return b
     }
 
-    static toMat3(a, b) {
+    static toMat3(a: any, b: any) {
         b || (b = mat3.create());
         b[0] = a[0];
         b[1] = a[1];
@@ -406,7 +406,7 @@ export class mat4 {
         return b
     }
 
-    static toInverseMat3(a, b) {
+    static toInverseMat3(a: any, b: any) {
         let c = a[0], d = a[1], e = a[2], g = a[4], f = a[5], h = a[6], i = a[8], j = a[9], k = a[10],
             l = k * f - h * j, o = -k * g + h * i, m = j * g - f * i, n = c * l + d * o + e * m;
         if (!n)return null;
@@ -424,7 +424,7 @@ export class mat4 {
         return b
     }
 
-    static multiply(a, b, c) {
+    static multiply(a: any, b: any, c: any) {
         c || (c = a);
         let d = a[0], e = a[1], g = a[2], f = a[3], h = a[4], i = a[5], j = a[6], k = a[7], l = a[8], o = a[9],
             m = a[10], n = a[11], p = a[12], r = a[13], s = a[14];
@@ -452,7 +452,7 @@ export class mat4 {
         return c
     }
 
-    static multiplyVec3(a, b, c) {
+    static multiplyVec3(a: any, b: any, c: any) {
         c || (c = b);
         let d = b[0], e = b[1];
         b = b[2];
@@ -462,7 +462,7 @@ export class mat4 {
         return c
     }
 
-    static multiplyVec4(a, b, c) {
+    static multiplyVec4(a: any, b: any, c: any) {
         c || (c = b);
         let d = b[0], e = b[1], g = b[2];
         b = b[3];
@@ -473,7 +473,7 @@ export class mat4 {
         return c
     }
 
-    static translate(a, b, c?) {
+    static translate(a: any, b: any, c?: any) {
         let d = b[0], e = b[1];
         b = b[2];
         if (!c || a == c) {
@@ -504,7 +504,7 @@ export class mat4 {
         return c
     }
 
-    static scale(a, b, c?) {
+    static scale(a: any, b: any, c?: any) {
         let d = b[0], e = b[1];
         b = b[2];
         if (!c || a == c) {
@@ -541,7 +541,7 @@ export class mat4 {
         return c
     }
 
-    static rotate(a, b, c, d) {
+    static rotate(a: any, b: any, c: any, d: any) {
         let e = c[0], g = c[1];
         c = c[2];
         let f = Math.sqrt(e * e + g * g + c * c);
@@ -584,7 +584,7 @@ export class mat4 {
         return d
     }
 
-    static rotateX(a, b, c?) {
+    static rotateX(a: any, b: any, c?: any) {
         let d = Math.sin(b);
         b = Math.cos(b);
         let e = a[4], g = a[5], f = a[6], h = a[7], i = a[8], j = a[9], k = a[10], l = a[11];
@@ -611,7 +611,7 @@ export class mat4 {
         return c
     }
 
-    static rotateY(a, b, c?) {
+    static rotateY(a: any, b: any, c?: any) {
         let d = Math.sin(b);
         b = Math.cos(b);
         let e = a[0], g = a[1], f = a[2], h = a[3], i = a[8], j = a[9], k = a[10], l = a[11];
@@ -638,7 +638,7 @@ export class mat4 {
         return c
     }
 
-    static rotateZ(a, b, c?) {
+    static rotateZ(a: any, b: any, c?: any) {
         let d = Math.sin(b);
         b = Math.cos(b);
         let e = a[0], g = a[1], f = a[2], h = a[3], i = a[4], j = a[5], k = a[6], l = a[7];
@@ -665,7 +665,7 @@ export class mat4 {
         return c
     }
 
-    static rotateZYX(matrix, x, y, z) {
+    static rotateZYX(matrix: any, x: any, y: any, z: any) {
         let te = matrix;
 
         let a = Math.cos(x), b = Math.sin(x);
@@ -689,7 +689,7 @@ export class mat4 {
         return te;
     }
 
-    static frustum(a, b, c, d, e, g, f) {
+    static frustum(a: any, b: any, c: any, d: any, e: any, g: any, f: any) {
         f || (f = mat4.create());
         let h = b - a, i = d - c, j = g - e;
         f[0] = e * 2 / h;
@@ -711,13 +711,13 @@ export class mat4 {
         return f
     }
 
-    static perspective(a, b, c, d, e) {
+    static perspective(a: any, b: any, c: any, d: any, e: any) {
         a = c * Math.tan(a * Math.PI / 360);
         b = a * b;
         return mat4.frustum(-b, b, -a, a, c, d, e)
     }
 
-    static ortho(a, b, c, d, e, g, f) {
+    static ortho(a: any, b: any, c: any, d: any, e: any, g: any, f: any) {
         f || (f = mat4.create());
         let h = b - a, i = d - c, j = g - e;
         f[0] = 2 / h;
@@ -739,7 +739,7 @@ export class mat4 {
         return f
     }
 
-    static lookAt(a, b, c, d) {
+    static lookAt(a: any, b: any, c: any, d: any) {
         d || (d = mat4.create());
         let e = a[0], g = a[1];
         a = a[2];
@@ -793,7 +793,7 @@ export class mat4 {
         return d
     }
 
-    static str(a) {
+    static str(a: any) {
         return "[" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ", " + a[4] + ", " + a[5] + ", " + a[6] + ", " + a[7] + ", " + a[8] + ", " + a[9] + ", " + a[10] + ", " + a[11] + ", " + a[12] + ", " + a[13] + ", " + a[14] + ", " + a[15] + "]"
     }
 }

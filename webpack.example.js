@@ -4,7 +4,7 @@ module.exports = {
   entry: './example/source/main.ts',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'example_dist')
+    path: path.resolve(__dirname, 'example', 'dist')
   },
   devtool: 'source-map',
   resolve: {

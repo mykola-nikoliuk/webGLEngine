@@ -5,11 +5,11 @@ export default class Vector3 {
     private _z: number;
     private _touched: boolean;
 
-    constructor(x?, y?, z?) {
+    constructor(x?: number, y?: number, z?: number) {
         this.set(x, y, z);
     }
 
-    public set(x?, y?, z?): Vector3 {
+    public set(x?: number, y?: number, z?: number): Vector3 {
         this._x = typeof x === 'number' ? x : 0;
         this._y = typeof y === 'number' ? y : 0;
         this._z = typeof z === 'number' ? z : 0;
@@ -17,7 +17,7 @@ export default class Vector3 {
         return this;
     }
 
-    public add(x?, y?, z?): Vector3 {
+    public add(x?: number, y?: number, z?: number): Vector3 {
         this._x += typeof x === 'number' ? x : 0;
         this._y += typeof y === 'number' ? y : 0;
         this._z += typeof z === 'number' ? z : 0;

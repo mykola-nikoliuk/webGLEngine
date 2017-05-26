@@ -3,7 +3,7 @@ var path = require('path');
 module.exports = {
   entry: './source/WebGLEngine.ts',
   output: {
-    filename: 'bundle.js',
+    filename: 'WebGLEngine.js',
     path: path.resolve(__dirname, 'dist')
   },
   devtool: 'source-map',

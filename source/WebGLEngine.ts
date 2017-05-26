@@ -16,25 +16,26 @@ import Shader from "./classes/Shader";
 import Face from "./classes/mesh/Face";
 import Vertex from "./classes/mesh/Vertex";
 import Vector3 from "./classes/common/Vector3";
+import {WebGL3dProgram, WebGL3dRenderingContext} from "./classes/Interfaces"
 const {log, warning, error} = console;
 
 export default class Engine {
 
     static Types: {
-      Mesh
+        Mesh: Mesh;
     };
 
-    private _gl: any;
+    private _gl: WebGL3dRenderingContext;
     private _canvas: CanvasRenderingContext2D | any;
     private _isReady: boolean;
-    private _shader;
+    private _shader: Shader;
     private _inited: boolean;
     private _webGLNode: HTMLCanvasElement;
     private _canvasNode: HTMLCanvasElement;
 
     private _mvMatrix: Matrix4;
     private _pMatrix: Matrix4;
-    private _mvMatrixStack;
+    private _mvMatrixStack: Matrix4[];
 
     private _meshes: Mesh[];
     private _lights: Light[];
@@ -42,7 +43,7 @@ export default class Engine {
     private _render: Render;
     private _controller: Controller;
 
-    private _shaderProgram;
+    private _shaderProgram: WebGL3dProgram;
     private _isLightingEnable: boolean;
 
     public static getCanvas(): HTMLElement {
@@ -251,7 +252,8 @@ export default class Engine {
         }
     }
 
-    public createMesh(vertexes, textures, normals, faces, materials): Mesh {
+    public createMesh(vertexes: number[], textures: number[], normals: number[],
+                      faces: { [material: string]: Face[] }, materials: { [materialName: string]: Material }): Mesh {
         var mesh = new Mesh(this._gl);
         mesh.fillBuffers(vertexes, textures, normals, faces, materials);
         mesh.initBuffers();
@@ -281,9 +283,9 @@ export default class Engine {
     }
 
     // TODO : is it works?
-    public createText(): Text {
-        return new Text(this._canvas);
-    }
+    // public createText(): Text {
+    //     return new Text(this._canvas);
+    // }
 
     // TODO : whats this? Can it be combined with Console?
     public createDebugger(): Debugger {
@@ -295,7 +297,7 @@ export default class Engine {
     }
 
     // TODO : is it using?
-    public getGLInstance(): WebGLRenderingContext {
+    public getGLInstance(): WebGL3dRenderingContext {
         return this._gl;
     }
 
@@ -329,7 +331,7 @@ export default class Engine {
 
     private _initGL() {
         try {
-            this._gl = this._webGLNode.getContext("webgl", {alpha: false}) || this._webGLNode.getContext("experimental-webgl", {alpha: false});
+            this._gl = <WebGL3dRenderingContext>this._webGLNode.getContext("webgl", {alpha: false}) || <WebGL3dRenderingContext>this._webGLNode.getContext("experimental-webgl", {alpha: false});
             this._canvas = this._canvasNode.getContext("2d");
             this._inited = true;
         }
@@ -362,7 +364,7 @@ export default class Engine {
         var fragmentShader = this._shader.getFragmentShader();
         var vertexShader = this._shader.getVertexShader();
 
-        this._shaderProgram = this._gl.createProgram();
+        this._shaderProgram = <WebGL3dProgram>this._gl.createProgram();
 
         this._gl.attachShader(this._shaderProgram, vertexShader);
         this._gl.attachShader(this._shaderProgram, fragmentShader);
@@ -420,9 +422,9 @@ export default class Engine {
     private _parseObjFile(objFile: string, url: string, mesh: Mesh, path: string, parameters: any): void {
         var i, j, nodes,
             vertexes = [], textures = [], normals = [],
-            faces: Face[][] = [],
+            faces: { [material: string]: Face[] } = {},
             materials: { [materialName: string]: Material } = {},
-            currentMaterial = Mesh.defaultMaterialName,
+            currentMaterial: string = Mesh.defaultMaterialName,
             objConfig = config.File.obj,
             lineTypes = objConfig.lineTypes,
             startParsingTime = Date.now(),
@@ -470,7 +472,7 @@ export default class Engine {
                         vertex: Vertex,
                         face = new Face();
 
-                    for (j = 1; j < nodes.length && isNaN(nodes[j]); j++) {
+                    for (j = 1; j < nodes.length && isNaN(Number(nodes[j])); j++) {
                         faceArray = nodes[j].split('/');
 
                         if (isNaN(Number(faceArray[0]))) break;
@@ -603,7 +605,7 @@ export default class Engine {
                     case lineTypes.SPECULAR:
                         //				case 'Tr':
                         for (j = 1; j < nodes.length; j++) {
-                            if (!isNaN(nodes[j])) {
+                            if (!isNaN(Number(nodes[j]))) {
                                 currentMaterial.specular = Number(nodes[j]);
                                 break;
                             }
@@ -612,9 +614,9 @@ export default class Engine {
 
                     case lineTypes.TRANSPARENCY:
                     case lineTypes.DISSOLVED:
-                        var value;
-                        if (!isNaN(nodes[1])) {
-                            value = nodes[1];
+                        let value: number;
+                        if (!isNaN(Number(nodes[1]))) {
+                            value = parseInt(nodes[1]);
                             if (nodes[0].toLowerCase() === lineTypes.TRANSPARENCY) {
                                 value = 1 - value;
                             }

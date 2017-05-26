@@ -1,3 +1,5 @@
+import {WebGL3dRenderingContext} from "../Interfaces";
+
 export default class BuffersBox {
 
     private _indexBuffer: any;
@@ -8,7 +10,7 @@ export default class BuffersBox {
     private _indexesPerMaterial: any;
     private _webGL: any;
 
-    constructor(webGL, indexes, positions, normals, colors, textures, indexesPerMaterial) {
+    constructor(webGL: WebGL3dRenderingContext, indexes: number[], positions: number[], normals: number[], colors: number[], textures: number[], indexesPerMaterial: {[material: string]: number}) {
         this._webGL = webGL;
         this._indexesPerMaterial = indexesPerMaterial;
         this._indexBuffer = this._bindBuffer(indexes, this._webGL.ELEMENT_ARRAY_BUFFER, Uint16Array, 1);
@@ -39,15 +41,15 @@ export default class BuffersBox {
         return this._indexesPerMaterial;
     }
 
-    private _createBuffers(positions, normals, colors, textures): void {
+    private _createBuffers(positions: number[], normals: number[], colors: number[], textures: number[]): void {
         this._positionBuffer = this._bindBuffer(positions, this._webGL.ARRAY_BUFFER, Float32Array, 3);
         this._normalBuffer = this._bindBuffer(normals, this._webGL.ARRAY_BUFFER, Float32Array, 3);
         this._colorBuffer = this._bindBuffer(colors, this._webGL.ARRAY_BUFFER, Float32Array, 3);
         this._textureBuffer = this._bindBuffer(textures, this._webGL.ARRAY_BUFFER, Float32Array, 2);
     }
 
-    private _bindBuffer(array: number[], bufferType, constructor, itemSize: number): any {
-        var buffer = this._webGL.createBuffer();
+    private _bindBuffer(array: number[], bufferType: number, constructor: Float32ArrayConstructor, itemSize: number): any {
+        const buffer = this._webGL.createBuffer();
         this._webGL.bindBuffer(bufferType, buffer);
         this._webGL.bufferData(bufferType, new constructor(array), this._webGL.STATIC_DRAW);
         buffer.itemSize = itemSize;

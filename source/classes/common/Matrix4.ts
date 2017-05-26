@@ -150,7 +150,7 @@ export default class Matrix4 {
         return this;
     }
 
-    public copyFrom(matrix): Matrix4 {
+    public copyFrom(matrix: Matrix4): Matrix4 {
         this.matrixArray = matrix.matrixArray.slice(0);
         return this;
     }

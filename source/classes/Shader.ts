@@ -1,20 +1,21 @@
 import Callback from "./utils/Callback";
 import {requestManager} from "./utils/Utils";
 import console from "./utils/Console";
+import {WebGL3dRenderingContext} from "./Interfaces";
 const {error, log} = console;
 
 export default class Shader {
 
-    private _gl: any;
-    private _vertexShader: string;
-    private _fragmentShader: string;
+    private _gl: WebGL3dRenderingContext;
+    private _vertexShader: WebGLShader;
+    private _fragmentShader: WebGLShader;
     private _vertexShaderURL: string;
     private _fragmentShaderURL: string;
     private _callback: Callback;
-    private _shaderCouter: number;
+    private _shaderCounter: number;
     private _isLoading: boolean;
 
-    constructor(gl) {
+    constructor(gl: WebGL3dRenderingContext) {
 
         if (!gl) {
             return null;
@@ -28,7 +29,7 @@ export default class Shader {
         this._fragmentShaderURL = null;
         this._callback = null;
 
-        this._shaderCouter = 0;
+        this._shaderCounter = 0;
         this._isLoading = false;
     }
 
@@ -49,7 +50,7 @@ export default class Shader {
             this._fragmentShaderURL = fragmentShader;
         }
 
-        this._shaderCouter = 0;
+        this._shaderCounter = 0;
         this._vertexShader = null;
         this._fragmentShader = null;
         this._isLoading = true;
@@ -88,32 +89,27 @@ export default class Shader {
             }
         }
 
-        if (++this._shaderCouter >= 2) {
+        if (++this._shaderCounter >= 2) {
             this._isLoading = false;
             log('Shaders loaded successfully.');
             this._callback.apply();
         }
     }
 
-    public getVertexShader() {
+    public getVertexShader(): WebGLShader {
         return this._vertexShader;
     }
 
-    public getFragmentShader() {
+    public getFragmentShader(): WebGLShader {
         return this._fragmentShader;
     }
 
-    /** Request shader
-     * @private
-     * @param {string} url
-     * @param {function} callback
-     * @param {object} thisArg */
-    public request(url, callback, thisArg) {
+    public request(url: string, callback: Function, thisArg: any) {
 
         let _request = new XMLHttpRequest();
         _request.open('get', url, true);
 
-        callback = typeof callback === 'function' ? callback : function () {
+        callback = typeof callback === 'function' ? callback : () => {
         };
         thisArg = typeof thisArg === 'object' ? thisArg : {};
 

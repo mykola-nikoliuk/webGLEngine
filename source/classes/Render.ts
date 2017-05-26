@@ -14,7 +14,7 @@ export default class Render extends Subscribe {
     private _FPSCounter: number;
     private _FPS: number;
 
-    constructor(engine: Engine, lastDrawCallback = null) {
+    constructor(engine: Engine, lastDrawCallback: Callback = null) {
         super();
         this._engine = engine;
         this._renderCallback = this._render.bind(this);

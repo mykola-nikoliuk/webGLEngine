@@ -1,6 +1,13 @@
 import RequestManager from "./RequestManager";
-
 export const requestManager = new RequestManager();
+
+declare const window: {
+    [key: string]: any; // missing index definition
+    prototype: Window;
+    new(): Window;
+    requestAnimationFrame(callback: FrameRequestCallback): number;
+    cancelAnimationFrame(handle: number): void;
+};
 
 //export function requestFile(url : string, callback : Callback) {
 //	var request = new XMLHttpRequest();
@@ -30,33 +37,30 @@ export const requestManager = new RequestManager();
 //}
 
 export function getFileNameFromPath(path: string) {
-    let nodes = path.split(/\\|\//g);
+    let nodes = path.split(/[/\\]/g);
     return nodes[nodes.length - 1];
 }
 
 (function () {
-    var lastTime = 0;
-    var vendors = ['ms', 'moz', 'webkit', 'o'];
-    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = <(callback: FrameRequestCallback) => number>(window[vendors[x] + 'RequestAnimationFrame']);
-        window.cancelAnimationFrame = <(handle: number) => void>(window[vendors[x] + 'CancelAnimationFrame']
-        || window[vendors[x] + 'CancelRequestAnimationFrame']);
+    let lastTime = 0;
+    const vendors = ['ms', 'moz', 'webkit', 'o'];
+    for (let x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame']
+        || window[vendors[x] + 'CancelRequestAnimationFrame'];
     }
 
-    if (!window.requestAnimationFrame)
-        window.requestAnimationFrame = <(callback: FrameRequestCallback) => number>function (callback, element) {
-            var currTime = new Date().getTime();
-            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function () {
-                    callback(currTime + timeToCall);
-                },
-                timeToCall);
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+        function (callback: FrameRequestCallback) {
+            const currTime = new Date().getTime();
+            const timeToCall = Math.max(0, 16 - (currTime - lastTime));
             lastTime = currTime + timeToCall;
-            return id;
+
+            return setTimeout(callback.bind(this, lastTime), timeToCall);
         };
 
-    if (!window.cancelAnimationFrame)
-        window.cancelAnimationFrame = function (id) {
+    window.cancelAnimationFrame = window.cancelAnimationFrame ||
+        function (id) {
             clearTimeout(id);
         };
 }());

@@ -5,6 +5,7 @@ import Callback from "../utils/Callback";
 import BuffersBox from "./BuffersBox";
 import Vertex from "./Vertex";
 import Vector3 from "../common/Vector3";
+import {WebGL3dRenderingContext} from "../Interfaces";
 
 // TODO : refactor (Create material manager)
 export default class Mesh extends LinkedTransformations {
@@ -12,11 +13,11 @@ export default class Mesh extends LinkedTransformations {
     public static defaultMaterialName = 'noMaterial';
     public static maxVertexIndexValue = 21845; // unsigned short
 
-    private _webGL: WebGLRenderingContext | any;
+    private _webGL: WebGL3dRenderingContext;
     private _vertexes: number[];
     private _vertextTextures: number[];
     private _vertexNormals: number[];
-    private _faces: Face[][];
+    private _faces: { [material: string]: Face[] };
 
     private _materials: { [materialName: string]: Material };
     private _materialsLoaded: number;
@@ -50,10 +51,8 @@ export default class Mesh extends LinkedTransformations {
         this._materialCallback = new Callback(this._materialIsReady, this);
     }
 
-		public fillBuffers(vertexes : number[], vertexTexture : number[],
-											 vertexNormals : number[], faces : Face[][],
-											 materials : {[materialName:string] : Material}) : void {
-
+    public fillBuffers(vertexes: number[], vertexTexture: number[], vertexNormals: number[],
+                       faces: { [material: string]: Face[] }, materials: { [materialName: string]: Material }): void {
         this._vertexes = vertexes;
         this._vertextTextures = vertexTexture;
         this._vertexNormals = vertexNormals;
@@ -61,20 +60,20 @@ export default class Mesh extends LinkedTransformations {
         this._materials = materials;
     }
 
-		public initBuffers(materials? : {[materialName:string] : Material}) : void {
-			let
-				indexes = [],
-				colors = [],
-				textures = [],
-				normals = [],
-				positions = [],
-				indexesPerMaterial = {},
-				vertex : Vertex,
-				itemSize : number,
-				vectorColors : number[],
-				i, j, k,
-				counter,
-				material;
+    public initBuffers(materials?: { [materialName: string]: Material }): void {
+        let
+            indexes = [],
+            colors = [],
+            textures = [],
+            normals = [],
+            positions = [],
+            indexesPerMaterial: {[material:string]: number} = {},
+            vertex: Vertex,
+            itemSize: number,
+            vectorColors: number[],
+            i, j, k,
+            counter,
+            material;
 
         this._materials[Mesh.defaultMaterialName].callback(this._materialCallback);
         if (typeof materials !== 'undefined') {
@@ -182,36 +181,36 @@ export default class Mesh extends LinkedTransformations {
         return this;
     }
 
-		/** Create the same mesh with unique transformation
-		 * Other parameters just will be copied */
-		public transformationClone() : Mesh {
-			let mesh = new Mesh(this._webGL);
-			mesh._vertexes = this._vertexes;
-			mesh._vertextTextures = this._vertextTextures;
-			mesh._vertexNormals = this._vertexNormals;
-			mesh._faces = this._faces;
-			mesh._materials = this._materials;
-			mesh._materialsLoaded = this._materialsLoaded;
-			mesh._isReady = this._isReady;
-			mesh._bufferBoxes = this._bufferBoxes;
-			mesh._materialCallback = this._materialCallback;
-			if (!this._isReady) {
-				this._transformationChildren.push(mesh);
-			}
-			return mesh;
-		}
+    /** Create the same mesh with unique transformation
+     * Other parameters just will be copied */
+    public transformationClone(): Mesh {
+        let mesh = new Mesh(this._webGL);
+        mesh._vertexes = this._vertexes;
+        mesh._vertextTextures = this._vertextTextures;
+        mesh._vertexNormals = this._vertexNormals;
+        mesh._faces = this._faces;
+        mesh._materials = this._materials;
+        mesh._materialsLoaded = this._materialsLoaded;
+        mesh._isReady = this._isReady;
+        mesh._bufferBoxes = this._bufferBoxes;
+        mesh._materialCallback = this._materialCallback;
+        if (!this._isReady) {
+            this._transformationChildren.push(mesh);
+        }
+        return mesh;
+    }
 
-		// TODO : finish implementation
-		private static _fixNormals(normals : number[], vertexes : number[], face : Face, counter) {
-			let i : number,
-				j : number,
-				p : number[],
-				point : Vector3[] = [],
-				normal : Vector3,
-				U : Vector3, V : Vector3,
-				itemSize = 3,
-				multiplier : number,
-				isFixNeeded = false;
+    // TODO : finish implementation
+    private static _fixNormals(normals: number[], vertexes: number[], face: Face, counter: number) {
+        let i: number,
+            j: number,
+            p: number[],
+            point: Vector3[] = [],
+            normal: Vector3,
+            U: Vector3, V: Vector3,
+            itemSize = 3,
+            multiplier: number,
+            isFixNeeded = false;
 
         for (i = 0; i < face.vertexes.length; i++) {
             if (face.vertexes[i].normalIndex < 0) {
@@ -248,10 +247,10 @@ export default class Mesh extends LinkedTransformations {
         }
     }
 
-		private _materialIsReady() {
-			let loaded = true,
-				material : string,
-				child : Mesh;
+    private _materialIsReady() {
+        let loaded = true,
+            material: string,
+            child: Mesh;
 
         for (material in this._materials) {
             if (this._materials.hasOwnProperty(material) && !this._materials[material].ready) {
