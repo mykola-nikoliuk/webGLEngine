@@ -10,7 +10,7 @@ export default class BuffersBox {
     private _indexesPerMaterial: any;
     private _webGL: any;
 
-    constructor(webGL: WebGL3dRenderingContext, indexes: number[], positions: number[], normals: number[], colors: number[], textures: number[], indexesPerMaterial: {[material: string]: number}) {
+    constructor(webGL: WebGL3dRenderingContext, indexes: number[], positions: number[], normals: number[], colors: number[], textures: number[], indexesPerMaterial: { [material: string]: number }) {
         this._webGL = webGL;
         this._indexesPerMaterial = indexesPerMaterial;
         this._indexBuffer = this._bindBuffer(indexes, this._webGL.ELEMENT_ARRAY_BUFFER, Uint16Array, 1);

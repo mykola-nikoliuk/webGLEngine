@@ -11,12 +11,12 @@ import BuffersBox from "./classes/mesh/BuffersBox";
 import Material from "./classes/mesh/Material";
 import Camera from "./classes/Camera";
 import Debugger from "./classes/Debugger";
-import {requestManager, getFileNameFromPath} from "./classes/utils/Utils";
+import {getFileNameFromPath, requestManager} from "./classes/utils/Utils";
 import Shader from "./classes/Shader";
 import Face from "./classes/mesh/Face";
 import Vertex from "./classes/mesh/Vertex";
 import Vector3 from "./classes/common/Vector3";
-import {WebGL3dProgram, WebGL3dRenderingContext} from "./classes/Interfaces"
+import {WebGL3dProgram, WebGL3dRenderingContext} from "./classes/Interfaces";
 const {log, warning, error} = console;
 
 export default class Engine {

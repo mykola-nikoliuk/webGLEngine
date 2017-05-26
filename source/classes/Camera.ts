@@ -2,7 +2,7 @@ import Pool from "./common/Pool";
 import Vector3 from "./common/Vector3";
 import Transformations from "./common/Transformations";
 import LinkedTransformations from "./common/LinkedTransformations";
-import console from './utils/Console';
+import console from "./utils/Console";
 const {error} = console;
 
 class CameraType {

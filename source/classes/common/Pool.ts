@@ -1,4 +1,4 @@
-import console from '../utils/Console';
+import console from "../utils/Console";
 const {error, warning} = console;
 
 export default class Pool<T> {

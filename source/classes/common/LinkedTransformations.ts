@@ -1,5 +1,5 @@
-import Transformations from './Transformations';
-import console from '../utils/Console';
+import Transformations from "./Transformations";
+import console from "../utils/Console";
 import Matrix4 from "./Matrix4";
 const {error, warning} = console;
 

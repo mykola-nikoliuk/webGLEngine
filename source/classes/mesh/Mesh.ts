@@ -67,7 +67,7 @@ export default class Mesh extends LinkedTransformations {
             textures = [],
             normals = [],
             positions = [],
-            indexesPerMaterial: {[material:string]: number} = {},
+            indexesPerMaterial: { [material: string]: number } = {},
             vertex: Vertex,
             itemSize: number,
             vectorColors: number[],

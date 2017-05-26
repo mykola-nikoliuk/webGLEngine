@@ -1,5 +1,5 @@
 import Subscribe from "./Subscribe";
-import Mesh from './mesh/Mesh';
+import Mesh from "./mesh/Mesh";
 import Engine from "../WebGLEngine";
 
 export default class Controller extends Subscribe {
