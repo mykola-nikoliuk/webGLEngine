@@ -130,7 +130,7 @@ function getFilesRecursive(folder, filter) {
 var config = {
 	folders : {
 		root        : path.join(path.dirname(process.argv[1]), '../..'),
-		project     : 'source',
+		project     : 'src',
 		build       : 'build',
 		release     : 'release',
 		shaders     : 'shaders',
@@ -174,20 +174,3 @@ copyFile(path.join(projectFolder, config.mainDTS), (path.join(releaseFolder, con
 process.chdir(releaseFolder);
 
 console.log('DONE');
-
-// copy release
-//copyDir(
-//	path.join(releaseFolder),
-//	path.join(exampleProjectFolder)
-//);
-
-//copyFile('webGLEngine.js', '../sample/js/webGLEngine.js');
-//rmDir('../build/release');
-//copyDir('../source/shaders', '../build/release/');
-//copyFile('webGLEngine.js.map', '../sample/js/webGLEngine.js.map');
-
-/*
- console.dir(getFilesRecursive('D://media', function(fileName) {
- return fileName.indexOf('.jpg') < 0;
- }));
- */

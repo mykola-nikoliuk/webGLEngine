@@ -20,7 +20,8 @@
 
 module WebGLEngine {
 
-	export var Console = new Utils.Console();
+	import Light = WebGLEngine.Types.Light;
+  export var Console = new Utils.Console();
 
 	export class Engine {
 
@@ -189,8 +190,11 @@ module WebGLEngine {
 						if (this._isLightingEnable) {
 							var lightEnables = [], directions = [], colors = [], distances = [],
 								direction, color;
+              let ambientColor = [0, 0, 0];
 
 							for (i = 0; i < this._lights.length; i++) {
+                if (this._lights[i].type === Light.Types.AMBIENT) continue;
+
 								direction = this._lights[i].direction;
 								color = this._lights[i].color;
 								lightEnables.push(this._lights[i].isEnabled());
@@ -203,9 +207,15 @@ module WebGLEngine {
 								distances.push(this._lights[i].distance)
 							}
 
-							this._gl.uniform1fv(this._shaderProgram.lightingDistanceUniform, distances);
-							this._gl.uniform3fv(this._shaderProgram.lightColorUniform, colors);
-							this._gl.uniform3fv(this._shaderProgram.lightingDirectionUniform, directions);
+              const ambientLight = this._lights.find(light => light.type === Light.Types.AMBIENT);
+              if (ambientLight) {
+                ambientColor = ambientLight.color.getArray();
+              }
+
+              this._gl.uniform3fv(this._shaderProgram.ambientColorUniform, ambientColor);
+              this._gl.uniform1i(this._shaderProgram.lightCountUniform, lightEnables.length);
+              this._gl.uniform3fv(this._shaderProgram.lightPositionUniform, directions);
+              this._gl.uniform3fv(this._shaderProgram.lightColorUniform, colors);
 							this._gl.uniform1f(this._shaderProgram.materialSpecular, meshMaterial.specular);
 						}
 
@@ -386,11 +396,10 @@ module WebGLEngine {
 			this._shaderProgram.nMatrixUniform = this._gl.getUniformLocation(this._shaderProgram, "uNMatrix");
 			this._shaderProgram.samplerUniform = this._gl.getUniformLocation(this._shaderProgram, "uSampler");
 			this._shaderProgram.useLightingUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLighting");
-			this._shaderProgram.useLightUniform = this._gl.getUniformLocation(this._shaderProgram, "uUseLight");
+      this._shaderProgram.lightCountUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightCount");
+      this._shaderProgram.lightPositionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightPosition");
+      this._shaderProgram.lightColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightColor");
 			this._shaderProgram.ambientColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uAmbientColor");
-			this._shaderProgram.lightingDirectionUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDirection");
-			this._shaderProgram.lightColorUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightColor");
-			this._shaderProgram.lightingDistanceUniform = this._gl.getUniformLocation(this._shaderProgram, "uLightDistance");
 			this._shaderProgram.textureEnabled = this._gl.getUniformLocation(this._shaderProgram, "uUseTexture");
 			this._shaderProgram.materialSpecular = this._gl.getUniformLocation(this._shaderProgram, "uMaterialSpecular");
 			this._shaderProgram.materialDissolved = this._gl.getUniformLocation(this._shaderProgram, "uMaterialDissolved");

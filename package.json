@@ -1,9 +1,16 @@
 {
-  "name": "webGLEngine",
+  "name": "webgl-engine",
   "description": "The library that can simplify work with webGL",
-  "version": "0.4.0",
+  "version": "0.5.0",
+  "scripts": {
+    "clean": "rm -rf ./build",
+    "build:engine": "npm run clean && tsc src/WebGLEngine.ts --outFile src/WebGLEngine.js --target es2015",
+    "build:example": "tsc example/src/main.ts --outFile example/src/main.js --sourcemap --target es2015",
+    "build": "npm run build:engine && npm run build:example && node ./tools/config/build.js",
+    "serve": "npm run build:example && http-server ./ -c-1 -o ./example/index.html"
+  },
   "author": {
-    "name": "Nick Nickoliuk"
+    "name": "Mykola Nickoliuk"
   },
   "repository": {
     "type": "git",
@@ -11,10 +18,11 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=0.13.0.pre"
+    "node": ">=18.0"
   },
   "dependencies": {
-    "typescript": ">=1.5.4",
-    "colors": ">=1.0.3"
+    "colors": "latest",
+    "http-server": "^14.1.1",
+    "typescript": "latest"
   }
 }

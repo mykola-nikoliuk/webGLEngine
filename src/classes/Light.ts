@@ -4,7 +4,8 @@ module WebGLEngine.Types {
 
 		public static Types = {
 			DIRECTIONAL: 1,
-			POINT      : 2
+			POINT: 2,
+      AMBIENT: 3,
 		};
 
 		private _type : number;
@@ -14,7 +15,7 @@ module WebGLEngine.Types {
 		private _position : Vector3;
 		private _direction : Vector3;
 
-		constructor(type : number, color : Vector3, positionDirection : Vector3, distance? : number) {
+		constructor(type : number, color : Vector3, positionDirection : Vector3 = new Vector3(), distance? : number) {
 			this._enabled = true;
 			this._type = type;
 			this._color = color;
@@ -66,5 +67,9 @@ module WebGLEngine.Types {
 		get direction() : Vector3 {
 			return this._direction;
 		}
+
+    get type() {
+      return this._type;
+    }
 	}
 }
